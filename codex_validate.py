@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 
 SKILL_NAME = "fp-check"
-DEFAULT_MODEL = "gpt-5"
+DEFAULT_MODEL = "gpt-5.4"
 PROJECT_ROOT = Path(__file__).resolve().parent
 
 
