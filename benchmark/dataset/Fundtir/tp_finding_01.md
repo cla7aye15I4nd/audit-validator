@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/CertiKProject/certik-audit-projects/69237546050132f2b550a0e4c766770c981a7341/projects/fundtir/base/contracts/FundtirStaking.sol`
+- **Local path:** `./src/projects/fundtir/base/contracts/FundtirStaking.sol`
 - **ACC link:** https://acc.audit.certikpowered.info/project/e7e5e820-8d8b-11f0-9082-8d49bdd37ed2/source?file=$/github/CertiKProject/certik-audit-projects/69237546050132f2b550a0e4c766770c981a7341/projects/fundtir/base/contracts/FundtirStaking.sol
 - **Lines:** 537–538
 

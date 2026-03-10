@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/gameofsilks/Silks-Contracts/f20dcf493ca2c002b3c20f979b908cb4add58983/MarketplaceV2/contracts/facets/listing/ListingWriteableFacet.sol`
+- **Local path:** `./src/MarketplaceV2/contracts/facets/listing/ListingWriteableFacet.sol`
 - **ACC link:** https://acc.audit.certikpowered.info/project/3b0e52d0-c146-11ee-ae19-71a31a818f9a/source?file=$/github/gameofsilks/Silks-Contracts/f20dcf493ca2c002b3c20f979b908cb4add58983/MarketplaceV2/contracts/facets/listing/ListingWriteableFacet.sol
 - **Lines:** 98–98
 

@@ -3,7 +3,7 @@
   "title": "IDO Can Not Be Ended Successfully",
   "location": {
     "acc_file_path": "https://acc.audit.certikpowered.info/project/c08d7760-3cf7-11ef-be39-7174154c7792/source?file=$/github/xxb-chain/safepump-contract/588179c50968aa6da0ddbd4d04cd0c4ef80a58d9/contracts/swap/Starter.sol",
-    "local_file_path": "./source_code/github/xxb-chain/safepump-contract/588179c50968aa6da0ddbd4d04cd0c4ef80a58d9/contracts/swap/Starter.sol",
+    "local_file_path": "./src/contracts/swap/Starter.sol",
     "start_line": 151,
     "end_line": 154
   },

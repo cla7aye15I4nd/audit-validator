@@ -8,7 +8,7 @@
     "end_line": 1,
     "start_line": 1,
     "acc_file_path": "https://acc.audit.certikpowered.info/project/c0b155c0-ce9d-11f0-afef-b3f141791562/source?file=$/github/Liberty-Games/sixr-bridge-watchers/20fc6b15b4134cdd724fa8a0b8d0f1f7d4981856/contracts/ton/bridge-multisig.fc",
-    "local_file_path": "./source_code/github/Liberty-Games/sixr-bridge-watchers/20fc6b15b4134cdd724fa8a0b8d0f1f7d4981856/contracts/ton/bridge-multisig.fc"
+    "local_file_path": "./src/contracts/ton/bridge-multisig.fc"
   },
   "scenario": "",
   "sequence": 29,
@@ -17,7 +17,7 @@
   "description": "In execute_withdraw_ton_funds, both `send_raw_message` constructions use `.store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)` followed by `.store_ref(msg_body/log)`, which appears to encode `init=0` and `body` as inline while still storing the body as a ref. This can produce a malformed/non-canonical message body (e.g., recipient sees an empty-bit body with an unexpected ref), increasing the chance of bounces or unexpected parsing failures, and undermining the intended inclusion of the comment/log payload. Align the encoding with the pattern used elsewhere in the contract when sending a body by reference (store the `body_in_ref` bit explicitly, e.g., store the init bit then `.store_uint(1,1)` before `.store_ref(body)`).",
   "related_pid": "c0b155c0-ce9d-11f0-afef-b3f141791562",
   "triage_reason": null,
-  "recommendation": "- In both send_raw_message constructions in execute_withdraw_ton_funds that use “.store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)” followed by “.store_ref(msg_body/log)”, set the body-in-ref bit to 1 before storing the ref and keep init=0. Do not encode an inline body and a ref simultaneously.\n- If you choose an inline body instead, set body-in-ref=0 and write the body inline; do not call .store_ref in that case.\n- Align this encoding with the pattern used elsewhere in the contract for ref bodies to maintain canonical message layout and avoid bounces/parsing errors.\n- Verify via decoding/tests that the emitted messages include the intended comment/log payload and are accepted by standard parsers/wallets.",
+  "recommendation": "- In both send_raw_message constructions in execute_withdraw_ton_funds that use \u201c.store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)\u201d followed by \u201c.store_ref(msg_body/log)\u201d, set the body-in-ref bit to 1 before storing the ref and keep init=0. Do not encode an inline body and a ref simultaneously.\n- If you choose an inline body instead, set body-in-ref=0 and write the body inline; do not call .store_ref in that case.\n- Align this encoding with the pattern used elsewhere in the contract for ref bodies to maintain canonical message layout and avoid bounces/parsing errors.\n- Verify via decoding/tests that the emitted messages include the intended comment/log payload and are accepted by standard parsers/wallets.",
   "triage_verdict": "valid",
   "related_context": null,
   "scan_model_name": null,

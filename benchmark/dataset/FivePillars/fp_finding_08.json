@@ -1,7 +1,7 @@
 {
   "title": "Minimum Net Deposit Requirement Bypass",
   "location": {
-    "local_file_path": "./source_code/github/fivepillarstoken/InvestmentManager/9af8be2c4e53218770015a10ea269caa904fde19/InvestmentManager.sol",
+    "local_file_path": "./src/InvestmentManager.sol",
     "acc_file_path": "https://acc.audit.certikpowered.info/project/a41cefe0-4159-11f0-a06b-992008d4f8aa/source?file=$/github/fivepillarstoken/InvestmentManager/9af8be2c4e53218770015a10ea269caa904fde19/InvestmentManager.sol",
     "start_line": 1,
     "end_line": 1
@@ -10,7 +10,7 @@
   "category": null,
   "severity": null,
   "confidence": null,
-  "description": "The function enforces the minimum first-deposit requirement (_checkDepositOrClaimAmount) on the _gross_ amount parameter, not on the _net_ amount (toInvestor) actually credited. Because the deposit fee is deducted after this check, an attacker can make a first deposit that passes the gross threshold but results in a much smaller net deposit.\n\nExploit Steps:\n1. Assume depositFeeInBp is non-zero (e.g. 50% = 5,000 bp) and the minimum deposit is 1 × 10¹⁸ (1 token).\n2. Call deposit(amount = 1 × 10¹⁸, referer = address(0)).\n   - _checkDepositOrClaimAmount sees amount ≥ 1 × 10¹⁸ and allows the deposit.\n   - Fee = amount × 5,000 / 10,000 = 0.5 × 10¹⁸.\n   - toInvestor = amount – fee = 0.5 × 10¹⁸.\n   - Only 0.5 token is actually credited in totalDeposit.\n3. The attacker is now a “first-time” depositor (isFirstDeposit) and gains whatever benefits are tied to being a participant (pool inclusion, referral eligibility, etc.) while only depositing 0.5 token net.\n\nImpact: The attacker pays half a token net but obtains full participant rights (e.g. equal share in pool rewards or referral counts) as if they had deposited the full minimum. This allows under-funded participation and unfair reward extraction.",
+  "description": "The function enforces the minimum first-deposit requirement (_checkDepositOrClaimAmount) on the _gross_ amount parameter, not on the _net_ amount (toInvestor) actually credited. Because the deposit fee is deducted after this check, an attacker can make a first deposit that passes the gross threshold but results in a much smaller net deposit.\n\nExploit Steps:\n1. Assume depositFeeInBp is non-zero (e.g. 50% = 5,000 bp) and the minimum deposit is 1 \u00d7 10\u00b9\u2078 (1 token).\n2. Call deposit(amount = 1 \u00d7 10\u00b9\u2078, referer = address(0)).\n   - _checkDepositOrClaimAmount sees amount \u2265 1 \u00d7 10\u00b9\u2078 and allows the deposit.\n   - Fee = amount \u00d7 5,000 / 10,000 = 0.5 \u00d7 10\u00b9\u2078.\n   - toInvestor = amount \u2013 fee = 0.5 \u00d7 10\u00b9\u2078.\n   - Only 0.5 token is actually credited in totalDeposit.\n3. The attacker is now a \u201cfirst-time\u201d depositor (isFirstDeposit) and gains whatever benefits are tied to being a participant (pool inclusion, referral eligibility, etc.) while only depositing 0.5 token net.\n\nImpact: The attacker pays half a token net but obtains full participant rights (e.g. equal share in pool rewards or referral counts) as if they had deposited the full minimum. This allows under-funded participation and unfair reward extraction.",
   "scenario": null,
   "proof_of_concept": null,
   "recommendation": null,

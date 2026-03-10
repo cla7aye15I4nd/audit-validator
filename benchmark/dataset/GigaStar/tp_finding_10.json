@@ -8,7 +8,7 @@
     "end_line": 1,
     "start_line": 1,
     "acc_file_path": "https://acc.audit.certikpowered.info/project/7b519e30-d10a-11f0-a5a1-c38d49d0912c/source?file=$/github/GigaStarIo-public/vault-audit/0b8edde27935e70ed3decbb30508bde926edf57c/bd/bc-contract/contract/v1_0/Box.sol",
-    "local_file_path": "./source_code/github/GigaStarIo-public/vault-audit/0b8edde27935e70ed3decbb30508bde926edf57c/bd/bc-contract/contract/v1_0/Box.sol"
+    "local_file_path": "./src/bd/bc-contract/contract/v1_0/Box.sol"
   },
   "scenario": "",
   "sequence": 300,
@@ -17,7 +17,7 @@
   "description": "In `_approve`, the `ApprovalUpdated` event is emitted as `emit ApprovalUpdated(_name, ti.tokSym, _name, ...)`, but the event signature is `(boxNameHash, boxName, tokSym, token, spender, oldAllowance, newAllowance)`. This swaps `boxName` and `tokSym` in emitted logs, breaking off-chain indexing/monitoring of approval changes and potentially causing missed/incorrect alerting or accounting around approvals.",
   "related_pid": "7b519e30-d10a-11f0-a5a1-c38d49d0912c",
   "triage_reason": null,
-  "recommendation": "- Update the emit in _approve so the arguments match the ApprovalUpdated signature: (boxNameHash, boxName, tokSym, token, spender, oldAllowance, newAllowance). The current call emits as “emit ApprovalUpdated(_name, ti.tokSym, _name, …)”, which swaps boxName and tokSym; ensure the second argument is the actual boxName and the third is tokSym.\n- If the boxName value is not available at the call site, pass it through or persist it so both boxNameHash and boxName are emitted correctly and distinctly.\n- Add tests that decode the event log and assert each parameter’s position and value (including indexed vs. non-indexed fields) to prevent regressions.\n- Document the change and notify indexers/integrators that historical logs have incorrect ordering; consider a version bump or a new event name if backward compatibility is required.",
+  "recommendation": "- Update the emit in _approve so the arguments match the ApprovalUpdated signature: (boxNameHash, boxName, tokSym, token, spender, oldAllowance, newAllowance). The current call emits as \u201cemit ApprovalUpdated(_name, ti.tokSym, _name, \u2026)\u201d, which swaps boxName and tokSym; ensure the second argument is the actual boxName and the third is tokSym.\n- If the boxName value is not available at the call site, pass it through or persist it so both boxNameHash and boxName are emitted correctly and distinctly.\n- Add tests that decode the event log and assert each parameter\u2019s position and value (including indexed vs. non-indexed fields) to prevent regressions.\n- Document the change and notify indexers/integrators that historical logs have incorrect ordering; consider a version bump or a new event name if backward compatibility is required.",
   "triage_verdict": "valid",
   "related_context": null,
   "scan_model_name": null,

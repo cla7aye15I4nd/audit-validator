@@ -3,7 +3,7 @@
   "title": "`userLiquidityCheck()` WIll Not Be Able To Liquidate Users If They Pass Check Once",
   "location": {
     "acc_file_path": "https://acc.audit.certikpowered.info/project/234c8620-4de2-11ef-8bdf-012e5d16c648/source?file=$/github/Koyo-Token/Koyo/c8b17c021fc108f5f2236da2d2337adff2db0ce3/facets/MarginAccountsFacet.sol",
-    "local_file_path": "./source_code/github/Koyo-Token/Koyo/c8b17c021fc108f5f2236da2d2337adff2db0ce3/facets/MarginAccountsFacet.sol",
+    "local_file_path": "./src/c8b17c021fc108f5f2236da2d2337adff2db0ce3/facets/MarginAccountsFacet.sol",
     "start_line": 158,
     "end_line": 181
   },

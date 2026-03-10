@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/gitlab/adc-stablecoin/adc-contracts/b7e6f6a3f0a65c608378c49e96cf468f077df87b/ADC.sol`
+- **Local path:** `./src/ADC.sol`
 - **ACC link:** https://acc.audit.certikpowered.info/project/5f0618f0-7cd8-11ef-88bc-cde2c27fc0ff/source?file=$/gitlab/adc-stablecoin/adc-contracts/b7e6f6a3f0a65c608378c49e96cf468f077df87b/ADC.sol
 - **Lines:** 616–628
 

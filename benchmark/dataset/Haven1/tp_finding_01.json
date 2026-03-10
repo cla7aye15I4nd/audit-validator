@@ -3,7 +3,7 @@
   "title": "Improper Assignment of \"NONE\" Role Bypasses Admin Permissions",
   "location": {
     "acc_file_path": "https://acc.audit.certikpowered.info/project/43102ce0-cb15-11ef-9d05-1b0897613b78/source?file=$/github/haven1network/permissions-contracts-sc/f5f7b8beb513703eb8eec894e1bcb73e71598262/contracts/RoleManager.sol",
-    "local_file_path": "./source_code/github/haven1network/permissions-contracts-sc/f5f7b8beb513703eb8eec894e1bcb73e71598262/contracts/RoleManager.sol",
+    "local_file_path": "./src/contracts/RoleManager.sol",
     "start_line": 70,
     "end_line": 70
   },

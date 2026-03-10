@@ -3,7 +3,7 @@
   "title": "Locked Funds If Taker Creates Buy Order With Price Above Market Price",
   "location": {
     "acc_file_path": "https://acc.audit.certikpowered.info/project/f03adfd0-ab7c-11f0-96ab-8b123d6a0fc2/source?file=$/github/devervalue/orderbook/0c7c8686c79ba951fedb3173822077b159b3829b/src/PairLib.sol",
-    "local_file_path": "./source_code/github/devervalue/orderbook/0c7c8686c79ba951fedb3173822077b159b3829b/src/PairLib.sol",
+    "local_file_path": "./src/src/PairLib.sol",
     "start_line": 567,
     "end_line": 567
   },

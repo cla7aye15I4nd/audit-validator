@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/kaiachain/go-ethereum/6101af6996bf7b18cc86c89fae7bb0425663fc24/core/types/tx_input.go`
+- **Local path:** `./src/core/types/tx_input.go`
 - **ACC link:** https://acc.audit.certikpowered.info/project/af456cf0-7d25-11f0-908b-c3b3b024b0ed/source?file=$/github/kaiachain/go-ethereum/6101af6996bf7b18cc86c89fae7bb0425663fc24/core/types/tx_input.go
 - **Lines:** 572–572
 

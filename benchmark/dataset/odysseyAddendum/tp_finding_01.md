@@ -10,7 +10,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/CertiKProject/client-upload-projects/d6d5dbf7932a19a1cb71ec3b0a4655b993e055b8/nf9uLcSVXapPUgrNAQJ4ee/ADSMarket.sol`
+- **Local path:** `./src/ADSMarket.sol`
 - **ACC link:** https://acc.audit.certikpowered.info/project/bc55baa0-c517-11f0-a838-53cc3f14fdf2/source?file=$/github/CertiKProject/client-upload-projects/d6d5dbf7932a19a1cb71ec3b0a4655b993e055b8/nf9uLcSVXapPUgrNAQJ4ee/ADSMarket.sol
 - **Lines:** 480–486
 

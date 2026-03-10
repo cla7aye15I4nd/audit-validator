@@ -3,7 +3,7 @@
   "title": "DoS Situation of Transfer BABY Token",
   "location": {
     "acc_file_path": "https://acc.audit.certikpowered.info/project/40f87c60-9f63-11ef-9b50-5f24ad33b80d/source?file=$/bsc/mainnet/0x7f0fd26847c8bf4beb1ba80570d7f93f33333333/BABY.sol",
-    "local_file_path": "./source_code/bsc/mainnet/0x7f0fd26847c8bf4beb1ba80570d7f93f33333333/BABY.sol",
+    "local_file_path": "./src/BABY.sol",
     "start_line": 1185,
     "end_line": 1185
   },

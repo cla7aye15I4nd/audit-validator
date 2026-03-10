@@ -1,7 +1,7 @@
 {
   "title": "Reentrancy in `_createNFT` Leads to Inconsistent Ledger State",
   "location": {
-    "local_file_path": "./source_code/github/GLBank/Web3/54b12f25ff139912cbddcc316c940624a64687cf/GLDB Pulse Contracts/ENT&Swap/NFT.sol",
+    "local_file_path": "./src/GLDB Pulse Contracts/ENT&Swap/NFT.sol",
     "acc_file_path": "https://acc.audit.certikpowered.info/project/b619bc20-116e-11f0-85f2-afceaa02a7b6/source?file=$/github/GLBank/Web3/54b12f25ff139912cbddcc316c940624a64687cf/GLDB Pulse Contracts/ENT&Swap/NFT.sol",
     "start_line": 1,
     "end_line": 1

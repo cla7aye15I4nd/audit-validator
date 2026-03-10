@@ -1,7 +1,7 @@
 {
   "title": "External transferFrom call before state update in deposit",
   "location": {
-    "local_file_path": "./source_code/github/fivepillarstoken/InvestmentManager/9af8be2c4e53218770015a10ea269caa904fde19/InvestmentManager.sol",
+    "local_file_path": "./src/InvestmentManager.sol",
     "acc_file_path": "https://acc.audit.certikpowered.info/project/a41cefe0-4159-11f0-a06b-992008d4f8aa/source?file=$/github/fivepillarstoken/InvestmentManager/9af8be2c4e53218770015a10ea269caa904fde19/InvestmentManager.sol",
     "start_line": 1,
     "end_line": 1
@@ -10,9 +10,9 @@
   "category": "",
   "severity": "high",
   "confidence": null,
-  "description": "In \"deposit\", fivePillarsToken.transferFrom is called before updating investor.lastDepositTimestamp and investor.totalDeposit, violating Checks-Effects-Interactions and allowing reentrancy if the token contract is malicious.Move the external call to fivePillarsToken.transferFrom after updating all relevant state variables, or add a ReentrancyGuard to the deposit function.1. Assume a malicious FivePillarsToken contract that on transferFrom invokes deposit() via reentrancy. 2. Attacker calls deposit(1e18, address(0)). 3. During transferFrom, malicious token’s hook reenters deposit. 4. Reentrancy bypasses depositDelay and other checks since state not updated yet, enabling multiple deposits in one tx. 5. Attacker increases totalDeposit multiple times for minimal actual transfer.",
+  "description": "In \"deposit\", fivePillarsToken.transferFrom is called before updating investor.lastDepositTimestamp and investor.totalDeposit, violating Checks-Effects-Interactions and allowing reentrancy if the token contract is malicious.Move the external call to fivePillarsToken.transferFrom after updating all relevant state variables, or add a ReentrancyGuard to the deposit function.1. Assume a malicious FivePillarsToken contract that on transferFrom invokes deposit() via reentrancy. 2. Attacker calls deposit(1e18, address(0)). 3. During transferFrom, malicious token\u2019s hook reenters deposit. 4. Reentrancy bypasses depositDelay and other checks since state not updated yet, enabling multiple deposits in one tx. 5. Attacker increases totalDeposit multiple times for minimal actual transfer.",
   "scenario": null,
-  "proof_of_concept": "1. Assume a malicious FivePillarsToken contract that on transferFrom invokes deposit() via reentrancy. 2. Attacker calls deposit(1e18, address(0)). 3. During transferFrom, malicious token’s hook reenters deposit. 4. Reentrancy bypasses depositDelay and other checks since state not updated yet, enabling multiple deposits in one tx. 5. Attacker increases totalDeposit multiple times for minimal actual transfer.",
+  "proof_of_concept": "1. Assume a malicious FivePillarsToken contract that on transferFrom invokes deposit() via reentrancy. 2. Attacker calls deposit(1e18, address(0)). 3. During transferFrom, malicious token\u2019s hook reenters deposit. 4. Reentrancy bypasses depositDelay and other checks since state not updated yet, enabling multiple deposits in one tx. 5. Attacker increases totalDeposit multiple times for minimal actual transfer.",
   "recommendation": "Move the external call to fivePillarsToken.transferFrom after updating all relevant state variables, or add a ReentrancyGuard to the deposit function.",
   "id": "31bf",
   "duplicates": null,

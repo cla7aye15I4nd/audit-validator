@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/GalaChain/sdk/164644735399110e14ad54c0db3f50ebfad78a63/chaincode/src/contracts/GalaTransaction.ts`
+- **Local path:** `./src/chaincode/src/contracts/GalaTransaction.ts`
 - **ACC link:** https://acc.audit.certikpowered.info/project/2e0c71e0-9311-11f0-8617-07932f2b3ecc/source?file=$/github/GalaChain/sdk/164644735399110e14ad54c0db3f50ebfad78a63/chaincode/src/contracts/GalaTransaction.ts
 - **Lines:** 196–197
 

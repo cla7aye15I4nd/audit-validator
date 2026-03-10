@@ -1,7 +1,7 @@
 {
   "title": "Banned Users Can Receive Battle and Referral Rewards",
   "location": {
-    "local_file_path": "./source_code/github/CertiKProject/certik-audit-projects/2a2826fcbafb5bed23f57406cc61e71a3ccffcf2/projects/anome 2/shop/battle/BattleServiceInternal.sol",
+    "local_file_path": "./src/projects/anome 2/shop/battle/BattleServiceInternal.sol",
     "acc_file_path": "https://acc.audit.certikpowered.info/project/e3c45370-51aa-11f0-bdd0-cbef849456d3/source?file=$/github/CertiKProject/certik-audit-projects/2a2826fcbafb5bed23f57406cc61e71a3ccffcf2/projects/anome 2/shop/battle/BattleServiceInternal.sol",
     "start_line": 89,
     "end_line": 102

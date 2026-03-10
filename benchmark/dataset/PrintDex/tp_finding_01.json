@@ -3,7 +3,7 @@
   "title": "Attacker Can Drain Any Pool",
   "location": {
     "acc_file_path": "https://acc.audit.certikpowered.info/project/57a71af0-0f0f-11ef-b522-65e6a878d0aa/source?file=$/github/GageBachik/printDex/e443f0c8af8adcfa60953cefcaab96decc306558/programs/print-dex/src/lib.rs",
-    "local_file_path": "./source_code/github/GageBachik/printDex/e443f0c8af8adcfa60953cefcaab96decc306558/programs/print-dex/src/lib.rs",
+    "local_file_path": "./src/programs/print-dex/src/lib.rs",
     "start_line": 210,
     "end_line": 210
   },

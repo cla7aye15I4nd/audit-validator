@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/AethirCloud/IDC-Contracts-V2/44d2074b48bbc9a18193f23fbf9afacd15f77e3c/contracts/base/RequestVerifier.sol`
+- **Local path:** `./src/contracts/base/RequestVerifier.sol`
 - **ACC link:** https://acc.audit.certikpowered.info/project/61c50ac0-0012-11f0-a6c7-dd487ba7c9c0/source?file=$/github/AethirCloud/IDC-Contracts-V2/44d2074b48bbc9a18193f23fbf9afacd15f77e3c/contracts/base/RequestVerifier.sol
 - **Lines:** 73–88
 

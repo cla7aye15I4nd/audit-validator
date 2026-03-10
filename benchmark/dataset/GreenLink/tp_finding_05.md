@@ -13,7 +13,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/GLBank/Web3/54b12f25ff139912cbddcc316c940624a64687cf/GLDB Pulse Contracts/ENT&Swap/NFT.sol`
+- **Local path:** `./src/GLDB Pulse Contracts/ENT&Swap/NFT.sol`
 - **ACC link:** https://acc.audit.certikpowered.info/project/b619bc20-116e-11f0-85f2-afceaa02a7b6/source?file=$/github/GLBank/Web3/54b12f25ff139912cbddcc316c940624a64687cf/GLDB Pulse Contracts/ENT&Swap/NFT.sol
 - **Lines:** 1–1
 

@@ -3,7 +3,7 @@
   "title": "Pendle Oracle Does Not Always Return Rate Scaled By The Underlying Decimals",
   "location": {
     "acc_file_path": "https://acc.audit.certikpowered.info/project/8ab17f70-b8e3-11ef-a996-75baa03c0028/source?file=$/github/VenusProtocol/oracle/97d37973628a56f8bbd1a8c6d0b3301602fe4aae/contracts/oracles/PendleOracle.sol",
-    "local_file_path": "./source_code/github/VenusProtocol/oracle/97d37973628a56f8bbd1a8c6d0b3301602fe4aae/contracts/oracles/PendleOracle.sol",
+    "local_file_path": "./src/contracts/oracles/PendleOracle.sol",
     "start_line": 80,
     "end_line": 85
   },

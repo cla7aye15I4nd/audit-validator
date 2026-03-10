@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/u8-protocol/u8-contract/ce0a43a3882d7e2ac82b457705b51e7d3b5e716b/contracts/Base.sol`
+- **Local path:** `./src/contracts/Base.sol`
 - **ACC link:** https://acc.audit.certikpowered.info/project/9dcb6170-9768-11f0-942e-3b2f23c44445/source?file=$/github/u8-protocol/u8-contract/ce0a43a3882d7e2ac82b457705b51e7d3b5e716b/contracts/Base.sol
 - **Lines:** 21–33
 

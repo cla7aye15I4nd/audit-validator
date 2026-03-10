@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/Qubetics/qubetics-chain-abstraction/9d3440fe169a63244ca5f3080e36096e090865d6/src/adkg_secp256k1/mod.rs`
+- **Local path:** `./src/src/adkg_secp256k1/mod.rs`
 - **ACC link:** https://acc.audit.certikpowered.info/project/8ecb1290-33f6-11f0-9db2-b3c077248e41/source?file=$/github/Qubetics/qubetics-chain-abstraction/9d3440fe169a63244ca5f3080e36096e090865d6/src/adkg_secp256k1/mod.rs
 - **Lines:** 333–339
 

@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/solidity-io/kadena-amm-contracts/d5a54f7c7a18222374b305bc4fcdc074c623312f/contracts/modules/sushi-exchange.pact`
+- **Local path:** `./src/contracts/modules/sushi-exchange.pact`
 - **ACC link:** https://acc.audit.certikpowered.info/project/953e5590-47ad-11f0-8fe7-f5f1ab22f4b9/source?file=$/github/solidity-io/kadena-amm-contracts/d5a54f7c7a18222374b305bc4fcdc074c623312f/contracts/modules/sushi-exchange.pact
 - **Lines:** 248–248
 

@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/CoreumFoundation/coreum/188736cb7d7e3de92f6286201ea4fb2494ae9daf/x/dex/keeper/keeper_matching_result.go`
+- **Local path:** `./src/x/dex/keeper/keeper_matching_result.go`
 - **ACC link:** https://acc.audit.certikpowered.info/project/ac8b6780-bcbe-11ef-b2a6-53871e3ecd80/source?file=$/github/CoreumFoundation/coreum/188736cb7d7e3de92f6286201ea4fb2494ae9daf/x/dex/keeper/keeper_matching_result.go
 - **Lines:** 193–216
 

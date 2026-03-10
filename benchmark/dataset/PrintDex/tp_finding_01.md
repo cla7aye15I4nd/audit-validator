@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/GageBachik/printDex/e443f0c8af8adcfa60953cefcaab96decc306558/programs/print-dex/src/lib.rs`
+- **Local path:** `./src/programs/print-dex/src/lib.rs`
 - **ACC link:** https://acc.audit.certikpowered.info/project/57a71af0-0f0f-11ef-b522-65e6a878d0aa/source?file=$/github/GageBachik/printDex/e443f0c8af8adcfa60953cefcaab96decc306558/programs/print-dex/src/lib.rs
 - **Lines:** 210–210
 

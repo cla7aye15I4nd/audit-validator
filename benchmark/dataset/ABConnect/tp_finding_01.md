@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/CertiKProject/client-upload-projects/1462b23cae774d359b81c2c0d53742ea4b0b6ef8/vW2z4kbYbjsrXduhpA2rbg/tunnel/chain/tasks_dogecoin.go`
+- **Local path:** `./src/tunnel/chain/tasks_dogecoin.go`
 - **ACC link:** https://acc.audit.certikpowered.info/project/c30ae600-5a45-11f0-9989-739d017e346c/source?file=$/github/CertiKProject/client-upload-projects/1462b23cae774d359b81c2c0d53742ea4b0b6ef8/vW2z4kbYbjsrXduhpA2rbg/tunnel/chain/tasks_dogecoin.go
 - **Lines:** 327–334
 

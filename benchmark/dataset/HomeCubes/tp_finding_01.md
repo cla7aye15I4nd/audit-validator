@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/homecub/Smart-Contracts/43b4aad87e5381d861a2c93e006213843a0e75ca/contracts/homecubesStake.sol`
+- **Local path:** `./src/contracts/homecubesStake.sol`
 - **ACC link:** https://acc.audit.certikpowered.info/project/340b4e30-9034-11ef-b974-6b5926513cff/source?file=$/github/homecub/Smart-Contracts/43b4aad87e5381d861a2c93e006213843a0e75ca/contracts/homecubesStake.sol
 - **Lines:** 829–829
 

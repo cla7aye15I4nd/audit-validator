@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/Lumerin-protocol/Morpheus-Lumerin-Node/75269bd207913526bd7b4db0892307a39c0cb9b3/smart-contracts/contracts/StakingMasterChef.sol`
+- **Local path:** `./src/smart-contracts/contracts/StakingMasterChef.sol`
 - **ACC link:** https://acc.audit.certikpowered.info/project/e87cbcc0-50e0-11ef-be7f-a520f1665dc4/source?file=$/github/Lumerin-protocol/Morpheus-Lumerin-Node/75269bd207913526bd7b4db0892307a39c0cb9b3/smart-contracts/contracts/StakingMasterChef.sol
 - **Lines:** 105–106
 

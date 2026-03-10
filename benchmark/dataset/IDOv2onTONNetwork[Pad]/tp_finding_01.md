@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/ChainGPT-org/ton_IDO_contracts/cb9e917ee7191cc63f3095a5ebe160674a9ffd6c/contracts/i_d_o/i_d_o_pool.fc`
+- **Local path:** `./src/contracts/i_d_o/i_d_o_pool.fc`
 - **ACC link:** https://acc.audit.certikpowered.info/project/e91d2cd0-ccf2-11ef-b7b3-991e621d882a/source?file=$/github/ChainGPT-org/ton_IDO_contracts/cb9e917ee7191cc63f3095a5ebe160674a9ffd6c/contracts/i_d_o/i_d_o_pool.fc
 - **Lines:** 850–850
 

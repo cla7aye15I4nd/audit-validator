@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/mwxlabs/smart-contract/79cbc89be144f4150e9b61cd352d6945699c61dd/contracts/staking/MWXStaking.sol`
+- **Local path:** `./src/contracts/staking/MWXStaking.sol`
 - **ACC link:** https://acc.audit.certikpowered.info/project/e4cfc040-765a-11f0-849a-c7ef6369e136/source?file=$/github/mwxlabs/smart-contract/79cbc89be144f4150e9b61cd352d6945699c61dd/contracts/staking/MWXStaking.sol
 - **Lines:** 360–360
 

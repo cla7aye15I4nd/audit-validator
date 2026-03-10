@@ -12,7 +12,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/GigaStarIo-public/vault-audit/0b8edde27935e70ed3decbb30508bde926edf57c/bd/bc-contract/contract/v1_0/Vault.sol`
+- **Local path:** `./src/bd/bc-contract/contract/v1_0/Vault.sol`
 - **ACC link:** https://acc.audit.certikpowered.info/project/7b519e30-d10a-11f0-a5a1-c38d49d0912c/source?file=$/github/GigaStarIo-public/vault-audit/0b8edde27935e70ed3decbb30508bde926edf57c/bd/bc-contract/contract/v1_0/Vault.sol
 - **Lines:** 1–1
 

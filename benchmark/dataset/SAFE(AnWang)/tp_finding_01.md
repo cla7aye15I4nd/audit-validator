@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/SAFE-anwang/SAFE4-system-contract/69e732ace3c61a7b0ab16a3ff49a0b9ab521f5f4/AccountManager.sol`
+- **Local path:** `./src/AccountManager.sol`
 - **ACC link:** https://acc.audit.certikpowered.info/project/e8e6a7b0-9a56-11ef-8e7a-85ed0c9f95ba/source?file=$/github/SAFE-anwang/SAFE4-system-contract/69e732ace3c61a7b0ab16a3ff49a0b9ab521f5f4/AccountManager.sol
 - **Lines:** 127–139
 

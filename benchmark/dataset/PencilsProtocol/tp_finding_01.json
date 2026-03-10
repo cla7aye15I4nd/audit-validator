@@ -3,7 +3,7 @@
   "title": "Incorrect Refund Calculation in `reverse`",
   "location": {
     "acc_file_path": "https://acc.audit.certikpowered.info/project/1fed1c20-02af-11ef-b6bc-1de73d127368/source?file=$/github/PencilsProtocol/audit-pencils-protocol/a751770f1b38a7c7a82f1486ffcae7450fa59580/src/launchpad/PenPadFixedSwapNFT.sol",
-    "local_file_path": "./source_code/github/PencilsProtocol/audit-pencils-protocol/a751770f1b38a7c7a82f1486ffcae7450fa59580/src/launchpad/PenPadFixedSwapNFT.sol",
+    "local_file_path": "./src/src/launchpad/PenPadFixedSwapNFT.sol",
     "start_line": 389,
     "end_line": 391
   },

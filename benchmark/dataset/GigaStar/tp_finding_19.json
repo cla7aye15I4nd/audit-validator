@@ -8,7 +8,7 @@
     "end_line": 1,
     "start_line": 1,
     "acc_file_path": "https://acc.audit.certikpowered.info/project/7b519e30-d10a-11f0-a5a1-c38d49d0912c/source?file=$/github/GigaStarIo-public/vault-audit/0b8edde27935e70ed3decbb30508bde926edf57c/bd/bc-contract/contract/v1_0/Vault.sol",
-    "local_file_path": "./source_code/github/GigaStarIo-public/vault-audit/0b8edde27935e70ed3decbb30508bde926edf57c/bd/bc-contract/contract/v1_0/Vault.sol"
+    "local_file_path": "./src/bd/bc-contract/contract/v1_0/Vault.sol"
   },
   "scenario": "",
   "sequence": 550,
@@ -17,7 +17,7 @@
   "description": "_castVote computes early-rejection with `_accountMgr.aris.voters.length - countNay < quorum`. Because `voters.length` is not snapshotted per proposal, it can decrease after a proposal is Sealed (e.g., via a later role proposal removing voters). If `countNay` (which includes votes from now-removed voters) becomes greater than the current `voters.length`, the subtraction underflows and reverts (Solidity 0.8+). This can block any further voting on that proposal (including Yay votes that do not immediately reach quorum), effectively DoSing proposal progression until it expires. Fix: guard the subtraction, e.g. treat `voters.length <= countNay` as immediately impossible-to-pass (reject), or compute remaining voters with a checked conditional before subtracting.",
   "related_pid": "7b519e30-d10a-11f0-a5a1-c38d49d0912c",
   "triage_reason": null,
-  "recommendation": "- Snapshot the electorate size and quorum basis per proposal at the moment it is Sealed. Base all early-rejection and quorum checks on these snapshot values, not on `_accountMgr.aris.voters.length` at voting time.\n- Guard the subtraction to prevent underflow: if the snapshot electorate size is less than or equal to `countNay`, short-circuit to “cannot pass” without subtracting; otherwise perform the comparison.\n- Tally votes only from accounts included in the proposal’s snapshot; ignore votes from accounts added or removed after sealing to keep counts consistent with the snapshot.\n- Add tests covering membership shrinking below `countNay` after sealing to ensure no reverts occur and the proposal is correctly rejected when it cannot reach quorum.",
+  "recommendation": "- Snapshot the electorate size and quorum basis per proposal at the moment it is Sealed. Base all early-rejection and quorum checks on these snapshot values, not on `_accountMgr.aris.voters.length` at voting time.\n- Guard the subtraction to prevent underflow: if the snapshot electorate size is less than or equal to `countNay`, short-circuit to \u201ccannot pass\u201d without subtracting; otherwise perform the comparison.\n- Tally votes only from accounts included in the proposal\u2019s snapshot; ignore votes from accounts added or removed after sealing to keep counts consistent with the snapshot.\n- Add tests covering membership shrinking below `countNay` after sealing to ensure no reverts occur and the proposal is correctly rejected when it cannot reach quorum.",
   "triage_verdict": "valid",
   "related_context": null,
   "scan_model_name": null,

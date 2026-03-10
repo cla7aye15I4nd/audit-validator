@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/Koyo-Token/Koyo/2415d72a5c674334bc8bd34239ca96bdb901035e/contracts/facets/LendingPoolFacet.sol`
+- **Local path:** `./src/2415d72a5c674334bc8bd34239ca96bdb901035e/contracts/facets/LendingPoolFacet.sol`
 - **ACC link:** https://acc.audit.certikpowered.info/project/b4af2580-e772-11ef-b757-b39dfeac56e5/source?file=$/github/Koyo-Token/Koyo/2415d72a5c674334bc8bd34239ca96bdb901035e/contracts/facets/LendingPoolFacet.sol
 - **Lines:** 309–309
 

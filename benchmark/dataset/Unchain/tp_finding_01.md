@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/UNCHAIN-X-Labs/UNX-V3-Contracts/cc2768a918f0b6a245d700d73c1415187926cfaf/contracts/liquidity-mining/UNXwapV3LmPool.sol`
+- **Local path:** `./src/contracts/liquidity-mining/UNXwapV3LmPool.sol`
 - **ACC link:** https://acc.audit.certikpowered.info/project/f72af880-fbcd-11ee-bbd2-ff2e77acf2a4/source?file=$/github/UNCHAIN-X-Labs/UNX-V3-Contracts/cc2768a918f0b6a245d700d73c1415187926cfaf/contracts/liquidity-mining/UNXwapV3LmPool.sol
 - **Lines:** 169–178
 

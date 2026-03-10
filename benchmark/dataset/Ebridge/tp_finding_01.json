@@ -3,7 +3,7 @@
   "title": "bridge_pool `add_native_token_liquidity` doesn't check `jetton_address`",
   "location": {
     "acc_file_path": "https://acc.audit.certikpowered.info/project/97cd8990-a175-11ef-bde1-6ddfa26a617d/source?file=$/github/eBridgeCrosschain/ebridge-contracts.ton/d88b8f41c00b0fc9cb85d5c99b1c92837e4b19ac/contracts/bridge_pool.fc",
-    "local_file_path": "./source_code/github/eBridgeCrosschain/ebridge-contracts.ton/d88b8f41c00b0fc9cb85d5c99b1c92837e4b19ac/contracts/bridge_pool.fc",
+    "local_file_path": "./src/contracts/bridge_pool.fc",
     "start_line": 223,
     "end_line": 223
   },

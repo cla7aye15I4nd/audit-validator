@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/Ton-Raffles/scalable_airdrops_with_date_start/47b8fb00163af2755b413c16cd815672c5cdeae2/contracts/airdrop_helper.fc`
+- **Local path:** `./src/contracts/airdrop_helper.fc`
 - **ACC link:** https://acc.audit.certikpowered.info/project/03a8bcb0-4f51-11ef-8188-0505b58ed717/source?file=$/github/Ton-Raffles/scalable_airdrops_with_date_start/47b8fb00163af2755b413c16cd815672c5cdeae2/contracts/airdrop_helper.fc
 - **Lines:** 26–26
 

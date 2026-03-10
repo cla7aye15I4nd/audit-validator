@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/Koyo-Token/Koyo/c8b17c021fc108f5f2236da2d2337adff2db0ce3/facets/MarginAccountsFacet.sol`
+- **Local path:** `./src/c8b17c021fc108f5f2236da2d2337adff2db0ce3/facets/MarginAccountsFacet.sol`
 - **ACC link:** https://acc.audit.certikpowered.info/project/234c8620-4de2-11ef-8bdf-012e5d16c648/source?file=$/github/Koyo-Token/Koyo/c8b17c021fc108f5f2236da2d2337adff2db0ce3/facets/MarginAccountsFacet.sol
 - **Lines:** 158–181
 

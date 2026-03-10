@@ -14,7 +14,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/CertiKProject/certik-audit-projects/2a2826fcbafb5bed23f57406cc61e71a3ccffcf2/projects/anome 2/og_nft/guild/GameGuildInternal.sol`
+- **Local path:** `./src/projects/anome 2/og_nft/guild/GameGuildInternal.sol`
 - **ACC link:** https://acc.audit.certikpowered.info/project/e3c45370-51aa-11f0-bdd0-cbef849456d3/source?file=$/github/CertiKProject/certik-audit-projects/2a2826fcbafb5bed23f57406cc61e71a3ccffcf2/projects/anome 2/og_nft/guild/GameGuildInternal.sol
 - **Lines:** 82–110
 

@@ -3,7 +3,7 @@
   "title": "Signature Replay in `claimReward()` allows draining of rewards",
   "location": {
     "acc_file_path": "https://acc.audit.certikpowered.info/project/340b4e30-9034-11ef-b974-6b5926513cff/source?file=$/github/homecub/Smart-Contracts/43b4aad87e5381d861a2c93e006213843a0e75ca/contracts/homecubesStake.sol",
-    "local_file_path": "./source_code/github/homecub/Smart-Contracts/43b4aad87e5381d861a2c93e006213843a0e75ca/contracts/homecubesStake.sol",
+    "local_file_path": "./src/contracts/homecubesStake.sol",
     "start_line": 829,
     "end_line": 829
   },

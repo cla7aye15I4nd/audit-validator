@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/bsc/mainnet/0x31569a2d8333554bb0d8bd6deeb425682bb3d082/YoExBond.sol`
+- **Local path:** `./src/YoExBond.sol`
 - **ACC link:** https://acc.audit.certikpowered.info/project/9779da50-371d-11f0-b142-2bda881cf922/source?file=$/bsc/mainnet/0x31569a2d8333554bb0d8bd6deeb425682bb3d082/YoExBond.sol
 - **Lines:** 83–83
 

@@ -3,7 +3,7 @@
   "title": "Incomplete Privilege Transfer When Setting `FEE_RECEIVER` Address",
   "location": {
     "acc_file_path": "https://acc.audit.certikpowered.info/project/fd716360-e0af-11ef-b1db-b3bb1353eef6/source?file=$/bsc/mainnet/0x86da4b72f0ce7a9d263263f521f37b3aa9a996d4/Trader.sol",
-    "local_file_path": "./source_code/bsc/mainnet/0x86da4b72f0ce7a9d263263f521f37b3aa9a996d4/Trader.sol",
+    "local_file_path": "./src/Trader.sol",
     "start_line": 1185,
     "end_line": 1186
   },

@@ -1,7 +1,7 @@
 {
   "title": "Unauthorized Mint in claimReward",
   "location": {
-    "local_file_path": "./source_code/github/fivepillarstoken/InvestmentManager/9af8be2c4e53218770015a10ea269caa904fde19/InvestmentManager.sol",
+    "local_file_path": "./src/InvestmentManager.sol",
     "acc_file_path": "https://acc.audit.certikpowered.info/project/a41cefe0-4159-11f0-a06b-992008d4f8aa/source?file=$/github/fivepillarstoken/InvestmentManager/9af8be2c4e53218770015a10ea269caa904fde19/InvestmentManager.sol",
     "start_line": 1,
     "end_line": 1
@@ -10,16 +10,16 @@
   "category": "",
   "severity": "info",
   "confidence": null,
-  "description": "The claimReward function calls the token’s mint() method without any access control, allowing any user to trigger arbitrary token creation via InvestmentManager.Enforce proper role-based access control on the token’s mint function (e.g., onlyOwner or specific MINTER_ROLE). Verify that only trusted contracts/users can mint tokens.1. User deposits sufficient tokens and accumulates ≥1 token of rewards.\n2. Call claimReward().\n3. InvestmentManager invokes fivePillarsToken.mint(investorAddress, toInvestor) and mints tokens to the caller without any owner or minter checks.",
+  "description": "The claimReward function calls the token\u2019s mint() method without any access control, allowing any user to trigger arbitrary token creation via InvestmentManager.Enforce proper role-based access control on the token\u2019s mint function (e.g., onlyOwner or specific MINTER_ROLE). Verify that only trusted contracts/users can mint tokens.1. User deposits sufficient tokens and accumulates \u22651 token of rewards.\n2. Call claimReward().\n3. InvestmentManager invokes fivePillarsToken.mint(investorAddress, toInvestor) and mints tokens to the caller without any owner or minter checks.",
   "scenario": null,
-  "proof_of_concept": "1. User deposits sufficient tokens and accumulates ≥1 token of rewards.\n2. Call claimReward().\n3. InvestmentManager invokes fivePillarsToken.mint(investorAddress, toInvestor) and mints tokens to the caller without any owner or minter checks.",
-  "recommendation": "Enforce proper role-based access control on the token’s mint function (e.g., onlyOwner or specific MINTER_ROLE). Verify that only trusted contracts/users can mint tokens.",
+  "proof_of_concept": "1. User deposits sufficient tokens and accumulates \u22651 token of rewards.\n2. Call claimReward().\n3. InvestmentManager invokes fivePillarsToken.mint(investorAddress, toInvestor) and mints tokens to the caller without any owner or minter checks.",
+  "recommendation": "Enforce proper role-based access control on the token\u2019s mint function (e.g., onlyOwner or specific MINTER_ROLE). Verify that only trusted contracts/users can mint tokens.",
   "id": "a6f2",
   "duplicates": null,
   "source": "scanner.token_scanner",
   "status": "verified_as_valid",
   "scan_model_name": "o4-mini, gemini-2.5-pro",
-  "related_function_code": "function claimReward() external NotInPoolCriteriaUpdate {\n    …\n    fivePillarsToken.mint(address(this), fee);\n    fivePillarsToken.mint(investorAddress, toInvestor);\n    …\n}",
+  "related_function_code": "function claimReward() external NotInPoolCriteriaUpdate {\n    \u2026\n    fivePillarsToken.mint(address(this), fee);\n    fivePillarsToken.mint(investorAddress, toInvestor);\n    \u2026\n}",
   "related_context": "",
   "related_checklist": {
     "checklist": "## Token Security Checklist \n\n### Detect Unauthorized Token Minting\nEnsure tokens cannot be created without proper authorization through direct minting functions.\n\n```solidity\n// Vulnerable: Anyone can mint tokens\nfunction mint(address to, uint256 amount) external {\n    _totalSupply += amount;\n    _balances[to] += amount;\n}\n\n// Vulnerable: Hidden minting through internal functions\nfunction reward(address user) external {\n    _mint(user, 1000 * 10**18); // no access control\n}\n```\n\n**Invariant:** Add proper access control (onlyOwner, onlyMinter) to all minting functions."

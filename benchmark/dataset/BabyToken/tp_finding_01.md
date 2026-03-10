@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/bsc/mainnet/0x7f0fd26847c8bf4beb1ba80570d7f93f33333333/BABY.sol`
+- **Local path:** `./src/BABY.sol`
 - **ACC link:** https://acc.audit.certikpowered.info/project/40f87c60-9f63-11ef-9b50-5f24ad33b80d/source?file=$/bsc/mainnet/0x7f0fd26847c8bf4beb1ba80570d7f93f33333333/BABY.sol
 - **Lines:** 1185–1185
 

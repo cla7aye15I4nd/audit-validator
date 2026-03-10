@@ -8,13 +8,13 @@
     "end_line": 1,
     "start_line": 1,
     "acc_file_path": "https://acc.audit.certikpowered.info/project/c0b155c0-ce9d-11f0-afef-b3f141791562/source?file=$/github/Liberty-Games/sixr-bridge-watchers/20fc6b15b4134cdd724fa8a0b8d0f1f7d4981856/contracts/ton/bridge-vault.fc",
-    "local_file_path": "./source_code/github/Liberty-Games/sixr-bridge-watchers/20fc6b15b4134cdd724fa8a0b8d0f1f7d4981856/contracts/ton/bridge-vault.fc"
+    "local_file_path": "./src/contracts/ton/bridge-vault.fc"
   },
   "scenario": "",
   "sequence": 67,
   "severity": "medium",
   "confidence": null,
-  "description": "withdraw_ton only checks destination.slice_empty?(), but destination is parsed with load_msg_addr(), so it will not be an “empty slice” even for addr_none ($00) or other unsupported address forms. This can allow constructing a withdrawal to addr_none or a non-internal address type, which may burn funds (if accepted) or trigger action-phase errors/bounces (fees lost) unexpectedly. Validate destination as a proper internal address (e.g., reject addr_none by checking the first 2 bits != 00 and/or enforce addr_std/addr_var only) similar to is_fee_wallet_configured().",
+  "description": "withdraw_ton only checks destination.slice_empty?(), but destination is parsed with load_msg_addr(), so it will not be an \u201cempty slice\u201d even for addr_none ($00) or other unsupported address forms. This can allow constructing a withdrawal to addr_none or a non-internal address type, which may burn funds (if accepted) or trigger action-phase errors/bounces (fees lost) unexpectedly. Validate destination as a proper internal address (e.g., reject addr_none by checking the first 2 bits != 00 and/or enforce addr_std/addr_var only) similar to is_fee_wallet_configured().",
   "related_pid": "c0b155c0-ce9d-11f0-afef-b3f141791562",
   "triage_reason": null,
   "recommendation": "- Do not rely on destination.slice_empty?() after load_msg_addr(); it is non-empty even for addr_none and unsupported address types.\n- Explicitly validate that destination is an internal address. Accept only addr_std and/or addr_var. Reject addr_none ($00) and addr_extern ($01).\n- Reuse the same internal-address checks used in is_fee_wallet_configured() (or an equivalent helper) to keep logic consistent.\n- On invalid destination, revert with a clear error code before deducting funds or sending a message.\n- If your design requires it, further restrict to addr_std only and enforce expected flags (e.g., bounceable), zero anycast, and allowed workchain(s).\n- Add tests for addr_none and addr_extern to confirm withdrawals are rejected and no fees are spent.",

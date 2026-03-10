@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/CertiKProject/certik-audit-projects/0295b7689e688334b6d4780c6438c907b9362b08/03092024_XFAN.sol`
+- **Local path:** `./src/03092024_XFAN.sol`
 - **ACC link:** https://acc.audit.certikpowered.info/project/125b80a0-673c-11ef-a5cd-fb3ecf7b1c26/source?file=$/github/CertiKProject/certik-audit-projects/0295b7689e688334b6d4780c6438c907b9362b08/03092024_XFAN.sol
 - **Lines:** 313–317
 

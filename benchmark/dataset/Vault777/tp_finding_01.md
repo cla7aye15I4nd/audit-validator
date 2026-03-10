@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/VAULT777Team/casino-contracts/2d3e7fff1ad0050489bf0a767a4693f25d5c8f79/contracts/VideoPoker.sol`
+- **Local path:** `./src/contracts/VideoPoker.sol`
 - **ACC link:** https://acc.audit.certikpowered.info/project/5a815670-b8c1-11f0-8573-4b86029e92fb/source?file=$/github/VAULT777Team/casino-contracts/2d3e7fff1ad0050489bf0a767a4693f25d5c8f79/contracts/VideoPoker.sol
 - **Lines:** 270–283
 

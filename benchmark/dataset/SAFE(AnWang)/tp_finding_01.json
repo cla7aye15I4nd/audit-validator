@@ -3,7 +3,7 @@
   "title": "Vulnerability to Duplicate ID Exploitation in `withdrawByID` Function Leads To Fund Drain",
   "location": {
     "acc_file_path": "https://acc.audit.certikpowered.info/project/e8e6a7b0-9a56-11ef-8e7a-85ed0c9f95ba/source?file=$/github/SAFE-anwang/SAFE4-system-contract/69e732ace3c61a7b0ab16a3ff49a0b9ab521f5f4/AccountManager.sol",
-    "local_file_path": "./source_code/github/SAFE-anwang/SAFE4-system-contract/69e732ace3c61a7b0ab16a3ff49a0b9ab521f5f4/AccountManager.sol",
+    "local_file_path": "./src/AccountManager.sol",
     "start_line": 127,
     "end_line": 139
   },

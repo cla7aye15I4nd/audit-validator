@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/kaiachain/kaia/3c8ad8536c9b9108df9b175ef6fe817c17d4b744/blockchain/tx_pool.go`
+- **Local path:** `./src/blockchain/tx_pool.go`
 - **ACC link:** https://acc.audit.certikpowered.info/project/9abd0390-085b-11f0-a65b-e3b852450e7f/source?file=$/github/kaiachain/kaia/3c8ad8536c9b9108df9b175ef6fe817c17d4b744/blockchain/tx_pool.go
 - **Lines:** 704–915
 

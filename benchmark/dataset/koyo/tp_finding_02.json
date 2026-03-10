@@ -3,7 +3,7 @@
   "title": "`_updateInterest()` is called after `userBorrows` update",
   "location": {
     "acc_file_path": "https://acc.audit.certikpowered.info/project/b4af2580-e772-11ef-b757-b39dfeac56e5/source?file=$/github/Koyo-Token/Koyo/2415d72a5c674334bc8bd34239ca96bdb901035e/contracts/facets/LendingPoolFacet.sol",
-    "local_file_path": "./source_code/github/Koyo-Token/Koyo/2415d72a5c674334bc8bd34239ca96bdb901035e/contracts/facets/LendingPoolFacet.sol",
+    "local_file_path": "./src/2415d72a5c674334bc8bd34239ca96bdb901035e/contracts/facets/LendingPoolFacet.sol",
     "start_line": 309,
     "end_line": 309
   },

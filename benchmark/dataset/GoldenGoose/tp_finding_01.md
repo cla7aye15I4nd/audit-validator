@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/RollNA/x-project-contract/be44567375e8b18b82bc651a27d52d3d7b56fc5b/contracts/USDVault.sol`
+- **Local path:** `./src/contracts/USDVault.sol`
 - **ACC link:** https://acc.audit.certikpowered.info/project/6d39eb30-786f-11ef-b8f3-35e3732ff258/source?file=$/github/RollNA/x-project-contract/be44567375e8b18b82bc651a27d52d3d7b56fc5b/contracts/USDVault.sol
 - **Lines:** 147–147
 

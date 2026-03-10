@@ -3,7 +3,7 @@
   "title": "Reward May Be Locked Permanently",
   "location": {
     "acc_file_path": "https://acc.audit.certikpowered.info/project/e87cbcc0-50e0-11ef-be7f-a520f1665dc4/source?file=$/github/Lumerin-protocol/Morpheus-Lumerin-Node/75269bd207913526bd7b4db0892307a39c0cb9b3/smart-contracts/contracts/StakingMasterChef.sol",
-    "local_file_path": "./source_code/github/Lumerin-protocol/Morpheus-Lumerin-Node/75269bd207913526bd7b4db0892307a39c0cb9b3/smart-contracts/contracts/StakingMasterChef.sol",
+    "local_file_path": "./src/smart-contracts/contracts/StakingMasterChef.sol",
     "start_line": 105,
     "end_line": 106
   },

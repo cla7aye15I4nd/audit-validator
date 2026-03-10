@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/Portkey-Wallet/zkLogin-circuit/ee1a9ee620dae6e1d68d95f7d0d626fd5930cfdb/circuits/helpers/utils.circom`
+- **Local path:** `./src/circuits/helpers/utils.circom`
 - **ACC link:** https://acc.audit.certikpowered.info/project/7c846b50-3220-11ef-89f8-c16e900c7ea1/source?file=$/github/Portkey-Wallet/zkLogin-circuit/ee1a9ee620dae6e1d68d95f7d0d626fd5930cfdb/circuits/helpers/utils.circom
 - **Lines:** 232–232
 

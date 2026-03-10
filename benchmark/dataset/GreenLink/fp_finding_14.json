@@ -1,7 +1,7 @@
 {
-  "title": "Rounding‐Based Fee Evasion via batchTransfer",
+  "title": "Rounding\u2010Based Fee Evasion via batchTransfer",
   "location": {
-    "local_file_path": "./source_code/github/GLBank/Web3/54b12f25ff139912cbddcc316c940624a64687cf/GLDB Pulse Contracts/PLT/GLDBToken.sol",
+    "local_file_path": "./src/GLDB Pulse Contracts/PLT/GLDBToken.sol",
     "acc_file_path": "https://acc.audit.certikpowered.info/project/b619bc20-116e-11f0-85f2-afceaa02a7b6/source?file=$/github/GLBank/Web3/54b12f25ff139912cbddcc316c940624a64687cf/GLDB Pulse Contracts/PLT/GLDBToken.sol",
     "start_line": 1,
     "end_line": 1
@@ -10,7 +10,7 @@
   "category": null,
   "severity": null,
   "confidence": null,
-  "description": "The batchTransfer function simply invokes transfer() on each recipient in a loop, and transfer() applies tax and burn fees independently to each send. Because those fees are computed with integer division (floored), splitting a large transfer into many small transfers can drive each individual fee to zero – effectively evading the fee altogether.\n\nExploit Steps:\n1. Assume taxBPS is 100 (1%) and deflationBPS is 0.  \n2. Normally, transferring 100 tokens via a single transfer() call would levy a fee of (100 × 100)/10 000 = 1 token, so the recipient gets 99 tokens and 1 token is collected as tax.\n3. Instead, the attacker calls batchTransfer with toList = [Bob, Bob, …, Bob] (100 entries) and amountList = [1, 1, …, 1] (100 entries).\n4. For each of the 100 micro-transfers:  \n   • taxAmount = (1 × 100)/10 000 = 0  \n   • deflationAmount = 0  \n   • net amountToTransfer = 1 − 0 = 1\n5. After the loop completes Bob’s balance has increased by 100 tokens, and the protocol collected 0 tokens in fees instead of the expected 1 token.\n\nBecause batchTransfer does not aggregate amounts before computing a single fee, an attacker can reduce or entirely avoid fees simply by slicing one large transfer into many small ones.",
+  "description": "The batchTransfer function simply invokes transfer() on each recipient in a loop, and transfer() applies tax and burn fees independently to each send. Because those fees are computed with integer division (floored), splitting a large transfer into many small transfers can drive each individual fee to zero \u2013 effectively evading the fee altogether.\n\nExploit Steps:\n1. Assume taxBPS is 100 (1%) and deflationBPS is 0.  \n2. Normally, transferring 100 tokens via a single transfer() call would levy a fee of (100 \u00d7 100)/10 000 = 1 token, so the recipient gets 99 tokens and 1 token is collected as tax.\n3. Instead, the attacker calls batchTransfer with toList = [Bob, Bob, \u2026, Bob] (100 entries) and amountList = [1, 1, \u2026, 1] (100 entries).\n4. For each of the 100 micro-transfers:  \n   \u2022 taxAmount = (1 \u00d7 100)/10 000 = 0  \n   \u2022 deflationAmount = 0  \n   \u2022 net amountToTransfer = 1 \u2212 0 = 1\n5. After the loop completes Bob\u2019s balance has increased by 100 tokens, and the protocol collected 0 tokens in fees instead of the expected 1 token.\n\nBecause batchTransfer does not aggregate amounts before computing a single fee, an attacker can reduce or entirely avoid fees simply by slicing one large transfer into many small ones.",
   "scenario": null,
   "proof_of_concept": null,
   "recommendation": null,

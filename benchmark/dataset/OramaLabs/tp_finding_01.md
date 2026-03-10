@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/AllBlockChain/launchpad-program/7d27638f77c1bf7a8d0928fa3d7acab92afa8763/programs/launchpad/src/instructions/claim_creator_tokens.rs`
+- **Local path:** `./src/programs/launchpad/src/instructions/claim_creator_tokens.rs`
 - **ACC link:** https://acc.audit.certikpowered.info/project/775c3200-9199-11f0-8f30-3de48404a1d9/source?file=$/github/AllBlockChain/launchpad-program/7d27638f77c1bf7a8d0928fa3d7acab92afa8763/programs/launchpad/src/instructions/claim_creator_tokens.rs
 - **Lines:** 28–33
 

@@ -3,7 +3,7 @@
   "title": "Transaction handler signature verification only checks `signature` field, ignoring `signatures` array",
   "location": {
     "acc_file_path": "https://acc.audit.certikpowered.info/project/2e0c71e0-9311-11f0-8617-07932f2b3ecc/source?file=$/github/GalaChain/sdk/164644735399110e14ad54c0db3f50ebfad78a63/chaincode/src/contracts/GalaTransaction.ts",
-    "local_file_path": "./source_code/github/GalaChain/sdk/164644735399110e14ad54c0db3f50ebfad78a63/chaincode/src/contracts/GalaTransaction.ts",
+    "local_file_path": "./src/chaincode/src/contracts/GalaTransaction.ts",
     "start_line": 196,
     "end_line": 197
   },

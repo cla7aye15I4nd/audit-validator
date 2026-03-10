@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/bsc/mainnet/0x86da4b72f0ce7a9d263263f521f37b3aa9a996d4/Trader.sol`
+- **Local path:** `./src/Trader.sol`
 - **ACC link:** https://acc.audit.certikpowered.info/project/fd716360-e0af-11ef-b1db-b3bb1353eef6/source?file=$/bsc/mainnet/0x86da4b72f0ce7a9d263263f521f37b3aa9a996d4/Trader.sol
 - **Lines:** 1185–1186
 

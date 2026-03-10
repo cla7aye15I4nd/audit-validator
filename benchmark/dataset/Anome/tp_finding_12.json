@@ -1,7 +1,7 @@
 {
-  "title": "Missing LTV reduction on BNOME unstake enables collateral‐free borrowing",
+  "title": "Missing LTV reduction on BNOME unstake enables collateral\u2010free borrowing",
   "location": {
-    "local_file_path": "./source_code/github/CertiKProject/certik-audit-projects/2a2826fcbafb5bed23f57406cc61e71a3ccffcf2/projects/anome 2/shop/stake/BnomeStakeInternal.sol",
+    "local_file_path": "./src/projects/anome 2/shop/stake/BnomeStakeInternal.sol",
     "acc_file_path": "https://acc.audit.certikpowered.info/project/e3c45370-51aa-11f0-bdd0-cbef849456d3/source?file=$/github/CertiKProject/certik-audit-projects/2a2826fcbafb5bed23f57406cc61e71a3ccffcf2/projects/anome 2/shop/stake/BnomeStakeInternal.sol",
     "start_line": 60,
     "end_line": 80
@@ -10,7 +10,7 @@
   "category": null,
   "severity": null,
   "confidence": null,
-  "description": "Vulnerability:\nThe `_unstakeBnome` function returns the user’s staked BNOME tokens but never decreases the `highBorrowLTVLimit` (or the mirror `bnomeAccountTotalHighBorrowLTVLimit`) that was granted when those tokens were staked. As a result, after calling `unstakeBnome`, a user recovers their BNOME but still retains the full LTV allowance.\n\nExploit Demonstration:\n1. Attacker approves and calls `stakeBnome(X)` with X BNOME. This transfers X BNOME into the contract and increases `highBorrowLTVLimit[msg.sender]` by a value V (derived from X).\n2. Immediately call `unstakeBnome(0)` (the index of the newly created stake order). The contract transfers X BNOME back to the attacker, but leaves `highBorrowLTVLimit[msg.sender] == V` unchanged.\n3. With zero BNOME locked, call the borrowing function (e.g. `borrowUsda`) to draw up to V worth of assets. The system sees a non‐zero LTV limit and permits borrowing despite the attacker having no collateral.\n\nResult:\nThe attacker can repeatedly borrow against the residual LTV allowance without posting any collateral, draining the protocol’s available borrowable assets.",
+  "description": "Vulnerability:\nThe `_unstakeBnome` function returns the user\u2019s staked BNOME tokens but never decreases the `highBorrowLTVLimit` (or the mirror `bnomeAccountTotalHighBorrowLTVLimit`) that was granted when those tokens were staked. As a result, after calling `unstakeBnome`, a user recovers their BNOME but still retains the full LTV allowance.\n\nExploit Demonstration:\n1. Attacker approves and calls `stakeBnome(X)` with X BNOME. This transfers X BNOME into the contract and increases `highBorrowLTVLimit[msg.sender]` by a value V (derived from X).\n2. Immediately call `unstakeBnome(0)` (the index of the newly created stake order). The contract transfers X BNOME back to the attacker, but leaves `highBorrowLTVLimit[msg.sender] == V` unchanged.\n3. With zero BNOME locked, call the borrowing function (e.g. `borrowUsda`) to draw up to V worth of assets. The system sees a non\u2010zero LTV limit and permits borrowing despite the attacker having no collateral.\n\nResult:\nThe attacker can repeatedly borrow against the residual LTV allowance without posting any collateral, draining the protocol\u2019s available borrowable assets.",
   "scenario": null,
   "proof_of_concept": null,
   "recommendation": null,

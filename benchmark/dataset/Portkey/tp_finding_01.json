@@ -3,7 +3,7 @@
   "title": "Underconstrained Circuit `BitsToBytes` Allows Arbitrary SHA256 Hash",
   "location": {
     "acc_file_path": "https://acc.audit.certikpowered.info/project/7c846b50-3220-11ef-89f8-c16e900c7ea1/source?file=$/github/Portkey-Wallet/zkLogin-circuit/ee1a9ee620dae6e1d68d95f7d0d626fd5930cfdb/circuits/helpers/utils.circom",
-    "local_file_path": "./source_code/github/Portkey-Wallet/zkLogin-circuit/ee1a9ee620dae6e1d68d95f7d0d626fd5930cfdb/circuits/helpers/utils.circom",
+    "local_file_path": "./src/circuits/helpers/utils.circom",
     "start_line": 232,
     "end_line": 232
   },

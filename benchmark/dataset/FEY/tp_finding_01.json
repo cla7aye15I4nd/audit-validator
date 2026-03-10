@@ -3,7 +3,7 @@
   "title": "`closeGhostStake()` Cannot Close Users Stakes",
   "location": {
     "acc_file_path": "https://acc.audit.certikpowered.info/project/ecefe950-a048-11ef-badd-73246e4a2372/source?file=$/github/FEYToken/Feyorra-FEY-/a3fd8f96d8002f7ef619ad01810426568a59c1bf/contracts/FEYToken.sol",
-    "local_file_path": "./source_code/github/FEYToken/Feyorra-FEY-/a3fd8f96d8002f7ef619ad01810426568a59c1bf/contracts/FEYToken.sol",
+    "local_file_path": "./src/contracts/FEYToken.sol",
     "start_line": 154,
     "end_line": 154
   },

@@ -3,7 +3,7 @@
   "title": "Verifiable Data Hash Does Not Include Method Parameter Allowing For Unintended Method To Be Verified",
   "location": {
     "acc_file_path": "https://acc.audit.certikpowered.info/project/61c50ac0-0012-11f0-a6c7-dd487ba7c9c0/source?file=$/github/AethirCloud/IDC-Contracts-V2/44d2074b48bbc9a18193f23fbf9afacd15f77e3c/contracts/base/RequestVerifier.sol",
-    "local_file_path": "./source_code/github/AethirCloud/IDC-Contracts-V2/44d2074b48bbc9a18193f23fbf9afacd15f77e3c/contracts/base/RequestVerifier.sol",
+    "local_file_path": "./src/contracts/base/RequestVerifier.sol",
     "start_line": 73,
     "end_line": 88
   },

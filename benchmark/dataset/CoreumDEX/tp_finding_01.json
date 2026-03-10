@@ -3,7 +3,7 @@
   "title": "Exploitable Re-Entrancy Issue Allows High-Priced Orders to Be Settled at Lower Cost",
   "location": {
     "acc_file_path": "https://acc.audit.certikpowered.info/project/ac8b6780-bcbe-11ef-b2a6-53871e3ecd80/source?file=$/github/CoreumFoundation/coreum/188736cb7d7e3de92f6286201ea4fb2494ae9daf/x/dex/keeper/keeper_matching_result.go",
-    "local_file_path": "./source_code/github/CoreumFoundation/coreum/188736cb7d7e3de92f6286201ea4fb2494ae9daf/x/dex/keeper/keeper_matching_result.go",
+    "local_file_path": "./src/x/dex/keeper/keeper_matching_result.go",
     "start_line": 193,
     "end_line": 216
   },

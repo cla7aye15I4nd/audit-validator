@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/eBridgeCrosschain/ebridge-contracts.ton/d88b8f41c00b0fc9cb85d5c99b1c92837e4b19ac/contracts/bridge_pool.fc`
+- **Local path:** `./src/contracts/bridge_pool.fc`
 - **ACC link:** https://acc.audit.certikpowered.info/project/97cd8990-a175-11ef-bde1-6ddfa26a617d/source?file=$/github/eBridgeCrosschain/ebridge-contracts.ton/d88b8f41c00b0fc9cb85d5c99b1c92837e4b19ac/contracts/bridge_pool.fc
 - **Lines:** 223–223
 

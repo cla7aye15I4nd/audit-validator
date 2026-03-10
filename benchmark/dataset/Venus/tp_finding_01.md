@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/VenusProtocol/oracle/97d37973628a56f8bbd1a8c6d0b3301602fe4aae/contracts/oracles/PendleOracle.sol`
+- **Local path:** `./src/contracts/oracles/PendleOracle.sol`
 - **ACC link:** https://acc.audit.certikpowered.info/project/8ab17f70-b8e3-11ef-a996-75baa03c0028/source?file=$/github/VenusProtocol/oracle/97d37973628a56f8bbd1a8c6d0b3301602fe4aae/contracts/oracles/PendleOracle.sol
 - **Lines:** 80–85
 

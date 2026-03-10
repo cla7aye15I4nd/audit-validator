@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/FEYToken/Feyorra-FEY-/a3fd8f96d8002f7ef619ad01810426568a59c1bf/contracts/FEYToken.sol`
+- **Local path:** `./src/contracts/FEYToken.sol`
 - **ACC link:** https://acc.audit.certikpowered.info/project/ecefe950-a048-11ef-badd-73246e4a2372/source?file=$/github/FEYToken/Feyorra-FEY-/a3fd8f96d8002f7ef619ad01810426568a59c1bf/contracts/FEYToken.sol
 - **Lines:** 154–154
 

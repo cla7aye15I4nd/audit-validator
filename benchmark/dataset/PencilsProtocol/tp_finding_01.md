@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/PencilsProtocol/audit-pencils-protocol/a751770f1b38a7c7a82f1486ffcae7450fa59580/src/launchpad/PenPadFixedSwapNFT.sol`
+- **Local path:** `./src/src/launchpad/PenPadFixedSwapNFT.sol`
 - **ACC link:** https://acc.audit.certikpowered.info/project/1fed1c20-02af-11ef-b6bc-1de73d127368/source?file=$/github/PencilsProtocol/audit-pencils-protocol/a751770f1b38a7c7a82f1486ffcae7450fa59580/src/launchpad/PenPadFixedSwapNFT.sol
 - **Lines:** 389–391
 

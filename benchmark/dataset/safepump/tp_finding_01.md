@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/xxb-chain/safepump-contract/588179c50968aa6da0ddbd4d04cd0c4ef80a58d9/contracts/swap/Starter.sol`
+- **Local path:** `./src/contracts/swap/Starter.sol`
 - **ACC link:** https://acc.audit.certikpowered.info/project/c08d7760-3cf7-11ef-be39-7174154c7792/source?file=$/github/xxb-chain/safepump-contract/588179c50968aa6da0ddbd4d04cd0c4ef80a58d9/contracts/swap/Starter.sol
 - **Lines:** 151–154
 

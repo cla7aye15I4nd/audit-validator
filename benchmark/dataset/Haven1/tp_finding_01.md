@@ -11,7 +11,7 @@
 
 ## Location
 
-- **Local path:** `./source_code/github/haven1network/permissions-contracts-sc/f5f7b8beb513703eb8eec894e1bcb73e71598262/contracts/RoleManager.sol`
+- **Local path:** `./src/contracts/RoleManager.sol`
 - **ACC link:** https://acc.audit.certikpowered.info/project/43102ce0-cb15-11ef-9d05-1b0897613b78/source?file=$/github/haven1network/permissions-contracts-sc/f5f7b8beb513703eb8eec894e1bcb73e71598262/contracts/RoleManager.sol
 - **Lines:** 70–70
 

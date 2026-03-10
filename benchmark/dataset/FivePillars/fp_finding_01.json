@@ -1,7 +1,7 @@
 {
   "title": "Un-reset `curReward` Leads to Compounding Pool Reward Inflation",
   "location": {
-    "local_file_path": "./source_code/github/fivepillarstoken/InvestmentManager/9af8be2c4e53218770015a10ea269caa904fde19/InvestmentManager.sol",
+    "local_file_path": "./src/InvestmentManager.sol",
     "acc_file_path": "https://acc.audit.certikpowered.info/project/a41cefe0-4159-11f0-a06b-992008d4f8aa/source?file=$/github/fivepillarstoken/InvestmentManager/9af8be2c4e53218770015a10ea269caa904fde19/InvestmentManager.sol",
     "start_line": 1,
     "end_line": 1
