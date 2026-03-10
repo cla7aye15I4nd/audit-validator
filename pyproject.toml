@@ -4,7 +4,6 @@ version = "0.1.0"
 description = "False positive checker for security findings using the Codex CLI and fp-check skill"
 requires-python = ">=3.10"
 dependencies = [
-    "claude-agent-sdk",
     "anyio",
 ]
 
