@@ -1,7 +1,7 @@
 [project]
 name = "audit-validator"
 version = "0.1.0"
-description = "False positive checker for security findings using the Claude Code Agent SDK"
+description = "False positive checker for security findings using the Codex CLI and fp-check skill"
 requires-python = ">=3.10"
 dependencies = [
     "claude-agent-sdk",
@@ -9,7 +9,8 @@ dependencies = [
 ]
 
 [project.scripts]
-audit-validator = "validate:main"
+audit-validator = "codex_validate:main"
+codex-validate = "codex_validate:main"
 
 [build-system]
 requires = ["hatchling"]
