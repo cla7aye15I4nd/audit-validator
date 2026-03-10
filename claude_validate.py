@@ -13,8 +13,8 @@ PROJECT_ROOT = Path(__file__).parent
 async def main(source: Path, finding: Path) -> int:
     workdir = Path("/tmp") / str(uuid.uuid4())
     workdir.mkdir()
-    shutil.copytree(source, workdir / source.name)
-    shutil.copy2(finding, workdir / finding.name)
+    shutil.copytree(source, workdir / "source")
+    shutil.copy2(finding, workdir / "finding.md")
 
     options = ClaudeCodeOptions(
         cwd=str(PROJECT_ROOT),
@@ -30,8 +30,8 @@ async def main(source: Path, finding: Path) -> int:
     prompt = (
         "Use the fp-check skill to verify the following smart contract security finding. "
         "Apply the full verification methodology and return a TRUE POSITIVE or FALSE POSITIVE "
-        f"verdict with supporting evidence.\n\nSource directory: {workdir / source.name}\n\n"
-        f"Finding:\n{(workdir / finding.name).read_text()}"
+        f"verdict with supporting evidence.\n\nSource directory: {workdir / 'source'}\n\n"
+        f"Finding:\n{(workdir / 'finding.md').read_text()}"
     )
     async for message in query(prompt=prompt, options=options):
         if isinstance(message, AssistantMessage):
