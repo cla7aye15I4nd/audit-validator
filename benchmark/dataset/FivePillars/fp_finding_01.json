@@ -1,0 +1,31 @@
+{
+  "title": "Un-reset `curReward` Leads to Compounding Pool Reward Inflation",
+  "location": {
+    "local_file_path": "./source_code/github/fivepillarstoken/InvestmentManager/9af8be2c4e53218770015a10ea269caa904fde19/InvestmentManager.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/a41cefe0-4159-11f0-a06b-992008d4f8aa/source?file=$/github/fivepillarstoken/InvestmentManager/9af8be2c4e53218770015a10ea269caa904fde19/InvestmentManager.sol",
+    "start_line": 1,
+    "end_line": 1
+  },
+  "all_locations": null,
+  "category": null,
+  "severity": null,
+  "confidence": null,
+  "description": "The `_updatePoolReward` function is responsible for distributing accumulated pool rewards to participants at the end of each reward round. It calculates the reward per investor for the concluded rounds using `poolInfo.curReward * endedRounds / poolInfo.participantsCount` and adds this to `poolInfo.rewardPerInvestorStored`. However, the function fails to reset `poolInfo.curReward` to zero after this distribution. The `poolInfo.curReward` state variable is an accumulator that grows with every deposit and redistribution event. Because it is not reset, the rewards accumulated in one round are carried over and redistributed again in every subsequent round, in addition to any new rewards. This creates a compounding effect, artificially inflating the pool rewards over time and allowing pool participants to claim far more rewards than they are entitled to, at the expense of the protocol's reward funds.\n\n**Exploit Demonstration:**\nAn auditor can confirm this vulnerability by simulating the progression of time and deposits across multiple reward rounds.\n1. **Initial State:** Ensure at least one user, Alice, is a participant in an active pool (e.g., Pool 0). Note the initial `pools[0].rewardPerInvestorStored` and `pools[0].curReward` (initially 0).\n2. **Round 1:** A user makes a deposit, causing `_updatePoolRewards` to be called. This adds a value, say `R1`, to `pools[0].curReward`. The transaction is completed, and `lastUpdatePoolRewardTimestamp` is updated.\n3. **Advance Time:** Advance the blockchain time by more than `roundDuration` (e.g., 25 hours) to end the current reward round.\n4. **Round 2:** Another user makes a deposit. This triggers `_updatePoolReward` with `endedRounds` >= 1. `pools[0].rewardPerInvestorStored` increases by `R1 / participantsCount`, distributing the reward from the first round. However, `pools[0].curReward` is not reset and is instead increased by the new deposit's contribution, becoming `R1 + R2`.\n5. **Advance Time Again:** Advance time by another `roundDuration`.\n6. **Round 3:** A third user makes a deposit. This again calls `_updatePoolReward`. `pools[0].rewardPerInvestorStored` now increases by `(R1 + R2) / participantsCount`. The reward `R1` from the first round has now been distributed a second time.\n7. **Conclusion:** By repeating this process, it can be demonstrated that `curReward` grows indefinitely and previously distributed rewards are re-distributed in every subsequent round. Alice can then call `claimReward` to receive these excessively inflated rewards.",
+  "scenario": null,
+  "proof_of_concept": null,
+  "recommendation": null,
+  "id": "5285",
+  "duplicates": null,
+  "source": "scanner.smart_audit",
+  "status": "verified_as_valid",
+  "scan_model_name": "gemini-2.5-pro",
+  "related_function_code": "function _updatePoolReward(PoolInfo storage poolInfo, uint256 endedRounds) internal {\n        if (endedRounds > 0) {\n            poolInfo.rewardPerInvestorStored += poolInfo.curReward * endedRounds / poolInfo.participantsCount;\n            poolInfo.lastReward = poolInfo.curReward / poolInfo.participantsCount;\n        }\n    }",
+  "related_context": "",
+  "related_checklist": null,
+  "related_pid": "a41cefe0-4159-11f0-a06b-992008d4f8aa",
+  "related_commit_id": "9af8be2c4e53218770015a10ea269caa904fde19",
+  "triage_verdict": "invalid",
+  "triage_severity": "Minor",
+  "triage_reason": null,
+  "is_main_finding": true
+}

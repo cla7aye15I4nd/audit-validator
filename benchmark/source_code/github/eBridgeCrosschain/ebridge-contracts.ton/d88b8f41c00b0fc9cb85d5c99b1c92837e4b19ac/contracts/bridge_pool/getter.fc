@@ -1,0 +1,64 @@
+#include "../common/dic.fc";
+#include "../common/stdlib.fc";
+#include "storage.fc";
+#include "op.fc";
+#include "bridge_pool_liquidity_account-utils.fc";
+#include "bridge_receipt_account-utils.fc";
+#include "limiter.fc";
+#include "params.fc";
+
+;; handle onchain 'get' calls
+
+(int) handle_getter_messages(int op, int query_id, slice sender_address, slice in_msg_body) impure inline {
+    raw_reserve(0, 4);
+
+    if (op == getter_pool_data) { 
+        var payload = begin_cell()
+            .store_uint(storage::liquidity,256);
+        send_payload(sender_address, payload.end_cell());
+        return (true);
+    }
+    if (op == getter_pool_liquidity_account_address) {
+        slice owner_address = in_msg_body~load_msg_addr();
+        cell acc_state_init = calculate_bridge_pool_liquidity_account_state_init(owner_address, my_address(), storage::jetton_address,storage::pool_liquidity_account_code); 
+        slice brigde_pool_liquidity_account_address = calculate_bridge_pool_liquidity_account_address(acc_state_init);
+        var payload = begin_cell()
+            .store_slice(brigde_pool_liquidity_account_address);
+        send_payload(sender_address, payload.end_cell());
+        return (true);
+    }
+    if (op == getter_bridge_receipt_address){
+        slice owner_address = in_msg_body~load_msg_addr();
+        cell acc_state_init = calculate_bridge_receipt_account_state_init(owner_address, my_address(), storage::jetton_address, storage::bridge_address,storage::bridge_receipt_account_code); 
+        slice brigde_receipt_address = calculate_bridge_receipt_account_address(acc_state_init);
+        var payload = begin_cell()
+            .store_slice(brigde_receipt_address);
+        send_payload(sender_address, payload.end_cell());
+        return (true);
+    }
+    if (op == getter_receipt_daily_limit) {
+        int target_chain_id = in_msg_body~load_uint(32);
+        int key_hash = create_key(target_chain_id,RECEIPT);
+        _getter_daily_limit(key_hash, target_chain_id,sender_address);
+        return (true);
+    }
+    if (op == getter_swap_daily_limit) {
+        int target_chain_id = in_msg_body~load_uint(32);
+        int key_hash = create_key(target_chain_id,SWAP);
+        _getter_daily_limit(key_hash, target_chain_id,sender_address);
+        return (true);
+    }
+    if (op == getter_receipt_rate_limit_state) {
+        int target_chain_id = in_msg_body~load_uint(32);
+        int key_hash = create_key(target_chain_id,RECEIPT);
+        _getter_rate_limit(key_hash, target_chain_id,sender_address);
+        return (true);
+    }
+    if (op == getter_swap_rate_limit_state) {
+        int target_chain_id = in_msg_body~load_uint(32);
+        int key_hash = create_key(target_chain_id,SWAP);
+        _getter_rate_limit(key_hash, target_chain_id,sender_address);
+        return (true);
+    }
+    return (false); ;; wrong op
+}

@@ -1,0 +1,33 @@
+{
+  "title": "Bypassing Minimum Deposit Requirement via Reward Redistribution",
+  "location": {
+    "local_file_path": "./source_code/github/fivepillarstoken/InvestmentManager/9af8be2c4e53218770015a10ea269caa904fde19/InvestmentManager.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/a41cefe0-4159-11f0-a06b-992008d4f8aa/source?file=$/github/fivepillarstoken/InvestmentManager/9af8be2c4e53218770015a10ea269caa904fde19/InvestmentManager.sol",
+    "start_line": 1,
+    "end_line": 1
+  },
+  "all_locations": null,
+  "category": "",
+  "severity": "medium",
+  "confidence": null,
+  "description": "The `deposit` function enforces a minimum deposit amount for new investors, but the `claimReward` function does not. A user with no deposit can receive rewards (e.g., from a whitelisted pool), and upon claiming, 50% of the reward is redistributed and added to their `totalDeposit`. This process bypasses the minimum deposit check, allowing a user to become a registered investor with a `totalDeposit` balance that is below the required threshold, which is an incorrect balance update relative to the system rules.In the `claimReward` function, before updating the user's `totalDeposit`, add a check to ensure that if the user's current `totalDeposit` is zero, the `toRedistribute` amount meets the minimum deposit requirement of `10**18`.1. The contract owner whitelists an attacker for Pool 7 via `setWhitelist(attacker_address, 7, true)`. The attacker has `totalDeposit = 0`.\n2. The attacker waits to accumulate a small amount of rewards, for instance, `2 ether`.\n3. The attacker calls `claimReward()`. The check `_checkDepositOrClaimAmount(2 ether)` passes.\n4. Assume `claimFeeInBp` is 0 for simplicity. `toInvestor` becomes `2 ether`. `toRedistribute` becomes `1 ether`, and the user is minted `1 ether`.\n5. The code checks `if (investor.totalDeposit == 0)`, which is true. The attacker is added to the `_investors` array.\n6. Crucially, the attacker's `totalDeposit` is updated: `accountToInvestorInfo[attacker_address].totalDeposit += 1 ether`.\n7. The `deposit` function requires a first-time deposit of at least `10**18` (1 ether). While this example meets it, if the reward was smaller (e.g., total reward of 0.2 ether), the `toRedistribute` would be less than the minimum, allowing the attacker to become an investor and earn daily rewards on a sub-threshold deposit, violating the system's intended economic constraints. This update to their internal balance (`totalDeposit`) allows them to gain a status and future earnings they should not have access to.",
+  "scenario": null,
+  "proof_of_concept": "1. The contract owner whitelists an attacker for Pool 7 via `setWhitelist(attacker_address, 7, true)`. The attacker has `totalDeposit = 0`.\n2. The attacker waits to accumulate a small amount of rewards, for instance, `2 ether`.\n3. The attacker calls `claimReward()`. The check `_checkDepositOrClaimAmount(2 ether)` passes.\n4. Assume `claimFeeInBp` is 0 for simplicity. `toInvestor` becomes `2 ether`. `toRedistribute` becomes `1 ether`, and the user is minted `1 ether`.\n5. The code checks `if (investor.totalDeposit == 0)`, which is true. The attacker is added to the `_investors` array.\n6. Crucially, the attacker's `totalDeposit` is updated: `accountToInvestorInfo[attacker_address].totalDeposit += 1 ether`.\n7. The `deposit` function requires a first-time deposit of at least `10**18` (1 ether). While this example meets it, if the reward was smaller (e.g., total reward of 0.2 ether), the `toRedistribute` would be less than the minimum, allowing the attacker to become an investor and earn daily rewards on a sub-threshold deposit, violating the system's intended economic constraints. This update to their internal balance (`totalDeposit`) allows them to gain a status and future earnings they should not have access to.",
+  "recommendation": "In the `claimReward` function, before updating the user's `totalDeposit`, add a check to ensure that if the user's current `totalDeposit` is zero, the `toRedistribute` amount meets the minimum deposit requirement of `10**18`.",
+  "id": "e4a2",
+  "duplicates": null,
+  "source": "scanner.token_scanner",
+  "status": "verified_as_valid",
+  "scan_model_name": "o4-mini, gemini-2.5-pro",
+  "related_function_code": "function claimReward() external NotInPoolCriteriaUpdate {\n    // ...\n    // Redistribute half user reward\n    if (investor.totalDeposit == 0) {\n        _investors.push(investorAddress);\n        if (isWhitelisted[investorAddress][7] || isWhitelisted[investorAddress][8]) onlyWhitelistedInvestorsCount -= 1;\n    }\n    if (investor.referer != address(0)) _updateReferers(investor.referer, toRedistribute, false);\n    _updatePoolRewards(toRedistribute, investorAddress, investor.referer);\n    accountToInvestorInfo[investorAddress].totalDeposit += toRedistribute;\n    totalDepositAmount += toRedistribute;\n    // ...\n}",
+  "related_context": "",
+  "related_checklist": {
+    "checklist": "Ensure balance updates do not mistakenly reduce users' tokens excessively, preventing users from receiving fewer tokens than expected. Carefully confirm that during transfers, the sender's (from) balance decreases exactly by the intended amount (including fees), and the recipient's (to) balance increases accurately according to the calculation."
+  },
+  "related_pid": "a41cefe0-4159-11f0-a06b-992008d4f8aa",
+  "related_commit_id": "9af8be2c4e53218770015a10ea269caa904fde19",
+  "triage_verdict": "valid",
+  "triage_severity": "Minor",
+  "triage_reason": null,
+  "is_main_finding": true
+}

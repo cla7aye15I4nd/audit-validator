@@ -1,0 +1,34 @@
+{
+  "title": "Integer Division Remainder Permanently Locked in Xnome Distribution",
+  "location": {
+    "local_file_path": "./source_code/github/CertiKProject/certik-audit-projects/2a2826fcbafb5bed23f57406cc61e71a3ccffcf2/projects/anome 2/shop/mining/BattleMiningInternal.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/e3c45370-51aa-11f0-bdd0-cbef849456d3/source?file=$/github/CertiKProject/certik-audit-projects/2a2826fcbafb5bed23f57406cc61e71a3ccffcf2/projects/anome 2/shop/mining/BattleMiningInternal.sol",
+    "start_line": 20,
+    "end_line": 51
+  },
+  "all_locations": null,
+  "category": null,
+  "severity": null,
+  "confidence": null,
+  "description": "Vulnerability:\nIn _distributeXnome, totalXnome is divided evenly into 50 daily installments using integer division (totalXnome / 50). Any remainder (totalXnome % 50) is still added to xnomeTotal and xnomeTotalLocked but is never scheduled in xnomeDailyUnlocked. Those leftover tokens remain in locked state and can never be claimed.\n\nExploit Demonstration:\n1. Arrange a battle (or otherwise invoke the call path) so that destroyValueUsda and the current swap rates yield totalXnome = 101.\n2. Call the public function that triggers internal _distributeXnome(to, destroyValueUsda).\n3. Inside _distributeXnome, the loop adds (101 / 50) = 2 tokens per day to l.xnomeDailyUnlocked[to][day] for the next 50 days. The single-token remainder (101 % 50 = 1) is never scheduled.\n4. Over the next 50 days, call the Xnome claim function each day. Each claim transfers 2 tokens, for a total of 100 tokens claimed.\n5. After 50 days, no further xnomeDailyUnlocked entries exist; the remaining 1 token stays in l.xnomeTotalLocked[to] with no way to unlock it.\n\nResult: Out of 101 minted tokens the user only ever can claim 100; the 1-token remainder is effectively unrecoverable.",
+  "scenario": null,
+  "proof_of_concept": null,
+  "recommendation": null,
+  "id": "f130",
+  "duplicates": [
+    "f130",
+    "64c1"
+  ],
+  "source": "scanner.smart_audit",
+  "status": "verified_as_valid",
+  "scan_model_name": "o4-mini",
+  "related_function_code": "    function _distributeXnome(address to, uint256 destroyValueUsda) internal commonCheck returns (uint256) {\n        // 发放Xnome, Xnome数量和销毁卡牌的价值有关\n        // Xnome数量 = 每局游戏销毁卡牌的金本位价值 / Nome价格\n        // 所得到的Xnome分50天逐步释放\n        ShopStorage.Layout storage l = ShopStorage.layout();\n        uint256 totalXnome = _getSwapOutBnomeFromUsda(_getCurrentXnomeDistributionAmount(destroyValueUsda));\n\n        for (uint256 i = 0; i < 50; i++) {\n            uint256 day = _currentDay() + i + 1;\n            l.xnomeDailyUnlocked[to][day] += totalXnome / 50;\n        }\n        l.xnomeTotal[to] += totalXnome;\n        l.xnomeTotalLocked[to] += totalXnome;\n        l.xnomeTotalValue[to] += destroyValueUsda;\n\n        if (l.xnomeDailyLatestClaimDay[to] == 0 || l.xnomeDailyLatestClaimDay[to] > _currentDay()) {\n            l.xnomeDailyLatestClaimDay[to] = _currentDay() - 1;\n        }\n\n        emit SentXnome(\n            to,\n            totalXnome,\n            totalXnome / 50,\n            _currentDay() + 1,\n            _currentDay() + 50,\n            l.xnomeTotal[to],\n            l.xnomeTotalLocked[to],\n            l.xnomeTotalValue[to]\n        );\n\n        return totalXnome;\n    }",
+  "related_context": "layout ->     function layout() internal pure returns (Layout storage l) {\n        bytes32 slot = STORAGE_SLOT;\n        assembly {\n            l.slot := slot\n        }\n    }\n\n_getCurrentXnomeDistributionAmount ->     function _getCurrentXnomeDistributionAmount(uint256 destroyValueUsda) internal view returns (uint256) {\n        ShopStorage.Layout storage l = ShopStorage.layout();\n        uint256 currentDay = _currentDay();\n        uint256 productionCutStartAt = l.xnomeProductionCutStartAt;\n        uint256 productionCutRatioPerDay = l.xnomeProductionCutRatioPerDay;\n        uint256 minXnomeRatio = l.minXnomeRatio;\n\n        if (currentDay <= productionCutStartAt) {\n            return destroyValueUsda;\n        }\n\n        uint256 dayDiff = currentDay - productionCutStartAt;\n        uint256 reduction = productionCutRatioPerDay * dayDiff;\n\n        uint256 ratio = reduction >= (ShopStorage.DIVIDEND - minXnomeRatio)\n            ? minXnomeRatio\n            : ShopStorage.DIVIDEND - reduction;\n\n        return (destroyValueUsda * ratio) / ShopStorage.DIVIDEND;\n    }\n\n_getSwapOutBnomeFromUsda ->     function _getSwapOutBnomeFromUsda(uint256 usdaAmount) internal view returns (uint256) {\n        ShopStorage.Layout storage l = ShopStorage.layout();\n        IConfig config = IConfig(l.config);\n        uint256 swapOutBnome = _getSwapTokenOut(\n            config.baseToken(),\n            config.bnome(),\n            UtilsLib.convertDecimals(usdaAmount, config.usda(), config.baseToken())\n        );\n        // BNome最低价为0.1USDA\n        uint256 maxBnome = usdaAmount * 10;\n        return UtilsLib.min(swapOutBnome, maxBnome);\n    }\n\n_currentDay ->     function _currentDay() internal view returns (uint256) {\n        return block.timestamp / 1 days;\n    }",
+  "related_checklist": null,
+  "related_pid": "e3c45370-51aa-11f0-bdd0-cbef849456d3",
+  "related_commit_id": "2a2826fcbafb5bed23f57406cc61e71a3ccffcf2",
+  "triage_verdict": "valid",
+  "triage_severity": "",
+  "triage_reason": "Valid finding",
+  "is_main_finding": true
+}

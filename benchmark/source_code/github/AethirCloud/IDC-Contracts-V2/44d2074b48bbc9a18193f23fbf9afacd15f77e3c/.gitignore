@@ -1,0 +1,16 @@
+node_modules
+.env
+.DS_Store
+
+#Hardhat files
+cache
+artifacts
+exports
+coverage
+coverage.json
+.vscode
+artifacts-zk
+cache-zk
+anvil-zksync.log
+.cache
+typechain-types

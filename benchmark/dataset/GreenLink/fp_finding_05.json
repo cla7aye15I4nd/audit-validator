@@ -1,0 +1,33 @@
+{
+  "title": "Inconsistent Total Supply via Taxing to a Burn Address",
+  "location": {
+    "local_file_path": "./source_code/github/GLBank/Web3/54b12f25ff139912cbddcc316c940624a64687cf/GLDB Pulse Contracts/PLT/GLDBToken.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/b619bc20-116e-11f0-85f2-afceaa02a7b6/source?file=$/github/GLBank/Web3/54b12f25ff139912cbddcc316c940624a64687cf/GLDB Pulse Contracts/PLT/GLDBToken.sol",
+    "start_line": 1,
+    "end_line": 1
+  },
+  "all_locations": null,
+  "category": "",
+  "severity": "medium",
+  "confidence": null,
+  "description": "The `setTaxConfig` function allows the owner to set the `taxAddress` to any arbitrary address. If the owner sets this to a burn address (an address from which funds can never be recovered), the tax fee functions as a burn. However, since the fee is sent via `_transfer` instead of `_burn`, the contract's `totalSupply` is not reduced. This leads to a discrepancy between the effective circulating supply and the reported `totalSupply`, which can mislead users and dApps.The `setTaxConfig` function should be updated to include a check that prevents setting the `taxAddress` to known burn addresses. A simple check would be `require(taxAddress_ != address(0) && taxAddress_ != address(0xdead), \"Cannot set tax address to a burn address\")`.1. The owner calls `setTaxConfig` with `taxAddress_` set to a known burn address like `0x000000000000000000000000000000000000dEaD` and `taxBPS_` to 500 (5%). We assume `Helper.checkAddress` does not block this address.\n2. A user, Alice, transfers 10,000 tokens to Bob.\n3. The `_payFeeWhenTransfer` function calculates a `taxAmount` of 500 tokens.\n4. It then calls `super._transfer(Alice, \"0x...dEaD\", 500)`. These 500 tokens are now irrecoverable.\n5. Crucially, this operation does not decrease the `totalSupply` variable in the contract.\n6. Over many transactions, a significant amount of the token supply is taken out of circulation, but the on-chain `totalSupply` remains inflated, giving a false impression of the token's actual scarcity.",
+  "scenario": null,
+  "proof_of_concept": "1. The owner calls `setTaxConfig` with `taxAddress_` set to a known burn address like `0x000000000000000000000000000000000000dEaD` and `taxBPS_` to 500 (5%). We assume `Helper.checkAddress` does not block this address.\n2. A user, Alice, transfers 10,000 tokens to Bob.\n3. The `_payFeeWhenTransfer` function calculates a `taxAmount` of 500 tokens.\n4. It then calls `super._transfer(Alice, \"0x...dEaD\", 500)`. These 500 tokens are now irrecoverable.\n5. Crucially, this operation does not decrease the `totalSupply` variable in the contract.\n6. Over many transactions, a significant amount of the token supply is taken out of circulation, but the on-chain `totalSupply` remains inflated, giving a false impression of the token's actual scarcity.",
+  "recommendation": "The `setTaxConfig` function should be updated to include a check that prevents setting the `taxAddress` to known burn addresses. A simple check would be `require(taxAddress_ != address(0) && taxAddress_ != address(0xdead), \"Cannot set tax address to a burn address\")`.",
+  "id": "769a",
+  "duplicates": null,
+  "source": "scanner.token_scanner",
+  "status": "verified_as_valid",
+  "scan_model_name": "o4-mini, gemini-2.5-pro",
+  "related_function_code": "function setTaxConfig(address taxAddress_, uint256 taxBPS_) external onlyOwner whenNotPaused {\n    if (!isTaxable()) {\n        revert TokenIsNotTaxable();\n    }\n    if (taxBPS_ > MAX_BPS_AMOUNT) {\n        revert InvalidTaxBPS(taxBPS_);\n    }\n    Helper.checkAddress(taxAddress_);\n    TaxStorage storage taxStorage = _getTaxStorage();\n    taxStorage.taxAddress = taxAddress_;\n    taxStorage.taxBPS = taxBPS_;\n    emit TaxConfigSet(taxStorage.taxAddress, taxStorage.taxBPS);\n}",
+  "related_context": "",
+  "related_checklist": {
+    "checklist": "Ensure no denial-of-service (DoS) issues arise in fee handling processes. Specifically, confirm that interactions with third-party contracts, such as swaps or liquidity additions/removals, do not revert frequently or consistently due to insufficient contract balances, faulty logic, or improper fee destination addresses, like the zero address."
+  },
+  "related_pid": "b619bc20-116e-11f0-85f2-afceaa02a7b6",
+  "related_commit_id": "54b12f25ff139912cbddcc316c940624a64687cf",
+  "triage_verdict": "invalid",
+  "triage_severity": "",
+  "triage_reason": "Intended design",
+  "is_main_finding": true
+}

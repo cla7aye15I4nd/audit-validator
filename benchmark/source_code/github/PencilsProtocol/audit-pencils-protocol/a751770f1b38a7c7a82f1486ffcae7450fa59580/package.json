@@ -1,0 +1,11 @@
+{
+  "private": "true",
+  "name": "pencil-protocol",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.9",
+    "@openzeppelin/contracts-upgradeable": "^4.9"
+  }
+}

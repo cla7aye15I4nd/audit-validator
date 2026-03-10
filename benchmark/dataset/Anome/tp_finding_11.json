@@ -1,0 +1,34 @@
+{
+  "title": "Missing Pool Balance Validation Allows USDA Overdraw",
+  "location": {
+    "local_file_path": "./source_code/github/CertiKProject/certik-audit-projects/2a2826fcbafb5bed23f57406cc61e71a3ccffcf2/projects/anome 2/shop/battle/BattleServiceInternal.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/e3c45370-51aa-11f0-bdd0-cbef849456d3/source?file=$/github/CertiKProject/certik-audit-projects/2a2826fcbafb5bed23f57406cc61e71a3ccffcf2/projects/anome 2/shop/battle/BattleServiceInternal.sol",
+    "start_line": 233,
+    "end_line": 248
+  },
+  "all_locations": null,
+  "category": null,
+  "severity": null,
+  "confidence": null,
+  "description": "Vulnerability:\n_transferPoolUsda deducts from the pool’s internal usdaBalance but never prevents |amount| from exceeding that balance. If pool.usdaBalance < amount, it simply zeroes the balance and still calls IUSDA.transfer(receiver, amount). This disconnect between the recorded pool balance and the actual transfer lets the contract pay out more USDA than the pool holds, drawing against the contract’s general USDA reserves.\n\nExploit Demonstration:\n1. Pick a cardId whose pool.usdaBalance has been drained below the expected destruction payout (e.g. pool.usdaBalance = 10 USDA).\n2. Call the public destroyCard entry point (via the game contract) for that cardId. This invokes _destroyCardToIP, _destroyCardToTreasury and _destroyCardToSponsor in sequence.\n3. In _destroyCardToIP:\n   • releasedUsda = 100\n   • ipAmount = (100 * 30%) = 30\n   • pool.usdaBalance (10) < 30 ⇒ pool.usdaBalance = 0\n   • IUSDA.transfer(IPReceiver, 30) still executes, sending 30 USDA\n4. In _destroyCardToTreasury:\n   • treasuryAmount = (100 * 25%) = 25\n   • pool.usdaBalance (0) < 25 ⇒ pool.usdaBalance = 0\n   • IUSDA.transfer(treasuryPayee, 25) still executes, sending 25 USDA\n5. In _destroyCardToSponsor:\n   • sponsorAmount = (100 * 2.5%) = 2.5\n   • For each sponsor: pool.usdaBalance (0) < 2.5 ⇒ zero and transfer 2.5 USDA twice\n6. The contract transfers a total of 30 + 25 + 2.5 + 2.5 = 60 USDA, despite the pool having only 10. Repeating this against any depleted pool lets you drain the contract’s USDA reserves beyond what was allocated to that pool. Continuous monitoring of the contract’s USDA token balance before and after each destroyCard call confirms the overdraw.",
+  "scenario": null,
+  "proof_of_concept": null,
+  "recommendation": null,
+  "id": "06e9",
+  "duplicates": [
+    "06e9",
+    "aef6"
+  ],
+  "source": "scanner.smart_audit",
+  "status": "verified_as_valid",
+  "scan_model_name": "o4-mini",
+  "related_function_code": "    function _transferPoolUsda(uint256 cardId, address receiver, uint256 amount) internal {\n        ShopStorage.Layout storage data = ShopStorage.layout();\n        ShopTypes.CardPool storage pool = data.pools[cardId];\n\n        if (pool.usdaBalance > amount) {\n            pool.usdaBalance -= amount;\n        } else {\n            pool.usdaBalance = 0;\n        }\n\n        if (receiver == address(0)) {\n            receiver = data.config.cardDestroyPayee();\n        }\n\n        IUSDA(data.config.usda()).transfer(receiver, amount);\n    }",
+  "related_context": "layout -> function layout() internal pure returns (Layout storage l) {\n        bytes32 slot = STORAGE_SLOT;\n        assembly {\n            l.slot := slot\n        }\n    }\n\ncardDestroyPayee -> None\n\nusda -> None",
+  "related_checklist": null,
+  "related_pid": "e3c45370-51aa-11f0-bdd0-cbef849456d3",
+  "related_commit_id": "2a2826fcbafb5bed23f57406cc61e71a3ccffcf2",
+  "triage_verdict": "valid",
+  "triage_severity": "",
+  "triage_reason": "Valid finding",
+  "is_main_finding": true
+}

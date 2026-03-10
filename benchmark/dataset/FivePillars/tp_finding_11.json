@@ -1,0 +1,33 @@
+{
+  "title": "Out-of-Bounds Read in getInvestorPoolRewardPerTokenPaid",
+  "location": {
+    "local_file_path": "./source_code/github/fivepillarstoken/InvestmentManager/9af8be2c4e53218770015a10ea269caa904fde19/InvestmentManager.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/a41cefe0-4159-11f0-a06b-992008d4f8aa/source?file=$/github/fivepillarstoken/InvestmentManager/9af8be2c4e53218770015a10ea269caa904fde19/InvestmentManager.sol",
+    "start_line": 1,
+    "end_line": 1
+  },
+  "all_locations": null,
+  "category": "",
+  "severity": "medium",
+  "confidence": null,
+  "description": "The function getInvestorPoolRewardPerTokenPaid reads from a fixed-size array poolRewardPerInvestorPaid[9] using a user-supplied poolId without any bounds check.Add a require(poolId < 9, \"Invalid poolId\"); before accessing poolRewardPerInvestorPaid.1. Call getInvestorPoolRewardPerTokenPaid(0x1234..., 10) as any user.\n2. The contract does not revert and returns a value from storage slot beside the array, leaking internal storage data.\n3. Repeating with poolId=255 reads further unrelated storage slots.\n",
+  "scenario": null,
+  "proof_of_concept": "1. Call getInvestorPoolRewardPerTokenPaid(0x1234..., 10) as any user.\n2. The contract does not revert and returns a value from storage slot beside the array, leaking internal storage data.\n3. Repeating with poolId=255 reads further unrelated storage slots.\n",
+  "recommendation": "Add a require(poolId < 9, \"Invalid poolId\"); before accessing poolRewardPerInvestorPaid.",
+  "id": "c989",
+  "duplicates": null,
+  "source": "scanner.token_scanner",
+  "status": "verified_as_valid",
+  "scan_model_name": "o4-mini, gemini-2.5-pro",
+  "related_function_code": "function getInvestorPoolRewardPerTokenPaid(address investor, uint8 poolId) external view returns(uint256) {\n    return accountToInvestorInfo[investor].poolRewardPerInvestorPaid[poolId];\n}",
+  "related_context": "",
+  "related_checklist": {
+    "checklist": "### Validate Index and Address Safety\nGuard against array out-of-bounds access, zero address, and other unsafe inputs.\n\n```solidity\n// Unsafe index access\nfunction unlock(uint256 idx) external {\n    require(idx < locks[msg.sender].length, \"Out of bounds\");\n    // ...\n}\n```\n\n**Invariant:** Always validate inputs before accessing arrays or using external addresses."
+  },
+  "related_pid": "a41cefe0-4159-11f0-a06b-992008d4f8aa",
+  "related_commit_id": "9af8be2c4e53218770015a10ea269caa904fde19",
+  "triage_verdict": "valid",
+  "triage_severity": "Minor",
+  "triage_reason": null,
+  "is_main_finding": true
+}

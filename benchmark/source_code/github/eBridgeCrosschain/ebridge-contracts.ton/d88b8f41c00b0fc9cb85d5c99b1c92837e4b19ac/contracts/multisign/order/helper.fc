@@ -1,0 +1,76 @@
+#include "storage.fc";
+#include "../../common/stdlib.fc";
+#include "../../common/message.fc";
+#include "../errors.fc";
+#include "../op.fc";
+
+(int, int) find_signer_by_address(slice signer_address) impure inline {
+    int found_signer? = false;
+    int signer_index = -1;
+    do {
+        (signer_index, slice value, int next_found?) = storage::signers_info.udict_get_next?(INDEX_SIZE, signer_index);
+        if (next_found?) {
+            if (equal_slice_bits(signer_address, value)) {
+                found_signer? = true;
+                next_found? = false; ;; fast way to exit loop
+            }
+        }
+    } until (~ next_found?);
+    return (signer_index, found_signer?);
+}
+
+() add_approval(int signer_index) impure inline {
+    int mask = 1 << signer_index;
+    throw_if(error::already_approved, storage::approvals_mask & mask);
+    storage::approvals_num += 1;
+    storage::approvals_mask |= mask;
+    save_storage();
+}
+
+() try_execute(int query_id) impure inline_ref {
+    if (storage::approvals_num == storage::threshold) {
+        send_simple_message(
+            0,
+            storage::multisig_address,
+            begin_cell()
+                .store_body_header(execute, query_id)
+                .store_order_seqno(storage::order_seqno)
+                .store_timestamp(storage::expiration_time)
+                .store_index(storage::approvals_num)
+                .store_hash(storage::signers_info.cell_hash())
+                .store_ref(storage::order).end_cell(),
+            SEND_MODE_CARRY_ALL_BALANCE | SEND_MODE_BOUNCE_TRANSACTION
+        );
+        storage::sent_for_execution = true;
+        save_storage();
+    }
+}
+
+() _approve(int signer_index, slice response_address, int query_id) impure inline_ref {
+    try {
+        throw_if(error::already_executed, storage::sent_for_execution);
+
+        add_approval(signer_index);
+
+        send_simple_message(
+            0,
+            response_address,
+            begin_cell().store_body_header(approve_accepted, query_id).end_cell(),
+            SEND_MODE_CARRY_ALL_REMAINING_MESSAGE_VALUE | SEND_MODE_BOUNCE_TRANSACTION
+        );
+
+        try_execute(query_id);
+
+        save_storage();
+
+    } catch (_, exit_code) {
+        send_simple_message(
+            0,
+            response_address,
+            begin_cell()
+                .store_body_header(approve_rejected, query_id)
+                .store_uint(exit_code, 32).end_cell(),
+            SEND_MODE_CARRY_ALL_REMAINING_MESSAGE_VALUE | SEND_MODE_BOUNCE_TRANSACTION
+        );
+    }
+}

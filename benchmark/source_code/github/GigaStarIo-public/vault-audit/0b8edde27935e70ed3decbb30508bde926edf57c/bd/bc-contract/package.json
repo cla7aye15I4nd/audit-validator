@@ -1,0 +1,10 @@
+{
+    "name": "@gs/bc-contract",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "clean": "rm -rf abi build cache lib out",
+        "build": "./script/build.sh",
+        "test": "./script/ut.sh"
+    }
+}

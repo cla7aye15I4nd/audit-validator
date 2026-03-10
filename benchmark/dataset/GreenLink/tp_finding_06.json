@@ -1,0 +1,31 @@
+{
+  "title": "Flawed Balance Check on Self-Transfers Leads to Incorrect Reverts",
+  "location": {
+    "local_file_path": "./source_code/github/GLBank/Web3/54b12f25ff139912cbddcc316c940624a64687cf/GLDB Pulse Contracts/PLT/GLDBToken.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/b619bc20-116e-11f0-85f2-afceaa02a7b6/source?file=$/github/GLBank/Web3/54b12f25ff139912cbddcc316c940624a64687cf/GLDB Pulse Contracts/PLT/GLDBToken.sol",
+    "start_line": 1,
+    "end_line": 1
+  },
+  "all_locations": null,
+  "category": null,
+  "severity": null,
+  "confidence": null,
+  "description": "The `_checkMaxAmountPerAddress` function, which is supposed to enforce a maximum token holding limit per address, contains a logical flaw in how it calculates the recipient's future balance. The function calculates the new balance as `balanceOf(to) + amount`, where `amount` is the net amount being transferred (`amountToTransfer`). This calculation is incorrect for self-transfers (where the sender is also the recipient). In a self-transfer, the sender's balance is first debited by the gross amount (including fees) and then credited with the net `amountToTransfer`. The net result is a decrease in balance equal to the total fees. However, the check function only accounts for the credit part, leading it to incorrectly compute a much larger final balance and cause the transaction to revert when it should succeed.\n\n**Exploit Demonstration:**\nAn auditor can demonstrate this vulnerability by simulating a self-transfer for a user whose balance is at or near the maximum limit.\n\n**Prerequisites:**\n1. The contract is initialized with `isMaxAmountPerAddressSet` set to `true`.\n2. `maxTokenAmountPerAddress` is set to a value, for example, `1,000` tokens.\n3. A transfer fee is configured, for example, a `taxBPS` of `1000` (10%).\n4. An account, let's call it `Alice`, holds a balance equal to `maxTokenAmountPerAddress`, i.e., `1,000` tokens.\n\n**Exploit Steps:**\n1. As Alice, call the `transfer(address to, uint256 amount)` function with `to` as Alice's own address and `amount` as any value, for instance, `100` tokens. `transfer(alice_address, 100)`.\n2. The `_payFeeWhenTransfer` function is called internally. It calculates a `taxAmount` of `10` and an `amountToTransfer` of `90`.\n3. The function then calls `_checkMaxAmountPerAddress(alice_address, 90)`.\n4. Inside `_checkMaxAmountPerAddress`, the new balance is incorrectly calculated as `balanceOf(Alice) + amountToTransfer`, which is `1000 + 90 = 1090`.\n5. This calculated `newAmount` (1090) is greater than `maxTokenAmountPerAddress` (1000), causing the transaction to revert with an `AddrBalanceExceedsMaxAllowed` error.\n\n**Expected vs. Actual Outcome:**\n- **Actual:** The transaction reverts, preventing Alice from performing a self-transfer.\n- **Expected:** The transaction should succeed. Alice's actual final balance would be `1000 (initial) - 10 (tax fee) = 990` tokens, which is below the maximum limit. The logical flaw in the balance check prevents this valid operation.",
+  "scenario": null,
+  "proof_of_concept": null,
+  "recommendation": null,
+  "id": "1474",
+  "duplicates": null,
+  "source": "scanner.smart_audit",
+  "status": "verified_as_valid",
+  "scan_model_name": "gemini-2.5-pro",
+  "related_function_code": "function transfer(address to, uint256 amount)\n        public\n        virtual\n        override\n        whenNotPaused\n        checkTransfer(_msgSender(), to)\n        returns (bool)\n    {\n        uint256 amountToTransfer = _payFeeWhenTransfer(_msgSender(), to, amount);\n        return super.transfer(to, amountToTransfer);\n    }",
+  "related_context": "_payFeeWhenTransfer ->     function _payFeeWhenTransfer(address from, address to, uint256 amount) internal returns (uint256) {\n        address spender = _msgSender();\n        // transfer fee\n        TaxStorage memory taxStorage = _getTaxStorage();\n        uint256 taxAmount = _taxAmount(taxStorage, from, amount);\n        uint256 deflationAmount = _deflationAmount(taxStorage, amount);\n        uint256 totalFee = taxAmount + deflationAmount;\n        uint256 amountToTransfer = amount - totalFee;\n\n        // check max amount per address\n        _checkMaxAmountPerAddress(to, amountToTransfer);\n\n        // consume allowance\n        if (spender != from && totalFee > 0) {\n            if (spender == owner() && isForceTransferAllowed()) {\n                // the owner can transfer without consuming allowance\n            } else {\n                // consume allowance\n                super._spendAllowance(from, spender, totalFee);\n            }\n        }\n        if (taxAmount > 0) {\n            super._transfer(from, taxStorage.taxAddress, taxAmount);\n        }\n        if (deflationAmount > 0) {\n            super._burn(from, deflationAmount);\n        }\n\n        return amountToTransfer;\n    }",
+  "related_checklist": null,
+  "related_pid": "b619bc20-116e-11f0-85f2-afceaa02a7b6",
+  "related_commit_id": "54b12f25ff139912cbddcc316c940624a64687cf",
+  "triage_verdict": "valid",
+  "triage_severity": "",
+  "triage_reason": "",
+  "is_main_finding": true
+}

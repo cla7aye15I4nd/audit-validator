@@ -1,0 +1,29 @@
+{
+  "id": "f29c",
+  "title": "withdraw_ton destination validation is ineffective and can allow addr_none/unsupported address types",
+  "source": "aiflow_scanner_codex",
+  "status": "enhanced",
+  "category": null,
+  "location": {
+    "end_line": 1,
+    "start_line": 1,
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/c0b155c0-ce9d-11f0-afef-b3f141791562/source?file=$/github/Liberty-Games/sixr-bridge-watchers/20fc6b15b4134cdd724fa8a0b8d0f1f7d4981856/contracts/ton/bridge-vault.fc",
+    "local_file_path": "./source_code/github/Liberty-Games/sixr-bridge-watchers/20fc6b15b4134cdd724fa8a0b8d0f1f7d4981856/contracts/ton/bridge-vault.fc"
+  },
+  "scenario": "",
+  "sequence": 67,
+  "severity": "medium",
+  "confidence": null,
+  "description": "withdraw_ton only checks destination.slice_empty?(), but destination is parsed with load_msg_addr(), so it will not be an “empty slice” even for addr_none ($00) or other unsupported address forms. This can allow constructing a withdrawal to addr_none or a non-internal address type, which may burn funds (if accepted) or trigger action-phase errors/bounces (fees lost) unexpectedly. Validate destination as a proper internal address (e.g., reject addr_none by checking the first 2 bits != 00 and/or enforce addr_std/addr_var only) similar to is_fee_wallet_configured().",
+  "related_pid": "c0b155c0-ce9d-11f0-afef-b3f141791562",
+  "triage_reason": null,
+  "recommendation": "- Do not rely on destination.slice_empty?() after load_msg_addr(); it is non-empty even for addr_none and unsupported address types.\n- Explicitly validate that destination is an internal address. Accept only addr_std and/or addr_var. Reject addr_none ($00) and addr_extern ($01).\n- Reuse the same internal-address checks used in is_fee_wallet_configured() (or an equivalent helper) to keep logic consistent.\n- On invalid destination, revert with a clear error code before deducting funds or sending a message.\n- If your design requires it, further restrict to addr_std only and enforce expected flags (e.g., bounceable), zero anycast, and allowed workchain(s).\n- Add tests for addr_none and addr_extern to confirm withdrawals are rejected and no fees are spent.",
+  "triage_verdict": "valid",
+  "related_context": null,
+  "scan_model_name": null,
+  "triage_severity": null,
+  "proof_of_concept": null,
+  "related_checklist": null,
+  "related_commit_id": "20fc6b15b4134cdd724fa8a0b8d0f1f7d4981856",
+  "related_function_code": "() withdraw_ton(slice sender, slice destination, int amount) impure {\n    throw_unless(ERR_UNAUTHORIZED, is_admin(sender));\n\n    ;; Validate destination address is not null\n    throw_if(ERR_INVALID_WITHDRAW_AMOUNT, destination.slice_empty?());\n\n    ;; Validate amount is positive\n    throw_unless(ERR_INVALID_WITHDRAW_AMOUNT, amount > 0);\n\n    ;; Get current contract balance\n    ;; We need to keep MIN_TON_RESERVE for contract operations\n    int current_balance = get_balance().pair_first();\n    int available_balance = current_balance - MIN_TON_RESERVE;\n\n    ;; Check if we have enough balance\n    throw_unless(ERR_INSUFFICIENT_BALANCE, available_balance >= amount);\n\n    ;; Send TON to destination\n    send_raw_message(begin_cell()\n        .store_uint(0x18, 6)                     ;; bounceable\n        .store_slice(destination)\n        .store_coins(amount)\n        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)  ;; no extras\n    .end_cell(), 1);  ;; mode = 1 (pay fees separately)\n\n    ;; Emit log\n    cell log = begin_cell()\n        .store_uint(0x57495448, 32)          ;; withdraw_log tag (\"WITH\")\n        .store_slice(destination)\n        .store_coins(amount)\n        .store_uint(now(), 64)\n    .end_cell();\n\n    send_raw_message(begin_cell()\n        .store_uint(0x10, 6)                 ;; nobounce\n        .store_slice(my_address())\n        .store_coins(GAS_FOR_LOG)\n        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)\n        .store_ref(log)\n    .end_cell(), 1);\n}"
+}

@@ -1,0 +1,31 @@
+{
+  "title": "Infinite Loop in isMet Causing Denial-of-Service for >255 Conditions",
+  "location": {
+    "local_file_path": "./source_code/github/GLBank/Web3/54b12f25ff139912cbddcc316c940624a64687cf/GLDB Pulse Contracts/ENT&Swap/lib/Types.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/b619bc20-116e-11f0-85f2-afceaa02a7b6/source?file=$/github/GLBank/Web3/54b12f25ff139912cbddcc316c940624a64687cf/GLDB Pulse Contracts/ENT&Swap/lib/Types.sol",
+    "start_line": 1,
+    "end_line": 1
+  },
+  "all_locations": null,
+  "category": null,
+  "severity": null,
+  "confidence": null,
+  "description": "Vulnerability Description:\nThe for-loop in isMet uses a uint8 counter `i` but compares it against a uint256 `conditionsLength`. When `conditionsLength` exceeds 255, the unchecked `i++` wraps back to 0 after hitting 255, and the condition `i < conditionsLength` remains true indefinitely. As a result, any call that invokes isMet on an NFT with 256 or more conditions will loop infinitely until gas is exhausted, causing the transaction (or view call) to run out of gas and revert. Because isMet is the gatekeeper for all on-chain flows that check condition satisfaction, an attacker can permanently block any functionality that relies on it (e.g., settlement or status transitions).\n\nExploit Demonstration Steps:\n1. In a test or script, construct an NFTMetadata struct whose `conditions` array has length 256 (the contents of each NFTCondition can be dummy/valid objects; their fields don’t matter for triggering the loop).\n2. Invoke any external/public function on the contract that internally calls isMet(nft, <someTimestamp>). If no public wrapper exists, call isMet directly via a test harness or by adding a temporary public wrapper for testing.\n3. Observe that the transaction (or view call) does not return and eventually consumes all gas, reverting with an out-of-gas error.\n4. Confirm that reducing `conditions.length` to 255 or fewer allows the function to complete normally, demonstrating that the uint8 counter overflow is the root cause.\n\nImpact:\nAn attacker can create or supply an NFT with at least 256 conditions and then invoke any operation that requires condition checking, causing a denial-of-service by permanently preventing those operations from succeeding.",
+  "scenario": null,
+  "proof_of_concept": null,
+  "recommendation": null,
+  "id": "0815",
+  "duplicates": null,
+  "source": "scanner.smart_audit",
+  "status": "verified_as_valid",
+  "scan_model_name": "o4-mini",
+  "related_function_code": "function isMet(NFTMetadata storage nft, uint40 timestamp) internal view returns (bool, uint256) {\n        NFTCondition[] storage conditions = nft.conditions;\n        LogicType logic = nft.logic;\n        uint256 conditionsLength = conditions.length;\n        if (conditionsLength == 0) {\n            return (true, nft.amount);\n        }\n        uint256 maximumBenefit;\n        uint256 approvedCount;\n        for (uint8 i = 0; i < conditionsLength;) {\n            NFTCondition memory cond = conditions[i];\n            bool ret;\n            if (cond.allowedAction == AllowedAction.ApproveOrReject) {\n                if (cond.action == Action3.Approve) {\n                    ret = true;\n                } else if (cond.action == Action3.None) {\n                    ret = false;\n                } else {\n                    ret = false;\n                }\n            } else {\n                if (cond.action == Action3.Approve) {\n                    ret = true;\n                } else if (cond.action == Action3.None) {\n                    ret = timestamp >= cond.date.endTime;\n                } else {\n                    ret = false;\n                }\n            }\n            if (ret) {\n                approvedCount++;\n                uint256 myAmount = cond.isPartial ? cond.confirmedAmount : nft.amount;\n                maximumBenefit = max(maximumBenefit, myAmount);\n            }\n            unchecked {\n                i++;\n            }\n        }\n        if (logic == LogicType.AND) {\n            // AND\n            return (approvedCount == conditionsLength, maximumBenefit);\n        } else {\n            // OR\n            return (approvedCount > 0, maximumBenefit);\n        }\n    }",
+  "related_context": "max ->     function max(uint256 a, uint256 b) private pure returns (uint256) {\n        return a > b ? a : b;\n    }",
+  "related_checklist": null,
+  "related_pid": "b619bc20-116e-11f0-85f2-afceaa02a7b6",
+  "related_commit_id": "54b12f25ff139912cbddcc316c940624a64687cf",
+  "triage_verdict": "invalid",
+  "triage_severity": "",
+  "triage_reason": "Context not considerred",
+  "is_main_finding": true
+}

@@ -1,0 +1,94 @@
+;; Main test file for sushi-exchange module
+(env-enable-repl-natives true)
+(load "setup.repl")
+
+(begin-tx "test-create-pair")
+  (env-data {
+  "ns": "sushi"
+})
+(namespace (read-msg "ns"))
+  (use base)
+  ;; Create the principal namespace using the same ns.pact namespace
+  ;; setup file that the actual protocol uses.
+  (env-data {
+  "ns": "sushi",
+    "admin-keyset": {"keys": [ADMIN_KEY], "pred": "keys-all"},
+    "alice-keyset": {"keys": [ALICE_KEY], "pred": "keys-all"},
+    "bob-keyset": {"keys": [BOB_KEY], "pred": "keys-all"},
+    "charlie-keyset": {"keys": [CHARLIE_KEY], "pred": "keys-all"}
+  })
+  (use token1)
+  (use token2)
+
+  (env-sigs [{"key": ADMIN_KEY, "caps": [(sushi-exchange.CREATE_PAIR token1 token2 "TEST1-TEST2" ADMIN)]}])
+  
+  (let ((result (sushi-exchange.create-pair token1 token2 "TEST1-TEST2")))
+    (expect "create-pair should return correct key" 
+      "sushi.token1:sushi.token2"
+      (at "key" result)))
+
+  (expect-failure "create-pair with duplicate key should fail" 
+    "Error during database operation: Value already found while in Insert mode in table sushi.sushi-exchange_pairs at key \"sushi.token1:sushi.token2\"" 
+    (sushi-exchange.create-pair token1 token2 "TEST1-TEST2"))
+(commit-tx)
+
+(begin-tx "test-pair-management")
+  (env-data {
+  "ns": "sushi"
+})
+(namespace (read-msg "ns"))
+  (use base)
+  ;; Create the principal namespace using the same ns.pact namespace
+  ;; setup file that the actual protocol uses.
+  (env-data {
+    "admin-keyset": {"keys": [ADMIN_KEY], "pred": "keys-all"},
+    "sushi.admin-keyset": {"keys": [ADMIN_KEY], "pred": "keys-all"},
+    "alice-keyset": {"keys": [ALICE_KEY], "pred": "keys-all"},
+    "bob-keyset": {"keys": [BOB_KEY], "pred": "keys-all"},
+    "charlie-keyset": {"keys": [CHARLIE_KEY], "pred": "keys-all"}
+  })
+  (use token1)
+  (use token2)
+
+  ;; Test get-pair
+  (let ((pair (sushi-exchange.get-pair token1 token2)))
+    (expect "get-pair should return correct pair"
+      true
+      (and (= (at "reserve" (at "leg0" pair)) 0.0)
+           (= (at "reserve" (at "leg1" pair)) 0.0))))
+
+  ;; Test pair-exists
+  (expect "pair-exists should return true for existing pair"
+    true
+    (sushi-exchange.pair-exists token1 token2))
+
+  ;; Test get-pair-key
+  (expect "get-pair-key should return canonical key"
+    "sushi.token1:sushi.token2"
+    (sushi-exchange.get-pair-key token1 token2))
+
+  ;; Test is-canonical
+  (expect "is-canonical should return true for canonical order"
+    true
+    (sushi-exchange.is-canonical token1 token2))
+
+  ;; Test is-leg0
+  (let ((pair (sushi-exchange.get-pair token1 token2)))
+    (expect "is-leg0 should return true for first token"
+      true
+      (sushi-exchange.is-leg0 pair token1)))
+
+  ;; Test leg-for
+  (let ((pair (sushi-exchange.get-pair token1 token2)))
+    (expect "leg-for should return correct leg"
+      true
+      (= (at "reserve" (sushi-exchange.leg-for pair token1)) 0.0)))
+
+  ;; Test reserve-for
+  (let ((pair (sushi-exchange.get-pair token1 token2)))
+    (expect "reserve-for should return correct reserve"
+      0.0
+      (sushi-exchange.reserve-for pair token1)))
+(commit-tx)
+(load "liquidity.repl")  
+(load "swap.repl")

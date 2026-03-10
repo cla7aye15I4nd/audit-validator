@@ -1,0 +1,8 @@
+;; Main test file for sushi-exchange-tokens module
+(env-enable-repl-natives true)
+(load "../../bootstrap.repl")
+(load "init-issuer.repl")
+(load "mint.repl")
+(load "burn.repl")
+(load "transfer.repl")
+(load "debit-credit.repl")

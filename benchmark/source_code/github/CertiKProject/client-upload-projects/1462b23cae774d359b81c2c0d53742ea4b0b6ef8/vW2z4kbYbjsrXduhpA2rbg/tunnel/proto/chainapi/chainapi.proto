@@ -1,0 +1,81 @@
+// protoc --go_out=. --go_opt=paths=source_relative proto/chainapi/chainapi.proto
+// protoc --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/chainapi/chainapi.proto
+
+syntax = "proto3";
+
+option go_package = "gitlab.weinvent.org/yangchenzhong/dogelayer-tunnel/proto/chainapi";
+
+package chainapi;
+
+// The ChainAPI service definition.
+service ChainAPI {
+    rpc GetChainInfo (ChainInfoRequest) returns (ChainInfoReply) {}
+    rpc CreateAccount (CreateAccountRequest) returns (CreateAccountReply) {}
+
+    rpc GetAssetInfo (AssetInfoRequest) returns (AssetInfoReply) {}
+    rpc GetBlockNumber (BlockNumberRequest) returns (BlockNumberReply) {}
+    rpc GetBalance (BalanceRequest) returns (BalanceReply) {}
+}
+
+message ChainInfoRequest {
+}
+
+message ChainInfoReply {
+    uint64 blockchain_id = 1 [json_name = "blockchain_id"];
+    string network = 2 [json_name = "network"];
+    string chain_id = 3 [json_name = "chain_id"];
+    string base_chain = 4 [json_name = "base_chain"];
+
+    int64 sign_at = 5 [json_name = "sign_at"]; // used for signature
+    bytes signature = 6 [json_name = "signature"]; // bc.ChainAPISignKey
+}
+
+message CreateAccountRequest {
+    string name = 1;
+
+    int64 sign_at = 2 [json_name = "sign_at"]; // used for signature
+    bytes signature = 3;
+}
+
+message CreateAccountReply {
+    string name = 1;
+    string address = 2; // the address to deposit
+
+    int64 sign_at = 3 [json_name = "sign_at"]; // used for signature
+    bytes signature = 4;
+}
+
+message AssetInfoRequest {
+    string asset = 1; // empty for native coin
+}
+
+message AssetInfoReply {
+    string asset = 1;
+    string name = 2;
+    string symbol = 3;
+    uint32 decimals = 4;
+    uint64 attribute = 5;
+    string AssetType = 6;
+    string totalSupply = 7  [json_name = "total_supply"];
+
+    int64 sign_at = 8 [json_name = "sign_at"]; // used for signature
+    bytes signature = 9;
+}
+
+message BlockNumberRequest {
+}
+
+message BlockNumberReply {
+    uint64 number = 1; // number
+}
+
+message BalanceRequest {
+    string address = 1;
+    string asset = 2; // empty for native coin
+}
+
+message BalanceReply {
+    string address = 1;
+    string asset = 2; // empty for native coin
+    string balance = 3;
+}

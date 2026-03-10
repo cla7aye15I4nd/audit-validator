@@ -1,0 +1,33 @@
+{
+  "title": "DoS by Setting a Tax Recipient Contract that Rejects Transfers",
+  "location": {
+    "local_file_path": "./source_code/github/GLBank/Web3/54b12f25ff139912cbddcc316c940624a64687cf/GLDB Pulse Contracts/PLT/GLDBToken.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/b619bc20-116e-11f0-85f2-afceaa02a7b6/source?file=$/github/GLBank/Web3/54b12f25ff139912cbddcc316c940624a64687cf/GLDB Pulse Contracts/PLT/GLDBToken.sol",
+    "start_line": 1,
+    "end_line": 1
+  },
+  "all_locations": null,
+  "category": "",
+  "severity": "high",
+  "confidence": null,
+  "description": "The `setTaxConfig` function allows the owner to set the `taxAddress` to any address, including a smart contract. If the owner sets the tax address to a contract that is coded to reject incoming token transfers (e.g., by reverting in its fallback function), any subsequent user token transfer will fail. This is because the `_payFeeWhenTransfer` function will attempt to transfer the tax fee to this rejecting contract, causing the entire transaction to revert and creating a permanent Denial of Service (DoS) for all transfer operations.The `setTaxConfig` function should ensure that the provided `taxAddress_` is not a contract, or if it is a contract, that it can successfully receive tokens. This can be done by checking `taxAddress_.code.length == 0` to allow only EOAs, or by performing a test transfer of a negligible amount to the address within the function to verify its ability to receive tokens before setting it.1. The owner deploys a contract `Rejector.sol` that has a `fallback() external payable { revert(); }` function.\n2. The owner calls `setTaxConfig(address(Rejector), 500)` to set the tax recipient to this new contract and a tax rate of 5%.\n3. A regular user, Alice, attempts to transfer any amount of tokens to another user, Bob, by calling `transfer(Bob, 1000)`.\n4. The `transfer` function calls `_payFeeWhenTransfer` internally. A non-zero `taxAmount` is calculated.\n5. The function then attempts to send the tax tokens via `super._transfer(from, taxStorage.taxAddress, taxAmount)`.\n6. The transfer to the `Rejector` contract address is executed, which triggers the `fallback()` function and immediately reverts.\n7. Because the internal `_transfer` call reverts, Alice's entire `transfer` transaction fails.\n8. This condition persists for all users and all transfers (except those from the tax address itself), effectively freezing all token transfers.",
+  "scenario": null,
+  "proof_of_concept": "1. The owner deploys a contract `Rejector.sol` that has a `fallback() external payable { revert(); }` function.\n2. The owner calls `setTaxConfig(address(Rejector), 500)` to set the tax recipient to this new contract and a tax rate of 5%.\n3. A regular user, Alice, attempts to transfer any amount of tokens to another user, Bob, by calling `transfer(Bob, 1000)`.\n4. The `transfer` function calls `_payFeeWhenTransfer` internally. A non-zero `taxAmount` is calculated.\n5. The function then attempts to send the tax tokens via `super._transfer(from, taxStorage.taxAddress, taxAmount)`.\n6. The transfer to the `Rejector` contract address is executed, which triggers the `fallback()` function and immediately reverts.\n7. Because the internal `_transfer` call reverts, Alice's entire `transfer` transaction fails.\n8. This condition persists for all users and all transfers (except those from the tax address itself), effectively freezing all token transfers.",
+  "recommendation": "The `setTaxConfig` function should ensure that the provided `taxAddress_` is not a contract, or if it is a contract, that it can successfully receive tokens. This can be done by checking `taxAddress_.code.length == 0` to allow only EOAs, or by performing a test transfer of a negligible amount to the address within the function to verify its ability to receive tokens before setting it.",
+  "id": "0f2f",
+  "duplicates": null,
+  "source": "scanner.token_scanner",
+  "status": "verified_as_valid",
+  "scan_model_name": "o4-mini, gemini-2.5-pro",
+  "related_function_code": "function setTaxConfig(address taxAddress_, uint256 taxBPS_) external onlyOwner whenNotPaused {\n    if (!isTaxable()) {\n        revert TokenIsNotTaxable();\n    }\n    if (taxBPS_ > MAX_BPS_AMOUNT) {\n        revert InvalidTaxBPS(taxBPS_);\n    }\n    Helper.checkAddress(taxAddress_);\n    TaxStorage storage taxStorage = _getTaxStorage();\n    taxStorage.taxAddress = taxAddress_;\n    taxStorage.taxBPS = taxBPS_;\n    emit TaxConfigSet(taxStorage.taxAddress, taxStorage.taxBPS);\n}\n\nfunction _payFeeWhenTransfer(address from, address to, uint256 amount) internal returns (uint256) {\n    // ...\n    if (taxAmount > 0) {\n        super._transfer(from, taxStorage.taxAddress, taxAmount);\n    }\n    // ...\n}",
+  "related_context": "",
+  "related_checklist": {
+    "checklist": "Ensure that the distribution of rewards is fair and consistent, independent of the timing of a user's reward claims. Specifically, confirm that rewards are not influenced or manipulated by delays, intentionally timed claims, or caps imposed on reward distributions."
+  },
+  "related_pid": "b619bc20-116e-11f0-85f2-afceaa02a7b6",
+  "related_commit_id": "54b12f25ff139912cbddcc316c940624a64687cf",
+  "triage_verdict": "invalid",
+  "triage_severity": "",
+  "triage_reason": "Context not considerred",
+  "is_main_finding": true
+}

@@ -1,0 +1,114 @@
+{
+  "address": "0x778437d69550c7B22cB13f69205Be5f6dbF268f9",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "contractName",
+          "type": "string"
+        }
+      ],
+      "name": "getAddressFromContractGlossary",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "contractAddress",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getContractGlossaryEntries",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "glossaryId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "string",
+              "name": "contractName",
+              "type": "string"
+            },
+            {
+              "internalType": "address",
+              "name": "contractAddress",
+              "type": "address"
+            },
+            {
+              "internalType": "bool",
+              "name": "valid",
+              "type": "bool"
+            }
+          ],
+          "internalType": "struct GlossaryReference[]",
+          "name": "",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "contractAddress",
+          "type": "address"
+        }
+      ],
+      "name": "getNameFromContractGlossary",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "contractName",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0xa983a8cd92c42d8b37d2e6acb2a5e29877cbcaf40c8068d11394966dd6135a9c",
+  "receipt": {
+    "to": "0x4e59b44847b379578588920cA78FbF26c0B4956C",
+    "from": "0xe35d5EFB10395F9A06db5B820e807e26A5B94BD8",
+    "contractAddress": null,
+    "transactionIndex": 27,
+    "gasUsed": "392697",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0xbb634bac925f9a85aa2262acc0e2ab00e254d65e4ae06cbba66e2e12ecbb88e5",
+    "transactionHash": "0xa983a8cd92c42d8b37d2e6acb2a5e29877cbcaf40c8068d11394966dd6135a9c",
+    "logs": [],
+    "blockNumber": 10507810,
+    "cumulativeGasUsed": "5128573",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "numDeployments": 1,
+  "solcInputHash": "c5201fc15201809c78f1569f999c2825",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.23+commit.f704f362\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"string\",\"name\":\"contractName\",\"type\":\"string\"}],\"name\":\"getAddressFromContractGlossary\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"contractAddress\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getContractGlossaryEntries\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"glossaryId\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"contractName\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"contractAddress\",\"type\":\"address\"},{\"internalType\":\"bool\",\"name\":\"valid\",\"type\":\"bool\"}],\"internalType\":\"struct GlossaryReference[]\",\"name\":\"\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"contractAddress\",\"type\":\"address\"}],\"name\":\"getNameFromContractGlossary\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"contractName\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/facets/glossary/ContractGlossaryReadableFacet.sol\":\"ContractGlossaryReadableFacet\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":2000},\"remappings\":[],\"viaIR\":true},\"sources\":{\"@solidstate/contracts/data/EnumerableSet.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity ^0.8.8;\\n\\n/**\\n * @title Set implementation with enumeration functions\\n * @dev derived from https://github.com/OpenZeppelin/openzeppelin-contracts (MIT license)\\n */\\nlibrary EnumerableSet {\\n    error EnumerableSet__IndexOutOfBounds();\\n\\n    struct Set {\\n        bytes32[] _values;\\n        // 1-indexed to allow 0 to signify nonexistence\\n        mapping(bytes32 => uint256) _indexes;\\n    }\\n\\n    struct Bytes32Set {\\n        Set _inner;\\n    }\\n\\n    struct AddressSet {\\n        Set _inner;\\n    }\\n\\n    struct UintSet {\\n        Set _inner;\\n    }\\n\\n    function at(\\n        Bytes32Set storage set,\\n        uint256 index\\n    ) internal view returns (bytes32) {\\n        return _at(set._inner, index);\\n    }\\n\\n    function at(\\n        AddressSet storage set,\\n        uint256 index\\n    ) internal view returns (address) {\\n        return address(uint160(uint256(_at(set._inner, index))));\\n    }\\n\\n    function at(\\n        UintSet storage set,\\n        uint256 index\\n    ) internal view returns (uint256) {\\n        return uint256(_at(set._inner, index));\\n    }\\n\\n    function contains(\\n        Bytes32Set storage set,\\n        bytes32 value\\n    ) internal view returns (bool) {\\n        return _contains(set._inner, value);\\n    }\\n\\n    function contains(\\n        AddressSet storage set,\\n        address value\\n    ) internal view returns (bool) {\\n        return _contains(set._inner, bytes32(uint256(uint160(value))));\\n    }\\n\\n    function contains(\\n        UintSet storage set,\\n        uint256 value\\n    ) internal view returns (bool) {\\n        return _contains(set._inner, bytes32(value));\\n    }\\n\\n    function indexOf(\\n        Bytes32Set storage set,\\n        bytes32 value\\n    ) internal view returns (uint256) {\\n        return _indexOf(set._inner, value);\\n    }\\n\\n    function indexOf(\\n        AddressSet storage set,\\n        address value\\n    ) internal view returns (uint256) {\\n        return _indexOf(set._inner, bytes32(uint256(uint160(value))));\\n    }\\n\\n    function indexOf(\\n        UintSet storage set,\\n        uint256 value\\n    ) internal view returns (uint256) {\\n        return _indexOf(set._inner, bytes32(value));\\n    }\\n\\n    function length(Bytes32Set storage set) internal view returns (uint256) {\\n        return _length(set._inner);\\n    }\\n\\n    function length(AddressSet storage set) internal view returns (uint256) {\\n        return _length(set._inner);\\n    }\\n\\n    function length(UintSet storage set) internal view returns (uint256) {\\n        return _length(set._inner);\\n    }\\n\\n    function add(\\n        Bytes32Set storage set,\\n        bytes32 value\\n    ) internal returns (bool) {\\n        return _add(set._inner, value);\\n    }\\n\\n    function add(\\n        AddressSet storage set,\\n        address value\\n    ) internal returns (bool) {\\n        return _add(set._inner, bytes32(uint256(uint160(value))));\\n    }\\n\\n    function add(UintSet storage set, uint256 value) internal returns (bool) {\\n        return _add(set._inner, bytes32(value));\\n    }\\n\\n    function remove(\\n        Bytes32Set storage set,\\n        bytes32 value\\n    ) internal returns (bool) {\\n        return _remove(set._inner, value);\\n    }\\n\\n    function remove(\\n        AddressSet storage set,\\n        address value\\n    ) internal returns (bool) {\\n        return _remove(set._inner, bytes32(uint256(uint160(value))));\\n    }\\n\\n    function remove(\\n        UintSet storage set,\\n        uint256 value\\n    ) internal returns (bool) {\\n        return _remove(set._inner, bytes32(value));\\n    }\\n\\n    function toArray(\\n        Bytes32Set storage set\\n    ) internal view returns (bytes32[] memory) {\\n        return set._inner._values;\\n    }\\n\\n    function toArray(\\n        AddressSet storage set\\n    ) internal view returns (address[] memory) {\\n        bytes32[] storage values = set._inner._values;\\n        address[] storage array;\\n\\n        assembly {\\n            array.slot := values.slot\\n        }\\n\\n        return array;\\n    }\\n\\n    function toArray(\\n        UintSet storage set\\n    ) internal view returns (uint256[] memory) {\\n        bytes32[] storage values = set._inner._values;\\n        uint256[] storage array;\\n\\n        assembly {\\n            array.slot := values.slot\\n        }\\n\\n        return array;\\n    }\\n\\n    function _at(\\n        Set storage set,\\n        uint256 index\\n    ) private view returns (bytes32) {\\n        if (index >= set._values.length)\\n            revert EnumerableSet__IndexOutOfBounds();\\n        return set._values[index];\\n    }\\n\\n    function _contains(\\n        Set storage set,\\n        bytes32 value\\n    ) private view returns (bool) {\\n        return set._indexes[value] != 0;\\n    }\\n\\n    function _indexOf(\\n        Set storage set,\\n        bytes32 value\\n    ) private view returns (uint256) {\\n        unchecked {\\n            return set._indexes[value] - 1;\\n        }\\n    }\\n\\n    function _length(Set storage set) private view returns (uint256) {\\n        return set._values.length;\\n    }\\n\\n    function _add(\\n        Set storage set,\\n        bytes32 value\\n    ) private returns (bool status) {\\n        if (!_contains(set, value)) {\\n            set._values.push(value);\\n            set._indexes[value] = set._values.length;\\n            status = true;\\n        }\\n    }\\n\\n    function _remove(\\n        Set storage set,\\n        bytes32 value\\n    ) private returns (bool status) {\\n        uint256 valueIndex = set._indexes[value];\\n\\n        if (valueIndex != 0) {\\n            unchecked {\\n                bytes32 last = set._values[set._values.length - 1];\\n\\n                // move last value to now-vacant index\\n\\n                set._values[valueIndex - 1] = last;\\n                set._indexes[last] = valueIndex;\\n            }\\n            // clear last index\\n\\n            set._values.pop();\\n            delete set._indexes[value];\\n\\n            status = true;\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0xbbaaeb805b3e1e704ceba33c9093285220254b1ff6b4b7f577e515b118e116f6\",\"license\":\"MIT\"},\"contracts/facets/glossary/ContractGlossaryReadableFacet.sol\":{\"content\":\"// SPDX-License-Identifier: UNLICENSED\\npragma solidity ^0.8.9;\\n\\nimport \\\"./ContractGlossaryStorage.sol\\\";\\n\\ncontract ContractGlossaryReadableFacet {\\n    \\n    function getAddressFromContractGlossary(\\n        string memory contractName\\n    )\\n    public\\n    view\\n    returns (\\n        address contractAddress\\n    ){\\n        ContractGlossaryStorage.Layout storage lcg = ContractGlossaryStorage.layout();\\n        contractAddress = lcg.nameToAddress[contractName];\\n    }\\n    \\n    function getNameFromContractGlossary(\\n        address contractAddress\\n    )\\n    public\\n    view\\n    returns (\\n        string memory contractName\\n    ){\\n        ContractGlossaryStorage.Layout storage lcg = ContractGlossaryStorage.layout();\\n        contractName = lcg.addressToName[contractAddress];\\n    }\\n    \\n    function getContractGlossaryEntries()\\n    public\\n    view\\n    returns (\\n        GlossaryReference[] memory\\n    ){\\n        ContractGlossaryStorage.Layout storage lcg = ContractGlossaryStorage.layout();\\n        GlossaryReference[] memory glossaryEntries = new GlossaryReference[](lcg.glossarySize);\\n        uint256 i;\\n        for(; i < lcg.glossarySize;){\\n            glossaryEntries[i] = GlossaryReference(\\n                i,\\n                lcg.indexToName[i],\\n                lcg.nameToAddress[lcg.indexToName[i]],\\n                true\\n            );\\n            unchecked { i++; }\\n        }\\n        return glossaryEntries;\\n    }\\n}\",\"keccak256\":\"0x9dbf04c1aaa5bbcc4e816ebbe7c1ac166455d19169932209f33ba113b06463f7\",\"license\":\"UNLICENSED\"},\"contracts/facets/glossary/ContractGlossaryStorage.sol\":{\"content\":\"// SPDX-License-Identifier: UNLICENSED\\npragma solidity ^0.8.9;\\n\\nimport { EnumerableSet } from \\\"@solidstate/contracts/data/EnumerableSet.sol\\\";\\n    \\n    struct GlossaryReference {\\n        uint256 glossaryId;\\n        string contractName;\\n        address contractAddress;\\n        bool valid;\\n    }\\n\\nlibrary ContractGlossaryStorage {\\n    \\n    bytes32 internal constant STORAGE_SLOT = keccak256('silks.contracts.storage.SilksContractGlossary');\\n    \\n    struct Layout {\\n        mapping(uint256 => string) indexToName;\\n        mapping(string => address) nameToAddress;\\n        mapping(address => string) addressToName;\\n        uint256 glossarySize;\\n    }\\n    \\n    // Function to retrieve the layout.\\n    function layout()\\n    internal\\n    pure\\n    returns (\\n        Layout storage _l\\n    ) {\\n        bytes32 slot = STORAGE_SLOT;\\n        assembly {\\n            _l.slot := slot\\n        }\\n    }\\n    \\n    function addContractGlossaryEntry(\\n        string memory name,\\n        address contractAddress\\n    )\\n    internal\\n    {\\n        if (layout().nameToAddress[name] == address(0)) {\\n            layout().indexToName[layout().glossarySize] = name;\\n            layout().glossarySize++;\\n        }\\n        layout().nameToAddress[name] = contractAddress;\\n        layout().addressToName[contractAddress] = name;\\n    }\\n}\",\"keccak256\":\"0x7f672bf6950cddbe93aaf51149d888c5eafa021cca1dfcc20e3ed86ff6b5201b\",\"license\":\"UNLICENSED\"}},\"version\":1}",
+  "bytecode": "0x608080604052346100165761061e908161001c8239f35b600080fdfe604060808152600436101561001357600080fd5b600090813560e01c80638cb2992d146103aa578063b8983b7e146101325763bb478c681461004057600080fd5b3461012e576020918260031936011261012b576004359067ffffffffffffffff9081831161012b573660238401121561012b5782600401359182116101175783519161009586601f19601f84011601846104a3565b80835285830193366024838301011161011357928692838373ffffffffffffffffffffffffffffffffffffffff979460246100e198018637830101528551938492839251928391610429565b81017f33b1dc5431e40795b17ace9e0260de016c5d8f5dbc22403d8508cbf7cf8e68b681520301902054169051908152f35b8280fd5b80634e487b7160e01b602492526041600452fd5b80fd5b5080fd5b50903461012b578060031936011261012b577f33b1dc5431e40795b17ace9e0260de016c5d8f5dbc22403d8508cbf7cf8e68b85490610170826105a6565b9061017d845192836104a3565b828252610189836105a6565b92601f196020940184835b82811061037e57505050815b81811061026057505083519280840190808552835180925285850181878460051b880101950193965b8388106101d65786860387f35b90919293948380827fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc08a600195030186528851906102256080835183528484015190808685015283019061044c565b9173ffffffffffffffffffffffffffffffffffffffff87820151168783015260608091015115159101529701930197019690939291936101c9565b8083527f33b1dc5431e40795b17ace9e0260de016c5d8f5dbc22403d8508cbf7cf8e68b5855285832090865191848154938861029b866104c6565b6001968088169081156103695750600114610333575b5081837f33b1dc5431e40795b17ace9e0260de016c5d8f5dbc22403d8508cbf7cf8e68b673ffffffffffffffffffffffffffffffffffffffff955203019020541661030989519261030184610471565b848452610500565b888301528882015282606082015261032182876105be565b5261032c81866105be565b50016101a0565b909192508388528188208689915b8383106103555750505082019190816102b1565b8054838701528c9490920191889101610341565b60ff19168452508015150282019250816102b1565b875161038981610471565b8581528560608085840152818b840152820152828288010152018590610194565b503461012e57602060031936011261012e5760043573ffffffffffffffffffffffffffffffffffffffff81168091036101135781836104129261042595527f33b1dc5431e40795b17ace9e0260de016c5d8f5dbc22403d8508cbf7cf8e68b760205220610500565b905191829160208352602083019061044c565b0390f35b60005b83811061043c5750506000910152565b818101518382015260200161042c565b90601f19601f60209361046a81518092818752878088019101610429565b0116010190565b6080810190811067ffffffffffffffff82111761048d57604052565b634e487b7160e01b600052604160045260246000fd5b90601f601f19910116810190811067ffffffffffffffff82111761048d57604052565b90600182811c921680156104f6575b60208310146104e057565b634e487b7160e01b600052602260045260246000fd5b91607f16916104d5565b90604051918260008254610513816104c6565b908184526020946001916001811690816000146105835750600114610544575b505050610542925003836104a3565b565b600090815285812095935091905b81831061056b5750506105429350820101388080610533565b85548884018501529485019487945091830191610552565b91505061054295935060ff1991501682840152151560051b820101388080610533565b67ffffffffffffffff811161048d5760051b60200190565b80518210156105d25760209160051b010190565b634e487b7160e01b600052603260045260246000fdfea2646970667358221220330448141fe5a6d1e22a5d44e4f4bef5f45b0648f033fa66be80b0986cda9ba464736f6c63430008170033",
+  "deployedBytecode": "0x604060808152600436101561001357600080fd5b600090813560e01c80638cb2992d146103aa578063b8983b7e146101325763bb478c681461004057600080fd5b3461012e576020918260031936011261012b576004359067ffffffffffffffff9081831161012b573660238401121561012b5782600401359182116101175783519161009586601f19601f84011601846104a3565b80835285830193366024838301011161011357928692838373ffffffffffffffffffffffffffffffffffffffff979460246100e198018637830101528551938492839251928391610429565b81017f33b1dc5431e40795b17ace9e0260de016c5d8f5dbc22403d8508cbf7cf8e68b681520301902054169051908152f35b8280fd5b80634e487b7160e01b602492526041600452fd5b80fd5b5080fd5b50903461012b578060031936011261012b577f33b1dc5431e40795b17ace9e0260de016c5d8f5dbc22403d8508cbf7cf8e68b85490610170826105a6565b9061017d845192836104a3565b828252610189836105a6565b92601f196020940184835b82811061037e57505050815b81811061026057505083519280840190808552835180925285850181878460051b880101950193965b8388106101d65786860387f35b90919293948380827fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc08a600195030186528851906102256080835183528484015190808685015283019061044c565b9173ffffffffffffffffffffffffffffffffffffffff87820151168783015260608091015115159101529701930197019690939291936101c9565b8083527f33b1dc5431e40795b17ace9e0260de016c5d8f5dbc22403d8508cbf7cf8e68b5855285832090865191848154938861029b866104c6565b6001968088169081156103695750600114610333575b5081837f33b1dc5431e40795b17ace9e0260de016c5d8f5dbc22403d8508cbf7cf8e68b673ffffffffffffffffffffffffffffffffffffffff955203019020541661030989519261030184610471565b848452610500565b888301528882015282606082015261032182876105be565b5261032c81866105be565b50016101a0565b909192508388528188208689915b8383106103555750505082019190816102b1565b8054838701528c9490920191889101610341565b60ff19168452508015150282019250816102b1565b875161038981610471565b8581528560608085840152818b840152820152828288010152018590610194565b503461012e57602060031936011261012e5760043573ffffffffffffffffffffffffffffffffffffffff81168091036101135781836104129261042595527f33b1dc5431e40795b17ace9e0260de016c5d8f5dbc22403d8508cbf7cf8e68b760205220610500565b905191829160208352602083019061044c565b0390f35b60005b83811061043c5750506000910152565b818101518382015260200161042c565b90601f19601f60209361046a81518092818752878088019101610429565b0116010190565b6080810190811067ffffffffffffffff82111761048d57604052565b634e487b7160e01b600052604160045260246000fd5b90601f601f19910116810190811067ffffffffffffffff82111761048d57604052565b90600182811c921680156104f6575b60208310146104e057565b634e487b7160e01b600052602260045260246000fd5b91607f16916104d5565b90604051918260008254610513816104c6565b908184526020946001916001811690816000146105835750600114610544575b505050610542925003836104a3565b565b600090815285812095935091905b81831061056b5750506105429350820101388080610533565b85548884018501529485019487945091830191610552565b91505061054295935060ff1991501682840152151560051b820101388080610533565b67ffffffffffffffff811161048d5760051b60200190565b80518210156105d25760209160051b010190565b634e487b7160e01b600052603260045260246000fdfea2646970667358221220330448141fe5a6d1e22a5d44e4f4bef5f45b0648f033fa66be80b0986cda9ba464736f6c63430008170033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [],
+    "types": null
+  }
+}

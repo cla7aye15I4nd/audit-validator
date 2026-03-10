@@ -1,0 +1,167 @@
+;; A bootstrap file to create a REPL environment in tests that mimics the
+;; Chainweb environment. This includes loading contracts and creating
+;; namespaces that exist in Chainweb, as well as initializing some users
+;; that have KDA funds for the sake of testing. We also set up a principal
+;; namespace for our contracts and anything else we need to make our test
+;; REPL files focused just on our contracts, not setup.
+
+;; We allow repl natives for the sake of making test modules that can
+;; set up sigs, use test-capability, etc.
+(env-enable-repl-natives true)
+
+;; We load and initialize basic Kadena contracts we expect to already exist.
+(begin-tx)
+(load "bootstrap/fungible-v2.pact")
+(load "bootstrap/fungible-xchain-v1.pact")
+(load "bootstrap/coin.pact")
+(env-data {
+  "admin-keyset": {"keys": ["admin-public-key"], "pred": "keys-all"},
+  "ns-admin-keyset": {"keys": ["ns-admin-public-key"], "pred": "keys-all"}
+})
+(env-sigs [{"key": "ns-admin-public-key", "caps": []}])
+(load "bootstrap/ns.pact")
+(commit-tx)
+
+;  (begin-tx)
+;  (env-data {
+;    "admin-keyset": {"keys": ["admin-public-key"], "pred": "keys-all"}
+;  })
+;  (env-sigs [{"key": "admin-public-key", "caps": []}])
+;  (load "../modules/ns.pact")
+;  (commit-tx)
+
+;; The 'base' module provides constants so we can easily refer to specific
+;; accounts, keys, keysets, the principal namespace, etc.
+(begin-tx)
+(env-data {
+  "ns": "sushi",
+  "admin-keyset": {"keys": ["admin-public-key"], "pred": "keys-all"},
+  "alice-keyset": {"keys": ["alice-public-key"], "pred": "keys-all"},
+  "bob-keyset": {"keys": ["bob-public-key"], "pred": "keys-all"},
+  "charlie-keyset": {"keys": ["charlie-public-key"], "pred": "keys-all"}
+})
+(env-sigs [{"key": "admin-public-key", "caps": []}])
+(namespace (read-msg "ns"))
+(load "../modules/constants.pact")
+(module base GOV
+  (defcap GOV () true)
+
+  ;; Basic guards
+  (defconst GUARD_SUCCESS (create-user-guard (success)))
+  (defconst GUARD_FAILURE (create-user-guard (failure)))
+
+  (defun success () true)
+  (defun failure () (enforce false "Disabled"))
+
+  ;; Admin account
+  (defconst ADMIN "admin")
+  (defconst ADMIN_KEY "admin-public-key")
+  (defconst ADMIN_KEYSET "admin-keyset")
+  (defconst ADMIN_GUARD (read-keyset "admin-keyset"))
+
+  ;; Principal namespace our contracts will use
+  ;  (defconst NAMESPACE (ns.create-principal-namespace (read-keyset "admin-keyset")))
+
+  ;; Test accounts
+  (defconst ALICE "alice")
+  (defconst BOB "bob")
+  (defconst CHARLIE "charlie")
+
+  ;; Account public keys
+  (defconst ALICE_KEY "alice-public-key")
+  (defconst BOB_KEY "bob-public-key")
+  (defconst CHARLIE_KEY "charlie-public-key")
+
+  ;; Account keyset names
+  (defconst ALICE_KEYSET "alice-keyset")
+  (defconst BOB_KEYSET "bob-keyset")
+  (defconst CHARLIE_KEYSET "charlie-keyset")
+
+  ;; Account guards
+  (defconst ALICE_GUARD (read-keyset "alice-keyset"))
+  (defconst BOB_GUARD (read-keyset "bob-keyset"))
+  (defconst CHARLIE_GUARD (read-keyset "charlie-keyset"))
+
+  (defconst TEST1 "TEST1")
+  (defconst TEST2 "TEST2")
+)
+(commit-tx)
+
+;; Define expected on-chain namespaces
+(begin-tx)
+(env-data {
+  "ns": "sushi"
+})
+(namespace (read-msg "ns"))
+(use base)
+(define-namespace 'util GUARD_SUCCESS GUARD_SUCCESS)
+(define-namespace 'free GUARD_SUCCESS GUARD_SUCCESS)
+(define-namespace 'kip GUARD_SUCCESS GUARD_SUCCESS)
+(define-namespace 'user GUARD_SUCCESS GUARD_SUCCESS)
+(define-namespace 'test GUARD_SUCCESS GUARD_SUCCESS)
+(commit-tx)
+
+
+(begin-tx "Sushi module setup")
+(env-data {
+  "ns": "sushi"
+})
+(namespace (read-msg "ns"))
+(use base)
+;; Create the principal namespace using the same ns.pact namespace
+;; setup file that the actual protocol uses.
+(env-data {
+  "admin-keyset": {"keys": [ADMIN_KEY], "pred": "keys-all"},
+  "alice-keyset": {"keys": [ALICE_KEY], "pred": "keys-all"},
+  "bob-keyset": {"keys": [BOB_KEY], "pred": "keys-all"},
+  "charlie-keyset": {"keys": [CHARLIE_KEY], "pred": "keys-all"},
+  "ns": "sushi"
+})
+(env-sigs [{"key": ADMIN_KEY, "caps": []}])
+
+
+
+;; Step 2: Load interface and implementation modules
+(load "../modules/sushi-callable-v1.pact")
+(load "../modules/sushi-noop-callable.pact")
+
+;; Step 3: Load utility modules
+(load "../modules/fungible-util.pact")
+
+;; Step 4: Load main contract modules
+(load "../modules/sushi-exchange-tokens.pact")
+(load "../modules/sushi-exchange.pact")
+(load "bootstrap/token1.pact")
+(load "bootstrap/token2.pact")
+
+;; Create required tables
+(create-table sushi-exchange-tokens.ledger)
+(create-table sushi-exchange-tokens.issuers)
+(create-table sushi-exchange-tokens.supplies)
+(create-table sushi-exchange.pairs)
+;  (create-table sushi-exchange.pair-locks-table)
+(create-table token1.ledger)
+(create-table token2.ledger)
+
+(module account-setup GOV 
+  (defcap GOV () true)
+  ;; Create test accounts
+  (defun create-test-accounts ()
+    (sushi-exchange-tokens.create-account "TEST1" base.ADMIN base.ADMIN_GUARD)
+    (sushi-exchange-tokens.create-account "TEST1" base.ALICE base.ALICE_GUARD)
+    (sushi-exchange-tokens.create-account "TEST1" base.BOB base.BOB_GUARD)
+    (sushi-exchange-tokens.create-account "TEST1" base.CHARLIE base.CHARLIE_GUARD)
+    (token1.create-account base.ADMIN base.ADMIN_GUARD)
+    (token2.create-account base.ADMIN base.ADMIN_GUARD)
+    (token1.create-account base.ALICE base.ALICE_GUARD)
+    (token2.create-account base.ALICE base.ALICE_GUARD)
+    (token1.create-account base.BOB base.BOB_GUARD)
+    (token2.create-account base.BOB base.BOB_GUARD)
+    (token1.create-account base.CHARLIE base.CHARLIE_GUARD)
+    (token2.create-account base.CHARLIE base.CHARLIE_GUARD)
+  )    
+)
+
+(account-setup.create-test-accounts)
+
+(commit-tx)

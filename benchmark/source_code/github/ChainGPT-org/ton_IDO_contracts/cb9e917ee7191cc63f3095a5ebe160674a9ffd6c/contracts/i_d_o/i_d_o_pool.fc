@@ -1,0 +1,1242 @@
+#include "../imports/stdlib.fc";
+#include "./errors.fc";
+#include "./constants.fc";
+#include "./opcodes.fc";
+#include "./events.fc";
+#include "./messages.fc";
+#include "./jetton_utils.fc";
+#include "./utils.fc";
+
+;; storage variables
+
+;; ID of the pool. Used to ensure each created pool is at unique address
+global int g_id;
+
+;; Address of the owner of this pool
+global slice g_owner;
+
+;; The address of signer account
+global int g_signer;
+
+;; The address of factory contract
+global slice g_factory;
+
+;; address to be used as zero address
+global slice g_zeroAddress;
+
+;; Timestamps when token started to sell
+global int g_openTime;
+
+;; Timestamps when token stopped to sell
+global int g_closeTime;
+
+;; The IDO's token account address of the sell token
+global slice g_sellTokenAccountAddr;
+
+;; The IDO token address
+global slice g_sellTokenMint;
+
+;; The balance of the g_sellTokenAccount
+global int g_sellTokenAccountBalance;
+
+;; Address where funds are collected
+global slice g_fundingWallet;
+
+;; Total number of sell tokens that have been sold
+global int g_tokenSold;
+
+;; Total number of sell tokens that have been claimed
+global int g_totalUnclaimed;
+
+;; Total number of sell tokens that have been refunded
+global int g_totalRefunded;
+
+;; Dictionary with information mapped from (user, buy curr)
+global cell g_perUserPerBuyCurr;
+
+;; Dictionary with information mapped from user
+global cell g_perUser;
+
+;; Dictionary with information mapped from buy curr
+global cell g_perBuyCurr;
+
+;; optimised exponention
+int binpow(int n, int e) {
+    if (e == 0) {
+        return 1;
+    }
+    if (e == 1) {
+        return n;
+    }
+    int p = binpow(n, e / 2);
+    p *= p;
+    if ((e % 2) == 1) {
+        p *= n;
+    }
+    return p;
+}
+
+;; stores the dictionary value corresponding to passed input
+;; expects global variables to be populated
+() store_per_user_per_buy_curr(slice userAddr, slice buyCurrAddr, int sellCurrBought, int buyCurrSold, int refundAmount, int isRefundClaimed) impure {
+    cell combinedCell = begin_cell()
+        .store_slice(userAddr)
+        .store_slice(buyCurrAddr)
+        .end_cell();
+    g_perUserPerBuyCurr~udict_set(
+        256,
+        cell_hash(combinedCell),
+        begin_cell()
+            .store_coins(sellCurrBought)
+            .store_coins(buyCurrSold)
+            .store_coins(refundAmount)
+            .store_uint(isRefundClaimed, 1)
+            .end_cell()
+            .begin_parse()
+    );
+}
+
+;; loads the dictionary value corresponding to passed input
+;; expects global variables to be populated
+(int, int, int, int) load_per_user_per_buy_curr(slice userAddr, slice buyCurrAddr) {
+    cell combinedCell = begin_cell()
+        .store_slice(userAddr)
+        .store_slice(buyCurrAddr)
+        .end_cell();
+    (slice data, int code) = g_perUserPerBuyCurr.udict_get?(256, cell_hash(combinedCell));
+    if (code == 0) {
+        return (0, 0, 0, 0);
+    }
+    return (data~load_coins(), data~load_coins(), data~load_coins(), data~load_uint(1));
+}
+
+;; stores the dictionary value corresponding to passed input
+;; expects global variables to be populated
+() store_per_user(slice userAddr, int sellCurrBought, int sellCurrClaimed) impure {
+    g_perUser~udict_set(
+        256,
+        slice_hash(userAddr),
+        begin_cell()
+            .store_coins(sellCurrBought)
+            .store_coins(sellCurrClaimed)
+            .end_cell()
+            .begin_parse()
+    );
+}
+
+;; loads the dictionary value corresponding to passed input
+;; expects global variables to be populated
+(int, int) load_per_user(slice userAddr) {
+    (slice data, int code) = g_perUser.udict_get?(256, slice_hash(userAddr));
+    if (code == 0) {
+        return (0, 0);
+    }
+    return (data~load_coins(), data~load_coins());
+}
+
+;; stores the dictionary value corresponding to passed input
+;; expects global variables to be populated
+() store_per_buy_curr(
+    slice buyCurrAddr,
+    int buyCurrRaised,
+    int buyCurrRefundedTotal,
+    int buyCurrRefundedLeft,
+    int buyCurrDecimal,
+    int buyCurrRate,
+    int buyCurrBalance,
+    slice buyCurrTokenAccountAddr
+) impure {
+    g_perBuyCurr~udict_set(
+        256,
+        slice_hash(buyCurrAddr),
+        begin_cell()
+            .store_ref(
+            begin_cell()
+                    .store_coins(buyCurrRaised)
+                    .store_coins(buyCurrRefundedTotal)
+                    .store_coins(buyCurrRefundedLeft)
+                    .end_cell()
+        )
+            .store_ref(
+            begin_cell()
+                    .store_slice(buyCurrAddr)
+                    .store_uint(buyCurrDecimal, 8)
+                    .store_coins(buyCurrRate)
+                    .store_coins(buyCurrBalance)
+                    .store_slice(buyCurrTokenAccountAddr)
+                    .end_cell()
+        )
+            .end_cell()
+            .begin_parse()
+    );
+}
+
+;; loads the dictionary value corresponding to passed input
+;; expects global variables to be populated
+(int, int, int, slice, int, int, int, slice) load_per_buy_curr(slice buyCurrAddr) {
+    (slice data, int code) = g_perBuyCurr.udict_get?(256, slice_hash(buyCurrAddr));
+    if (code == 0) {
+        return (0, 0, 0, begin_cell().end_cell().begin_parse(), 0, 0, 0, begin_cell().end_cell().begin_parse());
+    }
+    (slice c1, slice c2) = (data~load_ref().begin_parse(), data~load_ref().begin_parse());
+    return (
+        c1~load_coins(),
+        c1~load_coins(),
+        c1~load_coins(),
+        c2~load_msg_addr(),
+        c2~load_uint(8),
+        c2~load_coins(),
+        c2~load_coins(),
+        c2~load_msg_addr()
+    );
+}
+
+;; load_data populates storage variables using stored data
+() load_data() impure {
+
+    slice ds = get_data().begin_parse();
+
+    g_id = ds~load_uint(32);
+    g_factory = ds~load_msg_addr();
+    g_owner = ds~load_msg_addr();
+    g_signer = ds~load_uint(256);
+    g_openTime = ds~load_uint(32);
+    g_closeTime = ds~load_uint(32);
+
+    slice extraData = ds~load_ref().begin_parse();
+    (slice sellData, slice tokenData) = (extraData~load_ref().begin_parse(), extraData~load_ref().begin_parse());
+
+    g_sellTokenAccountAddr = sellData~load_msg_addr();
+    g_sellTokenMint = sellData~load_msg_addr();
+    g_sellTokenAccountBalance = sellData~load_coins();
+    g_fundingWallet = sellData~load_msg_addr();
+
+    g_tokenSold = tokenData~load_coins();
+    g_totalUnclaimed = tokenData~load_coins();
+    g_totalRefunded = tokenData~load_coins();
+    g_zeroAddress = tokenData~load_msg_addr();
+
+    g_perUserPerBuyCurr = ds~load_dict();
+    g_perUser = ds~load_dict();
+    g_perBuyCurr = ds~load_dict();
+
+    ds.end_parse();
+}
+
+;; save_data stores storage variables as a cell into persistent storage
+() save_data() impure {
+    set_data(
+        begin_cell()
+            .store_uint(g_id, 32)
+            .store_slice(g_factory)
+            .store_slice(g_owner)
+            .store_uint(g_signer, 256)
+            .store_uint(g_openTime, 32)
+            .store_uint(g_closeTime, 32)
+            .store_ref(
+            begin_cell()
+                    .store_ref(
+                begin_cell()
+                            .store_slice(g_sellTokenAccountAddr)
+                            .store_slice(g_sellTokenMint)
+                            .store_coins(g_sellTokenAccountBalance)
+                            .store_slice(g_fundingWallet)
+                            .end_cell()
+            )
+                    .store_ref(
+                begin_cell()
+                            .store_coins(g_tokenSold)
+                            .store_coins(g_totalUnclaimed)
+                            .store_coins(g_totalRefunded)
+                            .store_slice(g_zeroAddress)
+                            .end_cell()
+            )
+                    .end_cell()
+        )
+            .store_maybe_ref(g_perUserPerBuyCurr)
+            .store_maybe_ref(g_perUser)
+            .store_maybe_ref(g_perBuyCurr)
+            .end_cell()
+    );
+}
+
+() claim_refund_tokens(
+    slice candidate,
+    slice claimRefundCurrAddr,
+    slice signature
+) impure {
+
+    ;; load dictionaries data
+    (int sellCurrBought, int buyCurrSold, int refundAmount, int isRefundClaimed) = load_per_user_per_buy_curr(candidate, claimRefundCurrAddr);
+    (
+        int buyCurrRaised,
+        int buyCurrRefundedTotal,
+        int buyCurrRefundedLeft,
+        _,
+        int buyCurrDecimal,
+        int buyCurrRate,
+        int buyCurrBalance,
+        slice buyCurrTokenAccountAddr
+    ) = load_per_buy_curr(claimRefundCurrAddr);
+
+    throw_unless(error::POOL::NOT_FINALIZED, now() > g_closeTime);
+    throw_unless(error::POOL::NOT_ALLOWED_TO_CLAIM_REFUND, (refundAmount > 0) & (isRefundClaimed == 0));
+
+    ;; verify claim refund sig
+    throw_unless(error::POOL::INVALID_SIGNATURE, check_signature(cell_hash(
+                begin_cell()
+                .store_slice(candidate)
+                .store_slice(claimRefundCurrAddr)
+                .store_slice(my_address())
+                .store_uint(WORKCHAIN_ID, 32)
+                .end_cell()
+            ), signature, g_signer)
+    );
+
+    buyCurrRefundedLeft -= refundAmount;
+    isRefundClaimed = 1;
+
+    throw_unless(error::POOL::NOT_ENOUGH_TOKENS_FOR_CLAIM_REFUND, buyCurrBalance >= refundAmount);
+
+    ;; deliver claim  tokens
+    var body = create_simple_transfer_body(0, 0, refundAmount, candidate);
+    send_simple_message(TON_TO_NANO / 10, buyCurrTokenAccountAddr, body.end_cell(), NORMAL);
+
+    buyCurrBalance -= refundAmount;
+
+    ;; store dictionaries data
+    store_per_user_per_buy_curr(
+        candidate,
+        claimRefundCurrAddr,
+        sellCurrBought,
+        buyCurrSold,
+        refundAmount,
+        isRefundClaimed
+    );
+    store_per_buy_curr(
+        claimRefundCurrAddr,
+        buyCurrRaised,
+        buyCurrRefundedTotal,
+        buyCurrRefundedLeft,
+        buyCurrDecimal,
+        buyCurrRate,
+        buyCurrBalance,
+        buyCurrTokenAccountAddr
+    );
+
+    emit_log_simple(event::POOL::CLAIM_REFUND_SUCCESS, begin_cell().store_slice(candidate).store_coins(refundAmount).store_slice(claimRefundCurrAddr).end_cell(), true);
+
+    save_data();
+
+}
+
+() refund_tokens(
+    slice candidate,
+    slice refundCurrAddr,
+    int deadline,
+    slice signature
+) impure {
+
+    ;; load dictionaries data
+    (int sellCurrBought, int buyCurrSold, int refundAmount, int isRefundClaimed) = load_per_user_per_buy_curr(candidate, refundCurrAddr);
+    (
+        int buyCurrRaised,
+        int buyCurrRefundedTotal,
+        int buyCurrRefundedLeft,
+        _,
+        int buyCurrDecimal,
+        int buyCurrRate,
+        int buyCurrBalance,
+        slice buyCurrTokenAccountAddr
+    ) = load_per_buy_curr(refundCurrAddr);
+    (int sellCurrBoughtPerUser, int sellCurrClaimed) = load_per_user(candidate);
+
+    throw_unless(error::POOL::NOT_FINALIZED, now() > g_closeTime);
+    throw_unless(error::POOL::REFUND_ENDED, now() <= deadline);
+    throw_unless(error::POOL::NOT_ALLOWED_TO_REFUND, (sellCurrClaimed == 0) & (sellCurrBought > 0));
+
+    ;; verify refund sig
+    throw_unless(error::POOL::INVALID_SIGNATURE, check_signature(cell_hash(
+                begin_cell()
+                .store_slice(candidate)
+                .store_slice(refundCurrAddr)
+                .store_uint(deadline, 32)
+                .store_slice(my_address())
+                .store_uint(WORKCHAIN_ID, 32)
+                .end_cell()
+            ), signature, g_signer)
+    );
+
+    throw_unless(error::POOL::CURRENCY_NOT_ALLOWED_TO_REFUND, buyCurrSold > 0);
+
+    refundAmount = buyCurrSold;
+    isRefundClaimed = 0;
+
+    buyCurrRefundedTotal += buyCurrSold;
+    buyCurrRefundedLeft += buyCurrSold;
+
+    g_totalUnclaimed -= sellCurrBought;
+    g_tokenSold -= sellCurrBought;
+    g_totalRefunded += sellCurrBought;
+
+    sellCurrBoughtPerUser -= sellCurrBought;
+    sellCurrBought = 0;
+
+    buyCurrRaised -= buyCurrSold;
+    buyCurrSold = 0;
+
+    ;; store dictionaries data
+    store_per_user_per_buy_curr(
+        candidate,
+        refundCurrAddr,
+        sellCurrBought,
+        buyCurrSold,
+        refundAmount,
+        isRefundClaimed
+    );
+    store_per_buy_curr(
+        refundCurrAddr,
+        buyCurrRaised,
+        buyCurrRefundedTotal,
+        buyCurrRefundedLeft,
+        buyCurrDecimal,
+        buyCurrRate,
+        buyCurrBalance,
+        buyCurrTokenAccountAddr
+    );
+    store_per_user(
+        candidate,
+        sellCurrBoughtPerUser,
+        sellCurrClaimed
+    );
+
+    emit_log_simple(event::POOL::REFUND_TOKENS_SUCCESS, begin_cell().store_slice(candidate).store_coins(refundAmount).store_slice(refundCurrAddr).end_cell(), true);
+
+    save_data(); ;; save data here?
+
+}
+
+() claim_tokens(
+    slice candidate,
+    int claimAmount,
+    slice signature
+) impure {
+
+    ;; load dictionaries data
+    (int sellCurrBoughtPerUser, int sellCurrClaimed) = load_per_user(candidate);
+
+    ;; verify claim sig
+    throw_unless(error::POOL::INVALID_SIGNATURE, check_signature(cell_hash(
+                begin_cell()
+                .store_slice(candidate)
+                .store_coins(claimAmount)
+                .store_slice(my_address())
+                .store_uint(WORKCHAIN_ID, 32)
+                .end_cell()
+            ), signature, g_signer)
+    );
+
+    throw_unless(error::POOL::NOT_FINALIZED, now() > g_closeTime);
+    throw_unless(error::POOL::CLAIM_AMOUNT_MUST_GREATER_THAN_EQUAL_TO_CLAIMED, claimAmount >= sellCurrClaimed);
+
+    int maxClaimAmount = sellCurrBoughtPerUser - sellCurrClaimed;
+    int claimAmount = claimAmount - sellCurrClaimed;
+
+    if (claimAmount > maxClaimAmount) {
+        claimAmount = maxClaimAmount;
+    }
+
+    sellCurrClaimed += claimAmount;
+    g_totalUnclaimed -= claimAmount;
+    g_sellTokenAccountBalance -= claimAmount;
+
+    ;; deliver claim tokens
+    var body = create_simple_transfer_body(0, 0, claimAmount, candidate);
+    send_simple_message(TON_TO_NANO / 10, g_sellTokenAccountAddr, body.end_cell(), NORMAL);
+
+    store_per_user(candidate, sellCurrBoughtPerUser, sellCurrClaimed);
+
+    emit_log_simple(event::POOL::CLAIM_TOKENS_SUCCESS, begin_cell().store_slice(candidate).store_coins(claimAmount).end_cell(), false);
+
+    save_data(); ;; save data here?
+
+}
+
+() buy_token_by_token_with_permission(
+    slice buyCurrAddr,
+    int buyCurrAmount,
+    slice candidate,
+    int maxAmount,
+    int minAmount,
+    slice signature
+) impure {
+
+    throw_if(error::POOL::INVALID_TOKEN, equal_slices(buyCurrAddr, g_zeroAddress));
+
+    ;; load dictionaries data
+    (int sellCurrBought, int buyCurrSold, int refundAmount, int isRefundClaimed) = load_per_user_per_buy_curr(candidate, buyCurrAddr);
+    (
+        int buyCurrRaised,
+        int buyCurrRefundedTotal,
+        int buyCurrRefundedLeft,
+        _,
+        int buyCurrDecimal,
+        int buyCurrRate,
+        int buyCurrBalance,
+        slice buyCurrTokenAccountAddr
+    ) = load_per_buy_curr(buyCurrAddr);
+    (int sellCurrBoughtPerUser, int sellCurrClaimed) = load_per_user(candidate);
+
+    throw_unless(error::POOL::USER_REFUNDED, refundAmount == 0);
+    throw_unless(error::POOL::CURRENCY_NOT_ALLOWED, buyCurrRate != 0);
+    throw_unless(error::POOL::POOL_ENDED, (now() >= g_openTime) & (now() < g_closeTime));
+
+    ;; verify buy sig
+    throw_unless(error::POOL::INVALID_SIGNATURE, check_signature(cell_hash(
+                begin_cell()
+                .store_slice(candidate)
+                .store_coins(maxAmount)
+                .store_coins(minAmount)
+                .store_slice(my_address())
+                .store_uint(WORKCHAIN_ID, 32)
+                .end_cell()
+            ), signature, g_signer)
+    );
+
+    throw_unless(error::POOL::INVALID_BUY_CURRENCY_AMOUNT, buyCurrAmount != 0);
+
+    int sellCurrAmount = buyCurrAmount.muldiv(buyCurrRate, binpow(10, buyCurrDecimal));
+
+    throw_unless(error::POOL::NOT_ENOUGH_TOKENS_FOR_SALE, buyCurrBalance - g_totalUnclaimed >= buyCurrAmount);
+    throw_unless(error::POOL::MIN_AMOUNT_UNREACHED, (sellCurrBoughtPerUser + buyCurrAmount) >= minAmount);
+    throw_unless(error::POOL::PURCHASE_AMOUNT_EXCEED_ALLOWANCE, (sellCurrBoughtPerUser + buyCurrAmount) <= maxAmount);
+
+    buyCurrRaised += buyCurrAmount;
+    g_tokenSold += sellCurrAmount;
+    sellCurrBought += sellCurrAmount;
+    sellCurrBoughtPerUser += sellCurrAmount;
+    g_totalUnclaimed += sellCurrAmount;
+    buyCurrSold += buyCurrAmount;
+
+    ;; forward swap tokens
+    var body = create_simple_transfer_body(0, 0, buyCurrAmount, g_fundingWallet);
+    send_simple_message(100000000, buyCurrTokenAccountAddr, body.end_cell(), PAID_EXTERNALLY);
+    buyCurrBalance -= buyCurrAmount;
+
+    ;; store dictionaries data
+    store_per_user_per_buy_curr(
+        candidate,
+        buyCurrAddr,
+        sellCurrBought,
+        buyCurrSold,
+        refundAmount,
+        isRefundClaimed
+    );
+    store_per_buy_curr(
+        buyCurrAddr,
+        buyCurrRaised,
+        buyCurrRefundedTotal,
+        buyCurrRefundedLeft,
+        buyCurrDecimal,
+        buyCurrRate,
+        buyCurrBalance,
+        buyCurrTokenAccountAddr
+    );
+    store_per_user(
+        candidate,
+        sellCurrBoughtPerUser,
+        sellCurrClaimed
+    );
+
+    emit_log_simple(event::POOL::BUY_TOKEN_BY_TOKEN_SUCCESS, begin_cell().store_slice(candidate).store_slice(buyCurrAddr).store_coins(buyCurrAmount).store_coins(sellCurrAmount).end_cell(), true);
+
+    save_data();
+
+}
+
+() buy_token_by_ton_with_permission(
+    slice candidate,
+    int tonAmount,
+    int maxAmount,
+    int minAmount,
+    slice signature,
+    int poolBalance
+) impure {
+
+    ;; load dictionaries data
+    (int sellCurrBought, int buyCurrSold, int refundAmount, int isRefundClaimed) = load_per_user_per_buy_curr(candidate, g_zeroAddress);
+    (
+        int buyCurrRaised,
+        int buyCurrRefundedTotal,
+        int buyCurrRefundedLeft,
+        slice buyCurrAddr,
+        int buyCurrDecimal,
+        int buyCurrRate,
+        _,
+        _
+    ) = load_per_buy_curr(g_zeroAddress);
+    (int sellCurrBoughtPerUser, int sellCurrClaimed) = load_per_user(candidate);
+
+    throw_unless(error::POOL::PURCHASE_METHOD_NOT_ALLOWED, equal_slices(g_zeroAddress, buyCurrAddr));
+    throw_unless(error::POOL::USER_REFUNDED, refundAmount == 0);
+    throw_unless(error::POOL::INVALID_TON_AMOUNT, tonAmount > 0);
+
+    throw_unless(error::POOL::POOL_ENDED, (now() >= g_openTime) & (now() < g_closeTime));
+
+    ;; verify buy sig
+    throw_unless(error::POOL::INVALID_SIGNATURE, check_signature(cell_hash(
+                begin_cell()
+                .store_slice(candidate)
+                .store_coins(maxAmount)
+                .store_coins(minAmount)
+                .store_slice(my_address())
+                .store_uint(WORKCHAIN_ID, 32)
+                .end_cell()
+            ), signature, g_signer)
+    );
+
+    int sellCurrAmount = tonAmount.muldiv(buyCurrRate, binpow(10, buyCurrDecimal));
+
+    throw_unless(error::POOL::NOT_ENOUGH_TOKENS_FOR_SALE, poolBalance - g_totalUnclaimed >= tonAmount);
+    throw_unless(error::POOL::MIN_AMOUNT_UNREACHED, (sellCurrBoughtPerUser + tonAmount) >= minAmount);
+    throw_unless(error::POOL::PURCHASE_AMOUNT_EXCEED_ALLOWANCE, (sellCurrBoughtPerUser + tonAmount) <= maxAmount);
+
+    buyCurrRaised += tonAmount;
+    g_tokenSold += sellCurrAmount;
+    sellCurrBought += sellCurrAmount;
+    sellCurrBoughtPerUser += sellCurrAmount;
+    g_totalUnclaimed += sellCurrAmount;
+    buyCurrSold += tonAmount;
+
+    ;; forward swap ton
+    send_empty_message(tonAmount, g_fundingWallet, PAID_EXTERNALLY);
+
+    ;; store dictionaries data
+    store_per_user_per_buy_curr(
+        candidate,
+        buyCurrAddr,
+        sellCurrBought,
+        buyCurrSold,
+        refundAmount,
+        isRefundClaimed
+    );
+    store_per_buy_curr(
+        buyCurrAddr,
+        buyCurrRaised,
+        buyCurrRefundedTotal,
+        buyCurrRefundedLeft,
+        buyCurrDecimal,
+        buyCurrRate,
+        0,
+        g_zeroAddress
+    );
+    store_per_user(
+        candidate,
+        sellCurrBoughtPerUser,
+        sellCurrClaimed
+    );
+
+    emit_log_simple(event::POOL::BUY_TOKEN_BY_TON_SUCCESS, begin_cell().store_slice(candidate).store_coins(tonAmount).store_coins(sellCurrAmount).end_cell(), true);
+
+    save_data();
+}
+
+;; get methods are a means to conveniently read contract data using, for example, HTTP APIs
+;; they are marked with method_id
+;; note that unlike in many other smart contract VMs, get methods cannot be called by other contracts
+
+int get_id() method_id {
+    load_data();
+    return g_id;
+}
+
+slice get_factory() method_id {
+    load_data();
+    return g_factory;
+}
+
+slice get_owner() method_id {
+    load_data();
+    return g_owner;
+}
+
+int get_signer() method_id {
+    load_data();
+    return g_signer;
+}
+
+int get_open_time() method_id {
+    load_data();
+    return g_openTime;
+}
+
+int get_close_time() method_id {
+    load_data();
+    return g_closeTime;
+}
+
+slice get_sell_token_account_addr() method_id {
+    load_data();
+    return g_sellTokenAccountAddr;
+}
+
+slice get_sell_token_mint() method_id {
+    load_data();
+    return g_sellTokenMint;
+}
+
+int get_sell_token_account_balance() method_id {
+    load_data();
+    return g_sellTokenAccountBalance;
+}
+
+slice get_funding_wallet() method_id {
+    load_data();
+    return g_fundingWallet;
+}
+
+int get_token_sold() method_id  {
+    load_data();
+    return g_tokenSold;
+}
+
+int get_total_unclaimed() method_id  {
+    load_data();
+    return g_totalUnclaimed;
+}
+
+int get_total_refunded() method_id  {
+    load_data();
+    return g_totalRefunded;
+}
+
+(int, int, int, int) get_per_user_per_buy_curr(slice userAddr, slice buyCurrAddr) method_id {
+    load_data();
+    return load_per_user_per_buy_curr(userAddr, buyCurrAddr);
+}
+
+(int, int) get_per_user(slice userAddr) method_id {
+    load_data();
+    return load_per_user(userAddr);
+}
+
+(int, int, int, slice, int, int, int, slice) get_per_buy_curr(slice buyCurrAddr) method_id {
+    load_data();
+    return load_per_buy_curr(buyCurrAddr);
+}
+
+(int, slice) add_token_balance(slice senderAddress, int jettonAmount) {
+    if (equal_slices(senderAddress, g_sellTokenAccountAddr)) {
+        g_sellTokenAccountBalance += jettonAmount;
+        save_data();
+        return (true, g_sellTokenAccountAddr);
+    }
+    (int key, slice val, int flag) = g_perBuyCurr.udict_get_min?(256);
+    while (flag) {
+        slice buyStats = val~load_ref().begin_parse();
+        slice buyCurrInfo = val~load_ref().begin_parse();
+        int buyCurrRaised = buyStats~load_coins();
+        int buyCurrRefundedTotal = buyStats~load_coins();
+        int buyCurrRefundedLeft = buyStats~load_coins();
+        slice buyCurrAddr = buyCurrInfo~load_msg_addr();
+        int buyCurrDecimals = buyCurrInfo~load_uint(8);
+        int buyCurrRate = buyCurrInfo~load_coins();
+        int buyCurrBalance = buyCurrInfo~load_coins();
+        slice buyCurrTokenAccountAddr = buyCurrInfo~load_msg_addr();
+
+        if (equal_slices(senderAddress, buyCurrTokenAccountAddr)) {
+            buyCurrBalance += jettonAmount;
+            store_per_buy_curr(
+                buyCurrAddr,
+                buyCurrRaised,
+                buyCurrRefundedTotal,
+                buyCurrRefundedLeft,
+                buyCurrDecimals,
+                buyCurrRate,
+                buyCurrBalance,
+                buyCurrTokenAccountAddr
+            );
+            save_data();
+
+            return (true, buyCurrAddr);
+        }
+
+
+        (key, val, flag) = g_perBuyCurr.udict_get_next?(256, key);
+    }
+    return (false, begin_cell().end_cell().begin_parse());
+}
+
+() check_owner(slice senderAddr) impure {
+    throw_unless(error::POOL::NOT_OWNER, equal_slices(senderAddr, g_owner) == -1);
+}
+
+;; recv_internal is the main function of the contract and is called when it receives a message from other contracts
+() recv_internal(int myBalance, int msgValue, cell inMsgFull, slice inMsgBody) impure {
+    if (inMsgBody.slice_empty?()) { ;; ignore all empty messages
+        return ();
+    }
+
+    slice cs = inMsgFull.begin_parse();
+    int flags = cs~load_uint(4);
+    if (flags & 1) { ;; ignore all bounced messages
+        return ();
+    }
+    slice senderAddr = cs~load_msg_addr();
+
+    load_data(); ;; here we populate the storage variables
+
+    int op = inMsgBody~load_uint(32); ;; by convention, the first 32 bits of incoming message is the op
+    int query_id = inMsgBody~load_uint(64); ;; also by convention, the next 64 bits contain the "query id", although this is not always the case
+
+    if (op == op::initialize) {
+
+        throw_unless(error::POOL::ONLY_FACTORY_IS_ALLOWED_TO_INITIALIZE, equal_slices(g_factory, senderAddr));
+
+        inMsgBody~load_msg_addr(); ;; ignore owner address
+        slice buyCurrInfo = inMsgBody~load_ref().begin_parse();
+        slice buyCurrAddr = buyCurrInfo~load_msg_addr();
+        slice buyCurrTokenAccountAddr = buyCurrInfo~load_msg_addr();
+        int buyCurrBalance = buyCurrInfo~load_coins();
+        slice sellTokenAccountAddr = inMsgBody~load_msg_addr();
+        int sellTokenAccountBalance = inMsgBody~load_coins();
+
+        g_sellTokenAccountAddr = sellTokenAccountAddr;
+        g_sellTokenAccountBalance = sellTokenAccountBalance;
+        (
+            int buyCurrRaised,
+            int buyCurrRefundedTotal,
+            int buyCurrRefundedLeft,
+            _,
+            int buyCurrDecimal,
+            int buyCurrRate,
+            _,
+            _
+        ) = load_per_buy_curr(buyCurrAddr);
+        store_per_buy_curr(buyCurrAddr, buyCurrRaised, buyCurrRefundedTotal, buyCurrRefundedLeft, buyCurrDecimal, buyCurrRate, buyCurrBalance, buyCurrTokenAccountAddr);
+
+        save_data();
+
+        emit_log_simple(event::POOL::PRE_SALE_POOL_CREATED, begin_cell().store_ref(begin_cell().store_slice(g_sellTokenMint).store_uint(g_openTime, 32).store_uint(g_closeTime, 32).store_slice(g_fundingWallet).store_slice(g_owner).end_cell()).store_ref(begin_cell().store_slice(buyCurrAddr).store_uint(buyCurrDecimal, 8).store_coins(buyCurrRate).end_cell()).end_cell(), true);
+
+        ;; send excess ton back
+        int payBack = calc_money_to_pay_back(myBalance, msgValue, COMPUTE_COST);
+        if (payBack > 0) {
+            send_empty_message(payBack, g_owner, NORMAL);
+        }
+
+        return ();
+
+    }
+    if (op == op::transferNotification) {
+
+        (int jettonAmount, slice fromUser) = (inMsgBody~load_coins(), inMsgBody~load_msg_addr());
+
+        ;; logic to maintain token account balances in contract
+        (int found, slice buyCurrAddr) = add_token_balance(senderAddr, jettonAmount);
+        throw_unless(error::POOL::CURRENCY_NOT_SUPPORTED, found); ;; check that notification is from a relevant contract
+        if (equal_slices(buyCurrAddr, g_sellTokenMint)) { ;; no further processing needed if sell token was sent
+            send_empty_message(msgValue - COMPUTE_COST, fromUser, NORMAL); ;; send remaining gas back
+            return ();
+        }
+
+        ;; try catch block is used so the balance change does not get discarded
+        try {
+
+            throw_unless(error::GENERAL::INSUFFICIENT_TON_FOR_GAS, msgValue >= TON_TO_NANO); ;; atleast 1 TON is needed
+
+            ;; swap by token data read
+            slice refDs = inMsgBody~load_ref().begin_parse();
+            slice buyCurr = refDs~load_msg_addr();
+            int maxAmount = refDs~load_coins();
+            int minAmount = refDs~load_coins();
+            slice signature = refDs~load_ref().begin_parse();
+
+            try {
+
+                buy_token_by_token_with_permission(
+                    buyCurr,
+                    jettonAmount,
+                    fromUser,
+                    maxAmount,
+                    minAmount,
+                    signature
+                );
+
+            } catch (x, n) {
+                ;; refund tokens
+                var body = create_simple_transfer_body(0, 0, jettonAmount, fromUser);
+                send_simple_message(TON_TO_NANO / 10, senderAddr, body.end_cell(), PAID_EXTERNALLY);
+
+                (
+                    int buyCurrRaised,
+                    int buyCurrRefundedTotal,
+                    int buyCurrRefundedLeft,
+                    slice buyCurrAddr,
+                    int buyCurrDecimal,
+                    int buyCurrRate,
+                    int buyCurrBalance,
+                    slice buyCurrTokenAccountAddr
+                ) = load_per_buy_curr(buyCurrAddr);
+                buyCurrBalance -= jettonAmount;
+                store_per_buy_curr(
+                    buyCurrAddr,
+                    buyCurrRaised,
+                    buyCurrRefundedTotal,
+                    buyCurrRefundedLeft,
+                    buyCurrDecimal,
+                    buyCurrRate,
+                    buyCurrBalance,
+                    buyCurrTokenAccountAddr
+                );
+                save_data();
+
+                emit_log_simple(event::POOL::ERROR, begin_cell().store_uint(n, 32).end_cell(), false);
+            }
+        }
+        catch (_) {
+            return ();
+        }
+
+        ;; send remaining gas back
+        int payBack = calc_money_to_pay_back(myBalance, msgValue, COMPUTE_COST << 1);
+        if (payBack > TON_TO_NANO / 10) {
+            send_empty_message(payBack - TON_TO_NANO / 10, fromUser, NORMAL);
+        }
+
+        return ();
+    }
+    if (op == op::buyTokenByTonWithPermission) {
+
+        ;; swap by token data read
+        slice refDs = inMsgBody~load_ref().begin_parse();
+        int tonAmount = refDs~load_coins();
+        int maxAmount = refDs~load_coins();
+        int minAmount = refDs~load_coins();
+        slice signature = refDs~load_ref().begin_parse();
+
+        throw_unless(error::POOL::INSUFFICIENT_FUNDS, msgValue - TON_TO_NANO >= tonAmount);
+
+        buy_token_by_ton_with_permission(senderAddr, tonAmount, maxAmount, minAmount, signature, myBalance);
+
+        ;; send remaining gas back
+        int payBack = calc_money_to_pay_back(myBalance, msgValue, COMPUTE_COST << 1);
+        if (payBack > 0) {
+            send_empty_message(payBack, senderAddr, NORMAL);
+        }
+
+        return ();
+
+    }
+    if (op == op::claimTokens) {
+
+        throw_unless(error::GENERAL::INSUFFICIENT_TON_FOR_GAS, msgValue >= TON_TO_NANO); ;; atleast 1 TON is needed
+
+        int claimAmount = inMsgBody~load_coins();
+        slice signature = inMsgBody~load_ref().begin_parse();
+
+        claim_tokens(senderAddr, claimAmount, signature);
+
+        ;; send remaining gas back
+        int payBack = calc_money_to_pay_back(myBalance, msgValue, COMPUTE_COST);
+        if (payBack > TON_TO_NANO / 10) {
+            send_empty_message(payBack - TON_TO_NANO / 10, senderAddr, NORMAL);
+        }
+        return ();
+    }
+    if (op == op::refundTokens) {
+
+        throw_unless(error::GENERAL::INSUFFICIENT_TON_FOR_GAS, msgValue >= TON_TO_NANO); ;; atleast 1 TON is needed
+
+        slice refundCurrAddr = inMsgBody~load_msg_addr();
+        int deadline = inMsgBody~load_uint(32);
+        slice signature = inMsgBody~load_ref().begin_parse();
+
+        refund_tokens(senderAddr, refundCurrAddr, deadline, signature);
+
+        ;; send remaining gas back
+        int payBack = calc_money_to_pay_back(myBalance, msgValue, COMPUTE_COST << 1);
+        if (payBack > 0) {
+            send_empty_message(payBack, senderAddr, NORMAL);
+        }
+
+        return ();
+    }
+    if (op == op::claimRefundTokens) {
+
+        throw_unless(error::GENERAL::INSUFFICIENT_TON_FOR_GAS, msgValue >= TON_TO_NANO); ;; atleast 1 TON is needed
+
+        slice claimRefundCurrAddr = inMsgBody~load_msg_addr();
+        slice signature = inMsgBody~load_ref().begin_parse();
+
+        claim_refund_tokens(senderAddr, claimRefundCurrAddr, signature);
+
+        ;; send remaining gas back
+        int payBack = calc_money_to_pay_back(myBalance, msgValue, COMPUTE_COST << 1);
+        if (payBack > TON_TO_NANO / 10) {
+            send_empty_message(payBack - TON_TO_NANO / 10, senderAddr, NORMAL);
+        }
+
+        return ();
+    }
+    if(op == op::setPerBuyCurr){
+
+        throw_unless(error::GENERAL::INSUFFICIENT_TON_FOR_GAS, msgValue >= TON_TO_NANO); ;; atleast 1 TON is needed
+        check_owner(senderAddr);
+
+        slice buyCurrAddr = inMsgBody~load_msg_addr();
+        slice buyCurrTokenAccountAddr = inMsgBody~load_msg_addr();
+        int buyCurrBalance = inMsgBody~load_coins();
+        int decimals = inMsgBody~load_uint(8);
+        int rate = inMsgBody~load_coins();
+        (int buyCurrRaised, int buyCurrRefundedTotal, int buyCurrRefundedLeft, _, _, _, _, _) = get_per_buy_curr(buyCurrAddr);
+        store_per_buy_curr(buyCurrAddr, buyCurrRaised, buyCurrRefundedTotal, buyCurrRefundedLeft, decimals, rate, buyCurrBalance, buyCurrTokenAccountAddr);
+
+        save_data();
+
+        emit_log_simple(event::POOL::STATS_CHANGED, begin_cell().end_cell(), false);
+
+        ;; send remaining gas back
+        send_empty_message(0, senderAddr, CARRY_REMAINING_GAS);
+
+        return ();
+    }
+    if(op == op::setPerBuyCurrRate){
+
+        throw_unless(error::GENERAL::INSUFFICIENT_TON_FOR_GAS, msgValue >= TON_TO_NANO); ;; atleast 1 TON is needed
+        check_owner(senderAddr);
+
+        slice buyCurrAddr = inMsgBody~load_msg_addr();
+        int rate = inMsgBody~load_coins();
+        (int buyCurrRaised, int buyCurrRefundedTotal, int buyCurrRefundedLeft, _, int buyCurrDecimal, _, int buyCurrBalance, slice buyCurrTokenAccountAddr) = get_per_buy_curr(buyCurrAddr);
+        store_per_buy_curr(buyCurrAddr, buyCurrRaised, buyCurrRefundedTotal, buyCurrRefundedLeft, buyCurrDecimal, rate, buyCurrBalance, buyCurrTokenAccountAddr);
+
+        save_data();
+
+        emit_log_simple(event::POOL::STATS_CHANGED, begin_cell().end_cell(), false);
+
+        ;; send remaining gas back
+        send_empty_message(0, senderAddr, CARRY_REMAINING_GAS);
+
+        return ();
+    }
+    if(op == op::setPerBuyCurrDecimals){
+
+        throw_unless(error::GENERAL::INSUFFICIENT_TON_FOR_GAS, msgValue >= TON_TO_NANO); ;; atleast 1 TON is needed
+        check_owner(senderAddr);
+
+        slice buyCurrAddr = inMsgBody~load_msg_addr();
+        int decimals = inMsgBody~load_uint(8);
+        (int buyCurrRaised, int buyCurrRefundedTotal, int buyCurrRefundedLeft, _, _, int buyCurrRate, int buyCurrBalance, slice buyCurrTokenAccountAddr) = get_per_buy_curr(buyCurrAddr);
+        store_per_buy_curr(buyCurrAddr, buyCurrRaised, buyCurrRefundedTotal, buyCurrRefundedLeft, decimals, buyCurrRate, buyCurrBalance, buyCurrTokenAccountAddr);
+
+        save_data();
+
+        emit_log_simple(event::POOL::STATS_CHANGED, begin_cell().end_cell(), false);
+
+        ;; send remaining gas back
+        send_empty_message(0, senderAddr, CARRY_REMAINING_GAS);
+
+        return ();
+    }
+    if(op == op::setNewSigner){
+
+        throw_unless(error::GENERAL::INSUFFICIENT_TON_FOR_GAS, msgValue >= TON_TO_NANO); ;; atleast 1 TON is needed
+        check_owner(senderAddr);
+
+        int newSigner = inMsgBody~load_uint(256);
+        int zeroAddress = 0;
+        throw_unless(error::POOL::INVALID_NEW_SIGNER, newSigner != g_signer);
+        throw_unless(error::POOL::ZERO_ADDRESS, newSigner != zeroAddress);
+        g_signer = newSigner;
+
+        save_data();
+
+        emit_log_simple(event::POOL::STATS_CHANGED, begin_cell().end_cell(), false);
+
+        ;; send remaining gas back
+        send_empty_message(0, senderAddr, CARRY_REMAINING_GAS);
+
+        return ();
+    }
+    if(op == op::setCloseTime){
+
+        throw_unless(error::GENERAL::INSUFFICIENT_TON_FOR_GAS, msgValue >= TON_TO_NANO); ;; atleast 1 TON is needed
+        check_owner(senderAddr);
+
+        int closeTime = inMsgBody~load_uint(32);
+        throw_unless(error::POOL::INVALID_TIME, closeTime > now());
+        g_closeTime = closeTime;
+
+        save_data();
+
+        emit_log_simple(event::POOL::STATS_CHANGED, begin_cell().end_cell(), false);
+
+        ;; send remaining gas back
+        int payBack = calc_money_to_pay_back(myBalance, msgValue, COMPUTE_COST);
+        if (payBack > 0) {
+            send_empty_message(payBack, senderAddr, NORMAL);
+        }
+
+        return ();
+    }
+    if(op == op::setOpenTime){
+
+        throw_unless(error::GENERAL::INSUFFICIENT_TON_FOR_GAS, msgValue >= TON_TO_NANO); ;; atleast 1 TON is needed
+        check_owner(senderAddr);
+
+        int openTime = inMsgBody~load_uint(32);
+        throw_unless(error::POOL::INVALID_TIME, openTime < g_closeTime);
+        g_openTime = openTime;
+
+        save_data();
+
+        emit_log_simple(event::POOL::STATS_CHANGED, begin_cell().end_cell(), false);
+
+        ;; send remaining gas back
+        send_empty_message(0, senderAddr, CARRY_REMAINING_GAS);
+
+        return ();
+    }
+
+    if(op == op::setSellToken){
+
+        throw_unless(error::GENERAL::INSUFFICIENT_TON_FOR_GAS, msgValue >= TON_TO_NANO); ;; atleast 1 TON is needed
+        check_owner(senderAddr);
+
+        slice sellTokenMint = inMsgBody~load_msg_addr();
+        slice sellTokenAccount = inMsgBody~load_msg_addr();
+
+        g_sellTokenMint = sellTokenMint;
+        g_sellTokenAccountAddr = sellTokenAccount;
+
+        save_data();
+
+        emit_log_simple(event::POOL::SELL_TOKEN_CHANGED, begin_cell().store_slice(g_sellTokenMint).end_cell(), true);
+
+        ;; send remaining gas back
+        send_empty_message(0, senderAddr, CARRY_REMAINING_GAS);
+
+        return ();
+    }
+    if(op ==  op::refundRemainingJetton){
+
+        check_owner(senderAddr);
+        throw_unless(error::POOL::NOT_FINALIZED, now() >= g_closeTime);
+        throw_unless(error::GENERAL::INSUFFICIENT_TON_FOR_GAS, msgValue >= TON_TO_NANO); ;; atleast 1 TON is needed
+
+        slice receiverAddress = inMsgBody~load_msg_addr();
+        slice tokenAddress = inMsgBody~load_msg_addr();
+
+        if(equal_slices(tokenAddress, g_sellTokenMint)){
+            throw_unless(error::POOL::EMPTY_BALANCE, g_sellTokenAccountBalance > 0);
+
+            var body = create_simple_transfer_body(0, 0, g_sellTokenAccountBalance, receiverAddress);
+            send_simple_message(TON_TO_NANO / 10, g_sellTokenAccountAddr, body.end_cell(), NORMAL);
+
+            emit_log_simple(event::POOL::TOKEN_WITHDRAWN, begin_cell().store_slice(tokenAddress).store_coins(g_sellTokenAccountBalance).end_cell(), true);
+
+            g_sellTokenAccountBalance = 0;
+            save_data();
+
+        } else {
+            (
+                int buyCurrRaised,
+                int buyCurrRefundedTotal,
+                int buyCurrRefundedLeft,
+                slice buyCurrAddr,
+                int buyCurrDecimal,
+                int buyCurrRate,
+                int buyCurrBalance,
+                slice buyCurrTokenAccountAddr
+            ) = load_per_buy_curr(tokenAddress);
+
+            throw_unless(error::POOL::TOKEN_ADDRESS_NOT_FOUND,buyCurrTokenAccountAddr.slice_empty?() == 0);
+            throw_unless(error::POOL::EMPTY_BALANCE, buyCurrBalance > 0);
+
+            var body = create_simple_transfer_body(0, 0, buyCurrBalance, receiverAddress);
+            send_simple_message(TON_TO_NANO / 10, buyCurrTokenAccountAddr, body.end_cell(), NORMAL);
+
+            store_per_buy_curr(
+                buyCurrAddr,
+                buyCurrRaised,
+                buyCurrRefundedTotal,
+                buyCurrRefundedLeft,
+                buyCurrDecimal,
+                buyCurrRate,
+                0,
+                buyCurrTokenAccountAddr
+            );
+
+            emit_log_simple(event::POOL::TOKEN_WITHDRAWN, begin_cell().store_slice(tokenAddress).store_coins(buyCurrBalance).end_cell(), true);
+
+            save_data();
+
+        }
+
+        ;; send remaining gas back
+        send_empty_message(0, senderAddr, CARRY_REMAINING_GAS);
+
+        return ();
+    }
+
+    if(op == op::refundRemainingTon){
+
+        check_owner(senderAddr);
+        throw_unless(error::POOL::NOT_FINALIZED, now() >= g_closeTime);
+        throw_unless(error::POOL::INSUFFICIENT_FUNDS, myBalance > REQUIRED_TON_RESERVE);
+        slice receiverAddress = inMsgBody~load_msg_addr();
+
+        send_empty_message(myBalance - REQUIRED_TON_RESERVE, receiverAddress, NORMAL);
+
+        emit_log_simple(event::POOL::TON_WITHDRAWN, begin_cell().store_coins(myBalance - REQUIRED_TON_RESERVE).end_cell(), true);
+
+        return ();
+    }
+
+    if(op == op::setNewOwner){
+
+        throw_unless(error::GENERAL::INSUFFICIENT_TON_FOR_GAS, msgValue >= TON_TO_NANO); ;; atleast 1 TON is needed
+        check_owner(senderAddr);
+
+        slice newOwnerAdderss = inMsgBody~load_msg_addr();
+
+        g_owner = newOwnerAdderss;
+
+        save_data();
+
+        emit_log_simple(event::POOL::OWNER_CHANGED, begin_cell().store_slice(g_owner).end_cell(), true);
+
+        ;; send remaining gas back
+        send_empty_message(0, senderAddr, CARRY_REMAINING_GAS);
+
+        return ();
+    }
+
+     if(op ==  op::refundRemainingSellToken){
+
+        check_owner(senderAddr);
+        throw_unless(error::POOL::NOT_FINALIZED, now() >= g_closeTime);
+        throw_unless(error::GENERAL::INSUFFICIENT_TON_FOR_GAS, msgValue >= TON_TO_NANO); ;; atleast 1 TON is needed
+
+        slice receiverAddress = inMsgBody~load_msg_addr();
+            
+        int tokenAmount = g_sellTokenAccountBalance - g_totalUnclaimed;
+        throw_unless(error::POOL::EMPTY_BALANCE, tokenAmount > 0);
+
+        var body = create_simple_transfer_body(0, 0, tokenAmount, receiverAddress);
+        send_simple_message(TON_TO_NANO / 10, g_sellTokenAccountAddr, body.end_cell(), NORMAL);
+
+        emit_log_simple(event::POOL::TOKEN_WITHDRAWN, begin_cell().store_slice(g_sellTokenMint).store_coins(tokenAmount).end_cell(), true);
+
+        g_sellTokenAccountBalance -= tokenAmount;
+        save_data();
+        
+        ;; send remaining gas back
+        send_empty_message(0, senderAddr, CARRY_REMAINING_GAS);
+
+        return ();
+    }
+
+    throw(error::GENERAL::INVALID_OPERATION);
+}

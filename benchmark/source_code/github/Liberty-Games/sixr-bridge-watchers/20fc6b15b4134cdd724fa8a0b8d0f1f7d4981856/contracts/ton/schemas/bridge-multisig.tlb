@@ -1,0 +1,271 @@
+/*
+ * TL-B Schema Definitions for TON Bridge Multisig
+ *
+ * This file defines the binary serialization format for all payloads,
+ * governance actions, and event logs in the bridge multisig contract.
+ *
+ * All payloads are hashed using sha256 for signature verification.
+ */
+
+//
+// ============================================================================
+// MINT PAYLOAD (Watchers sign this for EVM->TON mints)
+// ============================================================================
+//
+
+// MintPayload structure for EVM->TON bridge operations
+// Watchers sign the hash of this structure (3-of-5 quorum)
+mint_payload#4d494e54
+    origin_chain_id:uint32      // EVM chain ID (e.g., 56 for BSC, 8453 for Base)
+    token:bits256               // EVM token contract address (padded to 256 bits)
+    ton_recipient:MsgAddressInt // TON recipient address (standard address)
+    amount:uint128              // Jetton amount in 9-decimal units (raw amount)
+    nonce:uint64                // Replay protection nonce
+    epoch:uint64                // Governance epoch (invalidates signatures after watcher rotation)
+    = MintPayload;
+
+//
+// ============================================================================
+// GOVERNANCE PAYLOADS (Governance members sign these for admin operations)
+// ============================================================================
+//
+
+// Base governance action structure (3-of-5 quorum required)
+governance_action#474f5645
+    action_type:uint32          // Action identifier (see action types below)
+    nonce:uint64                // Governance nonce (strictly incremental)
+    epoch:uint64                // Governance epoch (invalidates signatures after rotation)
+    payload:^Cell               // Action-specific payload (as ref)
+    = GovernanceAction;
+
+// Action type constants (stored in uint32):
+// UPDATE_WATCHERS       = 0x01 (Update the watcher set)
+// UPDATE_GOVERNANCE     = 0x02 (Update the governance set)
+// SET_TOKEN_STATUS      = 0x03 (Enable/disable a jetton for minting)
+// TRANSFER_TOKEN_OWNER  = 0x04 (Transfer jetton root ownership)
+// WITHDRAW_TON_FUNDS    = 0x05 (Emergency withdrawal of TON funds, 3-of-5 quorum)
+// MAP_TOKEN             = 0x06 (Map EVM token address to TON jetton root)
+// SET_MINT_NONCE        = 0x07 (Set mint nonce)
+// SET_FEE_WALLET        = 0x08 (Set fee wallet for TON->EVM bridge fees)
+// SET_VAULT_FEE_RECIPIENT = 0x09 (Set vault fee recipient address)
+// SET_VAULT_FEE_BASIS_POINTS = 0x0A (Set vault fee basis points)
+
+// Payload for UPDATE_WATCHERS action
+update_watchers_payload#57415443
+    watcher_1:bits256           // Ed25519 public key (32 bytes)
+    watcher_2:bits256           // Ed25519 public key (32 bytes)
+    watcher_3:bits256           // Ed25519 public key (32 bytes)
+    watcher_4:bits256           // Ed25519 public key (32 bytes)
+    watcher_5:bits256           // Ed25519 public key (32 bytes)
+    = UpdateWatchersPayload;
+
+// Payload for UPDATE_GOVERNANCE action
+update_governance_payload#474f5653
+    gov_1:bits256               // Ed25519 public key (32 bytes)
+    gov_2:bits256               // Ed25519 public key (32 bytes)
+    gov_3:bits256               // Ed25519 public key (32 bytes)
+    gov_4:bits256               // Ed25519 public key (32 bytes)
+    gov_5:bits256               // Ed25519 public key (32 bytes)
+    = UpdateGovernancePayload;
+
+// Payload for SET_TOKEN_STATUS action
+set_token_status_payload#544f4b53
+    jetton_root:MsgAddressInt   // Jetton root contract address
+    status:uint1                // 1 = allowed, 0 = not allowed
+    = SetTokenStatusPayload;
+
+// Payload for TRANSFER_TOKEN_OWNER action
+transfer_token_owner_payload#5452414e
+    jetton_root:MsgAddressInt   // Jetton root contract address
+    new_owner:MsgAddressInt     // New owner address
+    = TransferTokenOwnerPayload;
+
+// Payload for MAP_TOKEN action
+map_token_payload#4d415054
+    evm_token:bits256           // EVM token contract address (padded to 256 bits)
+    ton_jetton_root:MsgAddressInt // TON jetton root contract address
+    = MapTokenPayload;
+
+// Payload for WITHDRAW_TON_FUNDS action (requires 3-of-5 governance quorum)
+// Used for emergency fund withdrawal scenarios during contract migration/redeploy
+withdraw_ton_funds_payload#574452415720
+    destination:MsgAddressInt   // TON address to receive funds
+    amount:uint128              // Exact amount of TON (in nanotons) to withdraw
+    reference:uint64            // Reference ID for replay protection
+    = WithdrawTonFundsPayload;
+
+// Payload for SET_MINT_NONCE action
+set_mint_nonce_payload#534d4e43
+    new_mint_nonce:uint64       // New mint nonce value
+    = SetMintNoncePayload;
+
+// Payload for SET_VAULT_FEE_RECIPIENT action
+// Governance can update the vault's fee recipient address
+set_vault_fee_recipient_payload#56465257
+    vault_address:MsgAddressInt     // Vault contract address
+    new_fee_recipient:MsgAddressInt // New fee recipient address
+    = SetVaultFeeRecipientPayload;
+
+// Payload for SET_VAULT_FEE_BASIS_POINTS action
+// Governance can update the vault's fee percentage (0-1000 = 0%-10%)
+set_vault_fee_basis_points_payload#56464250
+    vault_address:MsgAddressInt     // Vault contract address
+    new_fee_basis_points:uint16     // New fee in basis points (100 = 1%)
+    = SetVaultFeeBasisPointsPayload;
+
+//
+// ============================================================================
+// EVENT LOGS (Internal messages emitted for off-chain monitoring)
+// ============================================================================
+//
+
+// Emitted when a mint operation is executed
+mint_executed_log#4d494e54
+    payload_hash:bits256        // Hash of the MintPayload that was executed (includes epoch)
+    origin_chain_id:uint32      // Source chain ID
+    token:bits256               // Source token address
+    ton_recipient:MsgAddressInt // Recipient on TON
+    amount:uint128              // Amount minted
+    nonce:uint64                // Nonce used
+    timestamp:uint64            // Execution timestamp
+    = MintExecutedLog;
+
+// Emitted when watcher set is updated
+watcher_set_updated_log#57415443
+    watcher_1:bits256           // New watcher 1 public key
+    watcher_2:bits256           // New watcher 2 public key
+    watcher_3:bits256           // New watcher 3 public key
+    watcher_4:bits256           // New watcher 4 public key
+    watcher_5:bits256           // New watcher 5 public key
+    governance_nonce:uint64     // Governance nonce that triggered this
+    timestamp:uint64            // Update timestamp
+    = WatcherSetUpdatedLog;
+
+// Emitted when governance set is updated
+governance_set_updated_log#474f5653
+    gov_1:bits256               // New governance 1 public key
+    gov_2:bits256               // New governance 2 public key
+    gov_3:bits256               // New governance 3 public key
+    gov_4:bits256               // New governance 4 public key
+    gov_5:bits256               // New governance 5 public key
+    governance_nonce:uint64     // Governance nonce that triggered this
+    timestamp:uint64            // Update timestamp
+    = GovernanceSetUpdatedLog;
+
+// Emitted when token status changes
+token_status_updated_log#544f4b53
+    jetton_root:MsgAddressInt   // Jetton root affected
+    old_status:uint1            // Old status (1=allowed, 0=disallowed)
+    new_status:uint1            // New status (1=allowed, 0=disallowed)
+    governance_nonce:uint64     // Governance nonce that triggered this
+    timestamp:uint64            // Update timestamp
+    = TokenStatusUpdatedLog;
+
+// Emitted when jetton ownership is transferred
+token_ownership_transferred_log#5452414e
+    jetton_root:MsgAddressInt   // Jetton root transferred
+    new_owner:MsgAddressInt     // New owner address
+    governance_nonce:uint64     // Governance nonce that triggered this
+    timestamp:uint64            // Transfer timestamp
+    = TokenOwnershipTransferredLog;
+
+// Emitted when EVM token is mapped to TON jetton root
+token_mapped_log#4d415054
+    evm_token:bits256           // EVM token address
+    ton_jetton_root:MsgAddressInt // TON jetton root address
+    governance_nonce:uint64     // Governance nonce that triggered this
+    timestamp:uint64            // Mapping timestamp
+    = TokenMappedLog;
+
+// Emitted when TON funds are withdrawn via governance action
+ton_funds_withdrawn_log#574452415720
+    destination:MsgAddressInt   // Destination address
+    amount:uint128              // Amount withdrawn (nanotons)
+    reference:uint64            // Reference ID used
+    governance_nonce:uint64     // Governance nonce that triggered this
+    timestamp:uint64            // Withdrawal timestamp
+    = TonFundsWithdrawnLog;
+
+// Emitted when mint nonce is set via governance action
+mint_nonce_set_log#534d4e43
+    old_mint_nonce:uint64       // Previous mint nonce value
+    new_mint_nonce:uint64       // New mint nonce value
+    governance_nonce:uint64     // Governance nonce that triggered this
+    timestamp:uint64            // Update timestamp
+    = MintNonceSetLog;
+
+// Emitted when vault fee recipient is updated via governance action
+vault_fee_recipient_set_log#56465257
+    vault_address:MsgAddressInt     // Vault contract address
+    new_fee_recipient:MsgAddressInt // New fee recipient address
+    governance_nonce:uint64         // Governance nonce that triggered this
+    timestamp:uint64                // Update timestamp
+    = VaultFeeRecipientSetLog;
+
+// Emitted when vault fee basis points are updated via governance action
+vault_fee_basis_points_set_log#56464250
+    vault_address:MsgAddressInt     // Vault contract address
+    new_fee_basis_points:uint16     // New fee in basis points
+    governance_nonce:uint64         // Governance nonce that triggered this
+    timestamp:uint64                // Update timestamp
+    = VaultFeeBasisPointsSetLog;
+
+//
+// ============================================================================
+// SIGNATURE STRUCTURE (Used in mint and governance operations)
+// ============================================================================
+//
+
+// Signature from a watcher or governance member
+signature#5349474e
+    public_key:bits256          // Ed25519 public key (32 bytes)
+    signature:bits512           // Ed25519 signature (64 bytes)
+    = Signature;
+
+//
+// ============================================================================
+// STORAGE STRUCTURE (Contract persistent state)
+// ============================================================================
+//
+
+// Contract storage layout
+storage#5354524f
+    // Watcher set (5 members, 3-of-5 threshold)
+    watchers:^Cell              // Dict: uint8 -> bits256 (index -> public_key)
+
+    // Governance set (5 members, 3-of-5 threshold)
+    governance:^Cell            // Dict: uint8 -> bits256 (index -> public_key)
+
+    // Allowed jettons (whitelist)
+    allowed_jettons:^Cell       // Dict: MsgAddressInt -> uint1 (jetton -> allowed)
+
+    // Operations cell (token_mappings, consumed_hashes, consumed_references, fee_wallet)
+    operations:^Cell            // Operations data cell
+
+    // Nonces for replay protection
+    mint_nonce:uint64           // Last consumed mint nonce
+    governance_nonce:uint64     // Last consumed governance nonce
+    governance_epoch:uint64     // Increments on watcher/governance rotation
+
+    = Storage;
+
+// Operations cell layout (stored as ref in main storage)
+operations_cell#4f505253
+    token_mappings:^Cell        // Dict: bits256 -> MsgAddressInt (evm_token -> ton_jetton_root)
+    consumed_hashes:^Cell       // Dict: bits256 -> uint1 (hash -> consumed)
+    consumed_references:^Cell   // Dict: uint64 -> uint1 (reference -> consumed)
+    fee_wallet:MsgAddressInt    // Wallet to receive bridge fees
+    = OperationsCell;
+
+//
+// ============================================================================
+// INTERNAL MESSAGE OPERATIONS (op codes)
+// ============================================================================
+//
+
+// Op codes for internal operations
+// EXECUTE_MINT              = 0x4d494e54 (Execute mint with signatures)
+// EXECUTE_GOVERNANCE        = 0x474f5645 (Execute governance action with signatures, 3-of-5)
+// EXECUTE_WITHDRAW_TON      = 0x574452415720 (Execute TON withdrawal with signatures, 3-of-5)
+// MINT_JETTON               = 0x15       (Internal mint operation to jetton)
+// TRANSFER_OWNERSHIP        = 0x16       (Transfer jetton ownership)

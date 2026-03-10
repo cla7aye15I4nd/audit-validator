@@ -1,0 +1,10 @@
+const transfer = 0xf8a7ea5;
+const transfer_notification = 0x7362d09c;
+
+;; bridge pool
+const record_receipt = "record_receipt"c;
+;; to bridge
+const receipt_ok = "receipt_ok"c;
+
+;; async "get" calls
+const getter_receipt = "getter_receipt"c;

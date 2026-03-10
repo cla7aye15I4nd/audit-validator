@@ -1,0 +1,50 @@
+#include "../common/stdlib.fc";
+
+global slice storage::bridge_pool_address;
+global slice storage::jetton_address;
+global slice storage::bridge_address;
+global slice storage::admin;
+global slice storage::owner;
+;; `swap_dic` is HashMap with `swap_id_hash` int key, value is `from_chain_id:int;orgin_share:int;target_share:int;swapped_amount:int;swapped_times:int`
+global cell storage::swap_dic;
+global cell storage::temp_upgrade;
+;; `receipt_record_dic` is HashMap with `receipt_hash` int key, value is `is_exist:bool`
+global cell storage::receipt_record_dic;
+
+() load_storage() impure inline {
+    slice ds = get_data().begin_parse();
+    storage::jetton_address = ds~load_msg_addr();
+    cell ds_0 = ds~load_ref();
+    slice ds_slice = ds_0.begin_parse();
+    storage::bridge_pool_address = ds_slice~load_msg_addr();
+    storage::bridge_address = ds_slice~load_msg_addr();
+    cell ds_1 = ds~load_ref();
+    slice ds_slice1 = ds_1.begin_parse();
+    storage::admin = ds_slice1~load_msg_addr();
+    storage::owner = ds_slice1~load_msg_addr();
+    cell ds_2 = ds~load_ref();
+    slice ds_slice_2 = ds_2.begin_parse();
+    storage::swap_dic = ds_slice_2~load_dict();
+    storage::receipt_record_dic = ds_slice_2~load_dict();
+    storage::temp_upgrade = ds~load_ref();
+}
+
+() save_storage() impure inline {
+    set_data(
+        begin_cell()
+            .store_slice(storage::jetton_address)
+            .store_ref(begin_cell()
+                .store_slice(storage::bridge_pool_address)
+                .store_slice(storage::bridge_address)
+                .end_cell())
+            .store_ref(begin_cell()
+                .store_slice(storage::admin)
+                .store_slice(storage::owner)
+                .end_cell())
+            .store_ref(begin_cell()
+                .store_dict(storage::swap_dic)
+                .store_dict(storage::receipt_record_dic)
+                .end_cell())
+            .store_ref(storage::temp_upgrade)
+            .end_cell());
+}

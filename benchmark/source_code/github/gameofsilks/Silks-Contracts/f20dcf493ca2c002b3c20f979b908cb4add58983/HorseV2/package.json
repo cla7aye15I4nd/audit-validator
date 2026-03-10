@@ -1,0 +1,34 @@
+{
+  "name": "hardhat-project",
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "@nomiclabs/hardhat-etherscan": "^3.1.7",
+    "@nomiclabs/hardhat-waffle": "^2.0.6",
+    "@openzeppelin/contracts": "^5.0.0",
+    "@solidstate/contracts": "0.0.58",
+    "chai": "^4.3.10",
+    "ethereum-waffle": "^4.0.10",
+    "ethers": "^5.7.2",
+    "hardhat": "^2.18.2",
+    "hardhat-contract-sizer": "^2.10.0",
+    "hardhat-gas-reporter": "^1.0.10",
+    "solidity-coverage": "^0.8.5",
+    "typechain": "^8.3.2"
+  },
+  "scripts": {
+    "start-ganache-node": "npx hardhat node",
+    "start-hardhat-console": "npx hardhat console",
+    "compile-contracts": "npx hardhat compile",
+    "size-contracts": "npx hardhat size-contracts",
+    "coverage-tests": "npx hardhat coverage --network localhost --solcoverjs .solcover.js",
+    "test": "npx hardhat test --network localhost",
+    "deploy-horse-v2-dev-goerli": "STAGE=dev npx hardhat run scripts/deploy-horse-v2.js --network goerli"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "ganache": "^7.9.1",
+    "ganache-cli": "^6.12.2",
+    "path": "^0.12.7",
+    "solc": "^0.8.21"
+  }
+}

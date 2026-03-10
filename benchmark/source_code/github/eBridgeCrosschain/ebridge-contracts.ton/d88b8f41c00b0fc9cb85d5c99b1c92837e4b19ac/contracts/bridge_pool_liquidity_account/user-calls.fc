@@ -1,0 +1,24 @@
+#include "storage.fc";
+#include "op.fc";
+#include "errors.fc";
+#include "../common/message.fc";
+
+() handle_user_messages(int op, int query_id, int my_balance, int msg_value, slice in_msg_body) impure inline {
+    if (op == account_remove_liquidity) {
+        var liquidity = in_msg_body~load_coins();
+        var is_native = in_msg_body~load_int(1);
+        throw_unless(LIQUIDITY_NOT_ENOUGH, storage::liquidity >= liquidity);
+        storage::liquidity -= liquidity;
+        var body = begin_cell()
+            .store_uint(remove_liquidity, 32)
+            .store_uint(query_id, 64)
+            .store_coins(liquidity)
+            .store_slice(storage::owner)
+            .store_int(is_native, 1)
+            .end_cell();
+        send_simple_message(0, storage::bridge_pool_address, body, SEND_MODE_CARRY_ALL_REMAINING_MESSAGE_VALUE);
+        save_storage();
+        return ();
+    }
+    throw(WRONG_OP);
+}

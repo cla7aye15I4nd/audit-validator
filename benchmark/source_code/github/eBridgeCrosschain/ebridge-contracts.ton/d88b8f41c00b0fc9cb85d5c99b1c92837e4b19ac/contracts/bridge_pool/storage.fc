@@ -1,0 +1,65 @@
+#include "../common/stdlib.fc";
+
+global slice storage::bridge_address;
+global cell storage::bridge_receipt_account_code;
+global slice storage::bridge_swap_address; 
+global slice storage::jetton_address; 
+global slice storage::jetton_pool_wallet_address;
+global int storage::liquidity;
+;; receipt_daily_limit is HashMap with `target_chain_id+(receipt:0,swap:1)` int key (256 cell_hash()),value is `cell {remaining_token_amount,last_refresh_time,daily_limit}`
+global cell storage::daily_limit;
+;; ;; swap_daily_limit is HashMap with `target_chain_id` int key,value is `cell {remaining_token_amount,last_refresh_time,daily_limit}`(256+32+256)
+;; global cell storage::swap_daily_limit;
+;; receipt_rate_limit is HashMap with `target_chain_id+(receipt:0,swap:1)` int key,value is `cell {current_token_amount,last_updated_time,token_capacity,is_enabled,rate}`
+global cell storage::rate_limit;
+;; ;; swap_rate_limit is HashMap with `target_chain_id` int key,value is `cell {current_token_amount,last_updated_time,token_capacity,is_enabled,rate}`
+;; global cell storage::swap_rate_limit;
+global cell storage::pool_liquidity_account_code; 
+global slice storage::admin;
+global slice storage::owner;
+global cell storage::temp_upgrade;
+
+() load_storage() impure inline {
+    slice ds = get_data().begin_parse();
+    storage::liquidity = ds~load_uint(256);
+    storage::admin = ds~load_msg_addr();
+    storage::owner = ds~load_msg_addr();
+    cell dc_0 = ds~load_ref(); slice ds_0 = dc_0.begin_parse();
+    storage::daily_limit = ds_0~load_dict();
+    storage::rate_limit = ds_0~load_dict();
+    cell dc_1 = ds~load_ref(); slice ds_1 = dc_1.begin_parse();
+    storage::bridge_address = ds_1~load_msg_addr();
+    storage::bridge_swap_address = ds_1~load_msg_addr();
+    cell ds_jetton = ds_1~load_ref(); slice ds_jetton_0 = ds_jetton.begin_parse();
+    storage::jetton_address = ds_jetton_0~load_msg_addr();
+    storage::jetton_pool_wallet_address = ds_jetton_0~load_msg_addr();
+    cell dc_2 = ds~load_ref(); slice ds_2 = dc_2.begin_parse();
+    storage::bridge_receipt_account_code = ds_2~load_ref();
+    storage::pool_liquidity_account_code = ds_2~load_ref();
+    storage::temp_upgrade = ds~load_ref();
+}
+
+() save_storage() impure inline {
+    set_data(begin_cell()
+        .store_uint(storage::liquidity, 256)
+        .store_slice(storage::admin)
+        .store_slice(storage::owner)
+        .store_ref(begin_cell()
+            .store_dict(storage::daily_limit)
+            .store_dict(storage::rate_limit)
+            .end_cell())
+        .store_ref(begin_cell()
+            .store_slice(storage::bridge_address)
+            .store_slice(storage::bridge_swap_address)
+            .store_ref(begin_cell()
+                .store_slice(storage::jetton_address)
+                .store_slice(storage::jetton_pool_wallet_address)
+                .end_cell())
+            .end_cell())
+        .store_ref(begin_cell()
+            .store_ref(storage::bridge_receipt_account_code)
+            .store_ref(storage::pool_liquidity_account_code)
+            .end_cell())
+        .store_ref(storage::temp_upgrade)
+    .end_cell());
+}

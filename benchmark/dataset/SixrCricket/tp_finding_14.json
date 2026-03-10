@@ -1,0 +1,29 @@
+{
+  "id": "2004",
+  "title": "Unbounded initial fee_basis_points can make deposits revert and strand jettons in the vault wallet",
+  "source": "aiflow_scanner_codex",
+  "status": "enhanced",
+  "category": null,
+  "location": {
+    "end_line": 1,
+    "start_line": 1,
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/c0b155c0-ce9d-11f0-afef-b3f141791562/source?file=$/github/Liberty-Games/sixr-bridge-watchers/20fc6b15b4134cdd724fa8a0b8d0f1f7d4981856/contracts/ton/bridge-vault-init.fc",
+    "local_file_path": "./source_code/github/Liberty-Games/sixr-bridge-watchers/20fc6b15b4134cdd724fa8a0b8d0f1f7d4981856/contracts/ton/bridge-vault-init.fc"
+  },
+  "scenario": "",
+  "sequence": 114,
+  "severity": "minor",
+  "confidence": null,
+  "description": "build_initial_storage stores fee_basis_points as an unconstrained uint16. The runtime vault logic (bridge-vault.fc) assumes a sensible fee (and governance updates later enforce <= MAX_FEE_BASIS_POINTS), but an initial value > BPS_DENOMINATOR (10000) can make calculate_fee(amount) exceed amount for common deposit sizes, producing a negative burn_amount. This causes .store_uint(burn_amount, 128) / .store_coins(burn_amount) to throw during jetton notification handling, so the notification fails and no burn/bridge event is emitted; the transferred jettons remain in the vault-owned jetton wallet with no on-chain mechanism to process/recover them. Add an explicit range check in the init builder (e.g., 0 <= fee_basis_points <= 10000 and ideally also <= the contract’s MAX_FEE_BASIS_POINTS) before storing it.",
+  "related_pid": "c0b155c0-ce9d-11f0-afef-b3f141791562",
+  "triage_reason": null,
+  "recommendation": "- Enforce hard bounds at initialization. In build_initial_storage, validate fee_basis_points and abort deployment if it is outside 0 ≤ fee_basis_points ≤ min(BPS_DENOMINATOR=10000, MAX_FEE_BASIS_POINTS).\n- Mirror the same bound check in any constructor/initialization or governance path that can set the initial fee before runtime checks take effect; reject the message if validation fails.\n- Add a runtime safety guard in the jetton notification flow: if calculate_fee(amount) > amount, do not attempt .store_uint(burn_amount, 128) / .store_coins(burn_amount). Revert before accepting the transfer or proactively return the jettons to the sender to prevent stranding.\n- Add tests covering boundary and invalid values (0, 10000, MAX_FEE_BASIS_POINTS, and values above each bound), and verify that deposits cannot strand funds when misconfigured.\n- Emit a clear error code/reason on validation failure to aid monitoring and troubleshooting.",
+  "triage_verdict": "valid",
+  "related_context": null,
+  "scan_model_name": null,
+  "triage_severity": null,
+  "proof_of_concept": null,
+  "related_checklist": null,
+  "related_commit_id": "20fc6b15b4134cdd724fa8a0b8d0f1f7d4981856",
+  "related_function_code": "cell build_initial_storage(\n    slice admin_address,           ;; Admin address (can update fee wallet, etc.)\n    slice fee_wallet_address,      ;; Wallet to receive fees\n    slice allowed_jetton_address,  ;; Whitelisted jetton root address\n    int fee_basis_points           ;; Fee percentage in basis points (default 100 = 1%)\n) {\n    ;; Build stats cell\n    cell stats_cell = begin_cell()\n        .store_uint(0, 128)              ;; total_burned = 0\n        .store_uint(0, 128)              ;; total_fees = 0\n    .end_cell();\n\n    ;; Build storage cell\n    return begin_cell()\n        .store_slice(admin_address)\n        .store_slice(fee_wallet_address)\n        .store_slice(allowed_jetton_address)\n        .store_uint(fee_basis_points, 16)  ;; fee_basis_points (default 100 = 1%)\n        .store_ref(stats_cell)\n    .end_cell();\n}"
+}

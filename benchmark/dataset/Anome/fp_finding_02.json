@@ -1,0 +1,34 @@
+{
+  "title": "Incomplete Removal of Recruit Entries in _removeCode Allows Duplicate Referrals",
+  "location": {
+    "local_file_path": "./source_code/github/CertiKProject/certik-audit-projects/2a2826fcbafb5bed23f57406cc61e71a3ccffcf2/projects/anome 2/shop/referral/ShopReferralInternal.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/e3c45370-51aa-11f0-bdd0-cbef849456d3/source?file=$/github/CertiKProject/certik-audit-projects/2a2826fcbafb5bed23f57406cc61e71a3ccffcf2/projects/anome 2/shop/referral/ShopReferralInternal.sol",
+    "start_line": 53,
+    "end_line": 65
+  },
+  "all_locations": null,
+  "category": null,
+  "severity": null,
+  "confidence": null,
+  "description": "Vulnerability:\n• The internal function _removeCode deletes data.accountSponsor[account] via _removeSponsor(account) but never removes the corresponding entry in the original sponsor’s data.accountRecruits array. As a result, when the same account re-binds to its old sponsor, a fresh entry is pushed onto the sponsor’s recruits list without clearing the stale one.\n• Over repeated remove-and-rebind cycles, the sponsor’s recruit array accumulates duplicate references to the same account, allowing inflation of referral counts or rewards that iterate over data.accountRecruits.\n\nExploit Demonstration (assuming external wrappers removeCode(bool)→_removeCode(msg.sender,…) and bindSponsor(uint)→_bindSponsor(msg.sender,…)):\n1. Attacker A uses bindSponsor(codeOfS) to bind itself to sponsor S. After this call, ShopStorage.layout().accountRecruits[S] contains a single entry [A].\n2. Attacker calls removeCode(true). Internally:\n   – _removeSponsor(A) deletes accountSponsor[A] but does not remove A from S’s accountRecruits.\n   – _removeAllRecruit(A) clears A’s own recruits, irrelevant here.\n   – S’s accountRecruits still includes the stale entry [A].\n3. Attacker calls bindSponsor(codeOfS) again. Internally _rebindSponsor pushes a second entry [A] into S’s accountRecruits.\n4. Verify ShopStorage.layout().accountRecruits[S] now contains [A, A].\n5. Repeat steps 2–4 N times. After N cycles, S’s recruit list contains N+1 entries all pointing to A.\n6. When S triggers any reward or calculation that iterates over data.accountRecruits[S], S receives (N+1)× the intended benefit for a single recruit. This logical flaw can be used to siphon excessive referral bonuses to S or to drain associated reward pools.",
+  "scenario": null,
+  "proof_of_concept": null,
+  "recommendation": null,
+  "id": "8259",
+  "duplicates": [
+    "8259",
+    "9949"
+  ],
+  "source": "scanner.smart_audit",
+  "status": "verified_as_valid",
+  "scan_model_name": "o4-mini",
+  "related_function_code": "function _removeCode(address account, bool isRemoveRelation) internal {\n    ShopStorage.Layout storage data = ShopStorage.layout();\n    uint256 oldCode = data.accountCode[account];\n    delete data.accountCode[account];\n    delete data.accountByCode[oldCode];\n\n    if (isRemoveRelation) {\n        _removeSponsor(account);\n        _removeAllRecruit(account);\n    }\n\n    emit CodeRemoved(msg.sender, account, oldCode);\n}",
+  "related_context": "layout ->     function layout() internal pure returns (Layout storage l) {\n        bytes32 slot = STORAGE_SLOT;\n        assembly {\n            l.slot := slot\n        }\n    }\n\n_removeSponsor -> function _removeSponsor(address account) internal {\n        if (account == address(0)) {\n            return;\n        }\n\n        ShopStorage.Layout storage data = ShopStorage.layout();\n        delete data.accountSponsor[account];\n    }\n\n_removeAllRecruit ->     function _removeAllRecruit(address account) internal {\n        if (account == address(0)) {\n            return;\n        }\n\n        ShopStorage.Layout storage data = ShopStorage.layout();\n        ShopTypes.Recruit[] memory recruits = data.accountRecruits[account];\n        for (uint i = 0; i < recruits.length; i++) {\n            _removeSponsor(recruits[i].account);\n        }\n\n        delete data.accountRecruits[account];\n    }",
+  "related_checklist": null,
+  "related_pid": "e3c45370-51aa-11f0-bdd0-cbef849456d3",
+  "related_commit_id": "2a2826fcbafb5bed23f57406cc61e71a3ccffcf2",
+  "triage_verdict": "invalid",
+  "triage_severity": "",
+  "triage_reason": "_removeAllRecruit(account); used to remove the Sponsor",
+  "is_main_finding": true
+}

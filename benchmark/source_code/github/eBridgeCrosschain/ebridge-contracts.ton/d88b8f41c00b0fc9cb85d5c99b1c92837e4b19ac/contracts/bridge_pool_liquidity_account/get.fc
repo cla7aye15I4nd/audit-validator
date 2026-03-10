@@ -1,0 +1,6 @@
+#include "storage.fc";
+
+(slice, slice, slice, int) get_lp_account_data() method_id {
+    load_storage();
+    return (storage::owner, storage::bridge_pool_address, storage::jetton_address, storage::liquidity);
+}

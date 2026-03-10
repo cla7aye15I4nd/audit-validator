@@ -1,0 +1,1053 @@
+{
+  "address": "0x2E0226603d81eDCF8748886e1b2b86ee1e4E1a41",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_avatarId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_seasonId",
+          "type": "uint256"
+        }
+      ],
+      "name": "AvatarNotEligibleForDiscount",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_contractAddress",
+          "type": "address"
+        }
+      ],
+      "name": "ContractIdentifierDoesNotExist",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_discountIndex",
+          "type": "uint256"
+        }
+      ],
+      "name": "DiscountNotFound",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "EnumerableSet__IndexOutOfBounds",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_avatarId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_owner",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_sender",
+          "type": "address"
+        }
+      ],
+      "name": "IncorrectAvatarOwner",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_required",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_sent",
+          "type": "uint256"
+        }
+      ],
+      "name": "InsufficientFunds",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_payoutTier",
+          "type": "uint256"
+        }
+      ],
+      "name": "InvalidPayoutTier",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "MintExlusiveToAvatarHolders",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "data",
+          "type": "bytes"
+        }
+      ],
+      "name": "MintingFailed",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "UintUtils__InsufficientHexLength",
+      "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "contractAddress",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "quantity",
+          "type": "uint256"
+        }
+      ],
+      "name": "Airdropped",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "contractAddress",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "quantity",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "Minted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "previousAdminRole",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "newAdminRole",
+          "type": "bytes32"
+        }
+      ],
+      "name": "RoleAdminChanged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        }
+      ],
+      "name": "RoleGranted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        }
+      ],
+      "name": "RoleRevoked",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "contractAddress",
+          "type": "address"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "seasonId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "payoutTier",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "quantity",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "to",
+              "type": "address"
+            }
+          ],
+          "internalType": "struct SilksMinterFacet.MintParams",
+          "name": "params",
+          "type": "tuple"
+        },
+        {
+          "internalType": "bytes",
+          "name": "additionalPayload",
+          "type": "bytes"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "avatarIds",
+          "type": "uint256[]"
+        }
+      ],
+      "name": "airdrop",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "contractAddress",
+          "type": "address"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "seasonId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "payoutTier",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "quantity",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "to",
+              "type": "address"
+            }
+          ],
+          "internalType": "struct SilksMinterFacet.MintParams",
+          "name": "params",
+          "type": "tuple"
+        },
+        {
+          "internalType": "bytes",
+          "name": "additionalPayload",
+          "type": "bytes"
+        }
+      ],
+      "name": "airdrop",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "seasonId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getActiveDiscountCount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "currentDiscountsCount",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "seasonId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getActiveDiscountIds",
+      "outputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "currentDiscounts",
+          "type": "uint256[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "seasonId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getActiveDiscounts",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "discount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "discountStartDate",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "discountExpiration",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "avatarStartId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "avatarEndId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256[]",
+              "name": "usedAvatarTokens",
+              "type": "uint256[]"
+            }
+          ],
+          "internalType": "struct SilksMinterFacet.DiscountReturn[]",
+          "name": "activeDiscounts",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "seasonId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getAllDiscounts",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "discount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "discountStartDate",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "discountExpiration",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "avatarStartId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "avatarEndId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256[]",
+              "name": "usedAvatarTokens",
+              "type": "uint256[]"
+            }
+          ],
+          "internalType": "struct SilksMinterFacet.DiscountReturn[]",
+          "name": "allDiscounts",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getAvatarAddress",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_contractAddress",
+          "type": "address"
+        }
+      ],
+      "name": "getContract",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "contractAddress",
+              "type": "address"
+            },
+            {
+              "internalType": "string",
+              "name": "mintFunctionSignature",
+              "type": "string"
+            },
+            {
+              "internalType": "enum ContractType",
+              "name": "contractType",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bool",
+              "name": "isPriceUSD",
+              "type": "bool"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "tier",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "price",
+                  "type": "uint256"
+                }
+              ],
+              "internalType": "struct SilksMinterStorage.AddPayTier[]",
+              "name": "payTiers",
+              "type": "tuple[]"
+            },
+            {
+              "internalType": "uint256[]",
+              "name": "tiers",
+              "type": "uint256[]"
+            }
+          ],
+          "internalType": "struct SilksMinterFacet.ContractDataReturn",
+          "name": "_contractData",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getContracts",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "contractAddress",
+              "type": "address"
+            },
+            {
+              "internalType": "string",
+              "name": "mintFunctionSignature",
+              "type": "string"
+            },
+            {
+              "internalType": "enum ContractType",
+              "name": "contractType",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bool",
+              "name": "isPriceUSD",
+              "type": "bool"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "tier",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "price",
+                  "type": "uint256"
+                }
+              ],
+              "internalType": "struct SilksMinterStorage.AddPayTier[]",
+              "name": "payTiers",
+              "type": "tuple[]"
+            },
+            {
+              "internalType": "uint256[]",
+              "name": "tiers",
+              "type": "uint256[]"
+            }
+          ],
+          "internalType": "struct SilksMinterFacet.ContractDataReturn[]",
+          "name": "contractData",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "discountIndex",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "seasonId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getDiscount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "discountPercentage",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "discountStartDate",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "discountExpiration",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "usedAvatarTokens",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256",
+          "name": "avatarStartId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "avatarEndId",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "avatarIds",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256",
+          "name": "seasonId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getDiscountsForAvatars",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "avatarId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "int256",
+              "name": "discountIndex",
+              "type": "int256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "discountPercentage",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct SilksMinterFacet.AvatarDiscount[]",
+          "name": "eligibleAvatarsDiscounts",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "avatarIds",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256",
+          "name": "seasonId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getEligibleAvatarsForDiscount",
+      "outputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "eligibleAvatars",
+          "type": "uint256[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getPriceFeed",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "avatarId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "seasonId",
+          "type": "uint256"
+        }
+      ],
+      "name": "isAvatarEligibleForDiscount",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "contractAddress",
+          "type": "address"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "seasonId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "payoutTier",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "quantity",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "to",
+              "type": "address"
+            }
+          ],
+          "internalType": "struct SilksMinterFacet.MintParams",
+          "name": "params",
+          "type": "tuple"
+        },
+        {
+          "internalType": "bytes",
+          "name": "additionalPayload",
+          "type": "bytes"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "avatarIds",
+          "type": "uint256[]"
+        }
+      ],
+      "name": "mint",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "contractAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "tier",
+          "type": "uint256"
+        }
+      ],
+      "name": "tokenPrice",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "price",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x306b93e63ca230e05189d1b939b0f6aeb542d3aabeffe5bd016064d81b29d7d3",
+  "receipt": {
+    "to": "0x4e59b44847b379578588920cA78FbF26c0B4956C",
+    "from": "0x359aCDe452E4068EbeAB1977fC4f6C8ec6fBa1fe",
+    "contractAddress": null,
+    "transactionIndex": 66,
+    "gasUsed": "2036301",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x74651055bff0e86c2bb18051516322644e21d4b3fd2f3ff92f028125f2ba4a3f",
+    "transactionHash": "0x306b93e63ca230e05189d1b939b0f6aeb542d3aabeffe5bd016064d81b29d7d3",
+    "logs": [],
+    "blockNumber": 10570622,
+    "cumulativeGasUsed": "10777798",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "numDeployments": 5,
+  "solcInputHash": "8f559480659932e150e61bfdeab94c07",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.23+commit.f704f362\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_avatarId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_seasonId\",\"type\":\"uint256\"}],\"name\":\"AvatarNotEligibleForDiscount\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_contractAddress\",\"type\":\"address\"}],\"name\":\"ContractIdentifierDoesNotExist\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_discountIndex\",\"type\":\"uint256\"}],\"name\":\"DiscountNotFound\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"EnumerableSet__IndexOutOfBounds\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_avatarId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_sender\",\"type\":\"address\"}],\"name\":\"IncorrectAvatarOwner\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_required\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_sent\",\"type\":\"uint256\"}],\"name\":\"InsufficientFunds\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_payoutTier\",\"type\":\"uint256\"}],\"name\":\"InvalidPayoutTier\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"MintExlusiveToAvatarHolders\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"name\":\"MintingFailed\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"UintUtils__InsufficientHexLength\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"contractAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"quantity\",\"type\":\"uint256\"}],\"name\":\"Airdropped\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"contractAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"quantity\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"Minted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"previousAdminRole\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"newAdminRole\",\"type\":\"bytes32\"}],\"name\":\"RoleAdminChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"}],\"name\":\"RoleGranted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"}],\"name\":\"RoleRevoked\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"contractAddress\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"seasonId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"payoutTier\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"quantity\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"}],\"internalType\":\"struct SilksMinterFacet.MintParams\",\"name\":\"params\",\"type\":\"tuple\"},{\"internalType\":\"bytes\",\"name\":\"additionalPayload\",\"type\":\"bytes\"},{\"internalType\":\"uint256[]\",\"name\":\"avatarIds\",\"type\":\"uint256[]\"}],\"name\":\"airdrop\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"contractAddress\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"seasonId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"payoutTier\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"quantity\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"}],\"internalType\":\"struct SilksMinterFacet.MintParams\",\"name\":\"params\",\"type\":\"tuple\"},{\"internalType\":\"bytes\",\"name\":\"additionalPayload\",\"type\":\"bytes\"}],\"name\":\"airdrop\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"seasonId\",\"type\":\"uint256\"}],\"name\":\"getActiveDiscountCount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"currentDiscountsCount\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"seasonId\",\"type\":\"uint256\"}],\"name\":\"getActiveDiscountIds\",\"outputs\":[{\"internalType\":\"uint256[]\",\"name\":\"currentDiscounts\",\"type\":\"uint256[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"seasonId\",\"type\":\"uint256\"}],\"name\":\"getActiveDiscounts\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"discount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"discountStartDate\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"discountExpiration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"avatarStartId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"avatarEndId\",\"type\":\"uint256\"},{\"internalType\":\"uint256[]\",\"name\":\"usedAvatarTokens\",\"type\":\"uint256[]\"}],\"internalType\":\"struct SilksMinterFacet.DiscountReturn[]\",\"name\":\"activeDiscounts\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"seasonId\",\"type\":\"uint256\"}],\"name\":\"getAllDiscounts\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"discount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"discountStartDate\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"discountExpiration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"avatarStartId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"avatarEndId\",\"type\":\"uint256\"},{\"internalType\":\"uint256[]\",\"name\":\"usedAvatarTokens\",\"type\":\"uint256[]\"}],\"internalType\":\"struct SilksMinterFacet.DiscountReturn[]\",\"name\":\"allDiscounts\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getAvatarAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_contractAddress\",\"type\":\"address\"}],\"name\":\"getContract\",\"outputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"contractAddress\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"mintFunctionSignature\",\"type\":\"string\"},{\"internalType\":\"enum ContractType\",\"name\":\"contractType\",\"type\":\"uint8\"},{\"internalType\":\"bool\",\"name\":\"isPriceUSD\",\"type\":\"bool\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"tier\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\"}],\"internalType\":\"struct SilksMinterStorage.AddPayTier[]\",\"name\":\"payTiers\",\"type\":\"tuple[]\"},{\"internalType\":\"uint256[]\",\"name\":\"tiers\",\"type\":\"uint256[]\"}],\"internalType\":\"struct SilksMinterFacet.ContractDataReturn\",\"name\":\"_contractData\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getContracts\",\"outputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"contractAddress\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"mintFunctionSignature\",\"type\":\"string\"},{\"internalType\":\"enum ContractType\",\"name\":\"contractType\",\"type\":\"uint8\"},{\"internalType\":\"bool\",\"name\":\"isPriceUSD\",\"type\":\"bool\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"tier\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\"}],\"internalType\":\"struct SilksMinterStorage.AddPayTier[]\",\"name\":\"payTiers\",\"type\":\"tuple[]\"},{\"internalType\":\"uint256[]\",\"name\":\"tiers\",\"type\":\"uint256[]\"}],\"internalType\":\"struct SilksMinterFacet.ContractDataReturn[]\",\"name\":\"contractData\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"discountIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"seasonId\",\"type\":\"uint256\"}],\"name\":\"getDiscount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"discountPercentage\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"discountStartDate\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"discountExpiration\",\"type\":\"uint256\"},{\"internalType\":\"uint256[]\",\"name\":\"usedAvatarTokens\",\"type\":\"uint256[]\"},{\"internalType\":\"uint256\",\"name\":\"avatarStartId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"avatarEndId\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[]\",\"name\":\"avatarIds\",\"type\":\"uint256[]\"},{\"internalType\":\"uint256\",\"name\":\"seasonId\",\"type\":\"uint256\"}],\"name\":\"getDiscountsForAvatars\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"avatarId\",\"type\":\"uint256\"},{\"internalType\":\"int256\",\"name\":\"discountIndex\",\"type\":\"int256\"},{\"internalType\":\"uint256\",\"name\":\"discountPercentage\",\"type\":\"uint256\"}],\"internalType\":\"struct SilksMinterFacet.AvatarDiscount[]\",\"name\":\"eligibleAvatarsDiscounts\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[]\",\"name\":\"avatarIds\",\"type\":\"uint256[]\"},{\"internalType\":\"uint256\",\"name\":\"seasonId\",\"type\":\"uint256\"}],\"name\":\"getEligibleAvatarsForDiscount\",\"outputs\":[{\"internalType\":\"uint256[]\",\"name\":\"eligibleAvatars\",\"type\":\"uint256[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getPriceFeed\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"avatarId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"seasonId\",\"type\":\"uint256\"}],\"name\":\"isAvatarEligibleForDiscount\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"contractAddress\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"seasonId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"payoutTier\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"quantity\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"}],\"internalType\":\"struct SilksMinterFacet.MintParams\",\"name\":\"params\",\"type\":\"tuple\"},{\"internalType\":\"bytes\",\"name\":\"additionalPayload\",\"type\":\"bytes\"},{\"internalType\":\"uint256[]\",\"name\":\"avatarIds\",\"type\":\"uint256[]\"}],\"name\":\"mint\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"contractAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tier\",\"type\":\"uint256\"}],\"name\":\"tokenPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"events\":{\"Airdropped(address,address,uint256)\":{\"params\":{\"contractAddress\":\"The address of the contract from which the airdrop is initiated\",\"quantity\":\"The number of tokens airdropped\",\"to\":\"The address receiving the airdropped tokens\"}},\"Minted(address,address,uint256,uint256)\":{\"params\":{\"contractAddress\":\"The address of the contract where minting occurred\",\"quantity\":\"The number of tokens minted\",\"to\":\"The address receiving the minted tokens\",\"value\":\"The value associated with the minting event\"}}},\"kind\":\"dev\",\"methods\":{\"airdrop(address,(uint256,uint256,uint256,address),bytes)\":{\"params\":{\"additionalPayload\":\"The additional payload to be used for minting\",\"contractAddress\":\"The address of the contract to airdrop tokens to\",\"params\":\"The minting parameters\"}},\"airdrop(address,(uint256,uint256,uint256,address),bytes,uint256[])\":{\"params\":{\"additionalPayload\":\"The additional payload to be used for minting\",\"avatarIds\":\"The avatarIds to be added to the usedAvatarTokens list\",\"contractAddress\":\"The address of the contract to airdrop tokens to\",\"params\":\"The minting parameters\"}},\"getActiveDiscountCount(uint256)\":{\"params\":{\"seasonId\":\"The season ID to check for active discounts\"},\"returns\":{\"currentDiscountsCount\":\"uint256 The count of active discounts\"}},\"getActiveDiscountIds(uint256)\":{\"params\":{\"seasonId\":\"The season ID to check for active discounts\"},\"returns\":{\"currentDiscounts\":\"uint256[] The active discount IDs\"}},\"getActiveDiscounts(uint256)\":{\"params\":{\"seasonId\":\"The season ID to check for active discounts\"},\"returns\":{\"activeDiscounts\":\"DiscountReturn[] The active discounts\"}},\"getAllDiscounts(uint256)\":{\"params\":{\"seasonId\":\"The season ID to check for active discounts\"},\"returns\":{\"allDiscounts\":\"DiscountReturn[] The active discounts\"}},\"getContract(address)\":{\"params\":{\"_contractAddress\":\"The address of the contract to get ContractData for\"},\"returns\":{\"_contractData\":\"SilksMinterStorage.ContractData The ContractData for the contract\"}},\"getContracts()\":{\"returns\":{\"contractData\":\"SilksMinterStorage.ContractData[] The ContractData for all contracts on the marketplace\"}},\"getDiscount(uint256,uint256)\":{\"params\":{\"discountIndex\":\"The index of the discount to get data for\",\"seasonId\":\"The season ID to get discount data for\"},\"returns\":{\"avatarEndId\":\"End ID of the AvatarNFT's range for this discount\",\"avatarStartId\":\"Start ID of the AvatarNFT's range for this discount\",\"discountExpiration\":\"Unix timestamp for the expiration date of the discount\",\"discountPercentage\":\"The discount percentage\",\"discountStartDate\":\"Unix timestamp for the start date of the discount\",\"usedAvatarTokens\":\"Array of avatar tokens that have used the discount\"}},\"getDiscountsForAvatars(uint256[],uint256)\":{\"params\":{\"avatarIds\":\"Array of avatarIds to check for discount\",\"seasonId\":\"Season ID to check for discount\"},\"returns\":{\"eligibleAvatarsDiscounts\":\"AvatarDiscount[] Array of eligible avatars and their discountIndexes\"}},\"getEligibleAvatarsForDiscount(uint256[],uint256)\":{\"params\":{\"avatarIds\":\"Array of avatarIds to check for discount\",\"seasonId\":\"Season ID to check for discount\"}},\"isAvatarEligibleForDiscount(uint256,uint256)\":{\"params\":{\"avatarId\":\"The avatar ID to check for discount\",\"seasonId\":\"The season ID to check for discount\"}},\"mint(address,(uint256,uint256,uint256,address),bytes,uint256[])\":{\"details\":\"This is the main function for web3 minting to purchase and mint tokens.\",\"params\":{\"additionalPayload\":\"The additional payload to be used for minting\",\"avatarIds\":\"The avatarIds to be added to the usedAvatarTokens list\",\"contractAddress\":\"The address of the contract to mint tokens to\",\"params\":\"The minting parameters\"}}},\"version\":1},\"userdoc\":{\"events\":{\"Airdropped(address,address,uint256)\":{\"notice\":\"Emitted when tokens are airdropped to an address\"},\"Minted(address,address,uint256,uint256)\":{\"notice\":\"Emitted when new tokens are minted\"}},\"kind\":\"user\",\"methods\":{\"airdrop(address,(uint256,uint256,uint256,address),bytes)\":{\"notice\":\"Airdrops tokens to the specified address and adds the avatarIds to the usedAvatarTokens list\"},\"airdrop(address,(uint256,uint256,uint256,address),bytes,uint256[])\":{\"notice\":\"Airdrops tokens to the specified address and adds the avatarIds to the usedAvatarTokens list\"},\"getActiveDiscountCount(uint256)\":{\"notice\":\"Get the count of active discounts for a given seasonId\"},\"getActiveDiscountIds(uint256)\":{\"notice\":\"Returns the discount IDs that are currently active for a given seasonId\"},\"getActiveDiscounts(uint256)\":{\"notice\":\"Returns the active discounts for a given seasonId\"},\"getAllDiscounts(uint256)\":{\"notice\":\"Returns all discounts for a given seasonId, regardless of whether they are active or not\"},\"getAvatarAddress()\":{\"notice\":\"Get the address for the Avatar contract on this chain.\"},\"getContract(address)\":{\"notice\":\"Get the contract data for a given contract address\"},\"getContracts()\":{\"notice\":\"Return all contract data currently on the marketplace\"},\"getDiscount(uint256,uint256)\":{\"notice\":\"Get the discount data for a given discount index and seasonId\"},\"getDiscountsForAvatars(uint256[],uint256)\":{\"notice\":\"Given an array of avatarIds and a seaosonId, return the avatars that are eligible for a discount and the discountIndex for the given avatarId.\"},\"getEligibleAvatarsForDiscount(uint256[],uint256)\":{\"notice\":\"Given an array of avatarIds and a seasonId, return the avatars that are eligible for a discount\"},\"getPriceFeed()\":{\"notice\":\"Get the address for the price feed.\"},\"isAvatarEligibleForDiscount(uint256,uint256)\":{\"notice\":\"Check if an avatar is eligible for a discount\"},\"mint(address,(uint256,uint256,uint256,address),bytes,uint256[])\":{\"notice\":\"External function to mint tokens to the specified address\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/facets/minting/SilksMinterFacet.sol\":\"SilksMinterFacet\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":2000},\"remappings\":[],\"viaIR\":true},\"sources\":{\"@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.0;\\n\\ninterface AggregatorV3Interface {\\n  function decimals() external view returns (uint8);\\n\\n  function description() external view returns (string memory);\\n\\n  function version() external view returns (uint256);\\n\\n  function getRoundData(\\n    uint80 _roundId\\n  ) external view returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound);\\n\\n  function latestRoundData()\\n    external\\n    view\\n    returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound);\\n}\\n\",\"keccak256\":\"0xfe4e8bb4861bb3860ba890ab91a3b818ec66e5a8f544fb608cfcb73f433472cd\",\"license\":\"MIT\"},\"@solidstate/contracts/access/access_control/AccessControlInternal.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity ^0.8.0;\\n\\nimport { EnumerableSet } from '../../data/EnumerableSet.sol';\\nimport { AddressUtils } from '../../utils/AddressUtils.sol';\\nimport { UintUtils } from '../../utils/UintUtils.sol';\\nimport { IAccessControlInternal } from './IAccessControlInternal.sol';\\nimport { AccessControlStorage } from './AccessControlStorage.sol';\\n\\n/**\\n * @title Role-based access control system\\n * @dev derived from https://github.com/OpenZeppelin/openzeppelin-contracts (MIT license)\\n */\\nabstract contract AccessControlInternal is IAccessControlInternal {\\n    using AddressUtils for address;\\n    using EnumerableSet for EnumerableSet.AddressSet;\\n    using UintUtils for uint256;\\n\\n    modifier onlyRole(bytes32 role) {\\n        _checkRole(role);\\n        _;\\n    }\\n\\n    /*\\n     * @notice query whether role is assigned to account\\n     * @param role role to query\\n     * @param account account to query\\n     * @return whether role is assigned to account\\n     */\\n    function _hasRole(\\n        bytes32 role,\\n        address account\\n    ) internal view virtual returns (bool) {\\n        return\\n            AccessControlStorage.layout().roles[role].members.contains(account);\\n    }\\n\\n    /**\\n     * @notice revert if sender does not have given role\\n     * @param role role to query\\n     */\\n    function _checkRole(bytes32 role) internal view virtual {\\n        _checkRole(role, msg.sender);\\n    }\\n\\n    /**\\n     * @notice revert if given account does not have given role\\n     * @param role role to query\\n     * @param account to query\\n     */\\n    function _checkRole(bytes32 role, address account) internal view virtual {\\n        if (!_hasRole(role, account)) {\\n            revert(\\n                string(\\n                    abi.encodePacked(\\n                        'AccessControl: account ',\\n                        account.toString(),\\n                        ' is missing role ',\\n                        uint256(role).toHexString(32)\\n                    )\\n                )\\n            );\\n        }\\n    }\\n\\n    /*\\n     * @notice query admin role for given role\\n     * @param role role to query\\n     * @return admin role\\n     */\\n    function _getRoleAdmin(\\n        bytes32 role\\n    ) internal view virtual returns (bytes32) {\\n        return AccessControlStorage.layout().roles[role].adminRole;\\n    }\\n\\n    /**\\n     * @notice set role as admin role\\n     * @param role role to set\\n     * @param adminRole admin role to set\\n     */\\n    function _setRoleAdmin(bytes32 role, bytes32 adminRole) internal virtual {\\n        bytes32 previousAdminRole = _getRoleAdmin(role);\\n        AccessControlStorage.layout().roles[role].adminRole = adminRole;\\n        emit RoleAdminChanged(role, previousAdminRole, adminRole);\\n    }\\n\\n    /*\\n     * @notice assign role to given account\\n     * @param role role to assign\\n     * @param account recipient of role assignment\\n     */\\n    function _grantRole(bytes32 role, address account) internal virtual {\\n        AccessControlStorage.layout().roles[role].members.add(account);\\n        emit RoleGranted(role, account, msg.sender);\\n    }\\n\\n    /*\\n     * @notice unassign role from given account\\n     * @param role role to unassign\\n     * @parm account\\n     */\\n    function _revokeRole(bytes32 role, address account) internal virtual {\\n        AccessControlStorage.layout().roles[role].members.remove(account);\\n        emit RoleRevoked(role, account, msg.sender);\\n    }\\n\\n    /**\\n     * @notice relinquish role\\n     * @param role role to relinquish\\n     */\\n    function _renounceRole(bytes32 role) internal virtual {\\n        _revokeRole(role, msg.sender);\\n    }\\n\\n    /**\\n     * @notice query role for member at given index\\n     * @param role role to query\\n     * @param index index to query\\n     */\\n    function _getRoleMember(\\n        bytes32 role,\\n        uint256 index\\n    ) internal view virtual returns (address) {\\n        return AccessControlStorage.layout().roles[role].members.at(index);\\n    }\\n\\n    /**\\n     * @notice query role for member count\\n     * @param role role to query\\n     */\\n    function _getRoleMemberCount(\\n        bytes32 role\\n    ) internal view virtual returns (uint256) {\\n        return AccessControlStorage.layout().roles[role].members.length();\\n    }\\n}\\n\",\"keccak256\":\"0x313d74202592af8c7a890c051959b58a3e016b9d0b263d03887a39f2bce27f76\",\"license\":\"MIT\"},\"@solidstate/contracts/access/access_control/AccessControlStorage.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity ^0.8.0;\\n\\nimport { EnumerableSet } from '../../data/EnumerableSet.sol';\\n\\nlibrary AccessControlStorage {\\n    struct RoleData {\\n        EnumerableSet.AddressSet members;\\n        bytes32 adminRole;\\n    }\\n\\n    struct Layout {\\n        mapping(bytes32 => RoleData) roles;\\n    }\\n\\n    bytes32 internal constant DEFAULT_ADMIN_ROLE = 0x00;\\n\\n    bytes32 internal constant STORAGE_SLOT =\\n        keccak256('solidstate.contracts.storage.AccessControl');\\n\\n    function layout() internal pure returns (Layout storage l) {\\n        bytes32 slot = STORAGE_SLOT;\\n        assembly {\\n            l.slot := slot\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0xae788d37a6e20edf7f94be23d78517324f50bccbf0541e10ce0850d7d5bca062\",\"license\":\"MIT\"},\"@solidstate/contracts/access/access_control/IAccessControlInternal.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity ^0.8.0;\\n\\n/**\\n * @title Partial AccessControl interface needed by internal functions\\n */\\ninterface IAccessControlInternal {\\n    event RoleAdminChanged(\\n        bytes32 indexed role,\\n        bytes32 indexed previousAdminRole,\\n        bytes32 indexed newAdminRole\\n    );\\n\\n    event RoleGranted(\\n        bytes32 indexed role,\\n        address indexed account,\\n        address indexed sender\\n    );\\n\\n    event RoleRevoked(\\n        bytes32 indexed role,\\n        address indexed account,\\n        address indexed sender\\n    );\\n}\\n\",\"keccak256\":\"0xcc4a1d78a60955d673104adaee1211de3b3cfb95668f1fbfc43ed0e7f36ad110\",\"license\":\"MIT\"},\"@solidstate/contracts/data/EnumerableSet.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity ^0.8.8;\\n\\n/**\\n * @title Set implementation with enumeration functions\\n * @dev derived from https://github.com/OpenZeppelin/openzeppelin-contracts (MIT license)\\n */\\nlibrary EnumerableSet {\\n    error EnumerableSet__IndexOutOfBounds();\\n\\n    struct Set {\\n        bytes32[] _values;\\n        // 1-indexed to allow 0 to signify nonexistence\\n        mapping(bytes32 => uint256) _indexes;\\n    }\\n\\n    struct Bytes32Set {\\n        Set _inner;\\n    }\\n\\n    struct AddressSet {\\n        Set _inner;\\n    }\\n\\n    struct UintSet {\\n        Set _inner;\\n    }\\n\\n    function at(\\n        Bytes32Set storage set,\\n        uint256 index\\n    ) internal view returns (bytes32) {\\n        return _at(set._inner, index);\\n    }\\n\\n    function at(\\n        AddressSet storage set,\\n        uint256 index\\n    ) internal view returns (address) {\\n        return address(uint160(uint256(_at(set._inner, index))));\\n    }\\n\\n    function at(\\n        UintSet storage set,\\n        uint256 index\\n    ) internal view returns (uint256) {\\n        return uint256(_at(set._inner, index));\\n    }\\n\\n    function contains(\\n        Bytes32Set storage set,\\n        bytes32 value\\n    ) internal view returns (bool) {\\n        return _contains(set._inner, value);\\n    }\\n\\n    function contains(\\n        AddressSet storage set,\\n        address value\\n    ) internal view returns (bool) {\\n        return _contains(set._inner, bytes32(uint256(uint160(value))));\\n    }\\n\\n    function contains(\\n        UintSet storage set,\\n        uint256 value\\n    ) internal view returns (bool) {\\n        return _contains(set._inner, bytes32(value));\\n    }\\n\\n    function indexOf(\\n        Bytes32Set storage set,\\n        bytes32 value\\n    ) internal view returns (uint256) {\\n        return _indexOf(set._inner, value);\\n    }\\n\\n    function indexOf(\\n        AddressSet storage set,\\n        address value\\n    ) internal view returns (uint256) {\\n        return _indexOf(set._inner, bytes32(uint256(uint160(value))));\\n    }\\n\\n    function indexOf(\\n        UintSet storage set,\\n        uint256 value\\n    ) internal view returns (uint256) {\\n        return _indexOf(set._inner, bytes32(value));\\n    }\\n\\n    function length(Bytes32Set storage set) internal view returns (uint256) {\\n        return _length(set._inner);\\n    }\\n\\n    function length(AddressSet storage set) internal view returns (uint256) {\\n        return _length(set._inner);\\n    }\\n\\n    function length(UintSet storage set) internal view returns (uint256) {\\n        return _length(set._inner);\\n    }\\n\\n    function add(\\n        Bytes32Set storage set,\\n        bytes32 value\\n    ) internal returns (bool) {\\n        return _add(set._inner, value);\\n    }\\n\\n    function add(\\n        AddressSet storage set,\\n        address value\\n    ) internal returns (bool) {\\n        return _add(set._inner, bytes32(uint256(uint160(value))));\\n    }\\n\\n    function add(UintSet storage set, uint256 value) internal returns (bool) {\\n        return _add(set._inner, bytes32(value));\\n    }\\n\\n    function remove(\\n        Bytes32Set storage set,\\n        bytes32 value\\n    ) internal returns (bool) {\\n        return _remove(set._inner, value);\\n    }\\n\\n    function remove(\\n        AddressSet storage set,\\n        address value\\n    ) internal returns (bool) {\\n        return _remove(set._inner, bytes32(uint256(uint160(value))));\\n    }\\n\\n    function remove(\\n        UintSet storage set,\\n        uint256 value\\n    ) internal returns (bool) {\\n        return _remove(set._inner, bytes32(value));\\n    }\\n\\n    function toArray(\\n        Bytes32Set storage set\\n    ) internal view returns (bytes32[] memory) {\\n        return set._inner._values;\\n    }\\n\\n    function toArray(\\n        AddressSet storage set\\n    ) internal view returns (address[] memory) {\\n        bytes32[] storage values = set._inner._values;\\n        address[] storage array;\\n\\n        assembly {\\n            array.slot := values.slot\\n        }\\n\\n        return array;\\n    }\\n\\n    function toArray(\\n        UintSet storage set\\n    ) internal view returns (uint256[] memory) {\\n        bytes32[] storage values = set._inner._values;\\n        uint256[] storage array;\\n\\n        assembly {\\n            array.slot := values.slot\\n        }\\n\\n        return array;\\n    }\\n\\n    function _at(\\n        Set storage set,\\n        uint256 index\\n    ) private view returns (bytes32) {\\n        if (index >= set._values.length)\\n            revert EnumerableSet__IndexOutOfBounds();\\n        return set._values[index];\\n    }\\n\\n    function _contains(\\n        Set storage set,\\n        bytes32 value\\n    ) private view returns (bool) {\\n        return set._indexes[value] != 0;\\n    }\\n\\n    function _indexOf(\\n        Set storage set,\\n        bytes32 value\\n    ) private view returns (uint256) {\\n        unchecked {\\n            return set._indexes[value] - 1;\\n        }\\n    }\\n\\n    function _length(Set storage set) private view returns (uint256) {\\n        return set._values.length;\\n    }\\n\\n    function _add(\\n        Set storage set,\\n        bytes32 value\\n    ) private returns (bool status) {\\n        if (!_contains(set, value)) {\\n            set._values.push(value);\\n            set._indexes[value] = set._values.length;\\n            status = true;\\n        }\\n    }\\n\\n    function _remove(\\n        Set storage set,\\n        bytes32 value\\n    ) private returns (bool status) {\\n        uint256 valueIndex = set._indexes[value];\\n\\n        if (valueIndex != 0) {\\n            unchecked {\\n                bytes32 last = set._values[set._values.length - 1];\\n\\n                // move last value to now-vacant index\\n\\n                set._values[valueIndex - 1] = last;\\n                set._indexes[last] = valueIndex;\\n            }\\n            // clear last index\\n\\n            set._values.pop();\\n            delete set._indexes[value];\\n\\n            status = true;\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0xbbaaeb805b3e1e704ceba33c9093285220254b1ff6b4b7f577e515b118e116f6\",\"license\":\"MIT\"},\"@solidstate/contracts/utils/AddressUtils.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity ^0.8.8;\\n\\nimport { UintUtils } from './UintUtils.sol';\\n\\nlibrary AddressUtils {\\n    using UintUtils for uint256;\\n\\n    error AddressUtils__InsufficientBalance();\\n    error AddressUtils__NotContract();\\n    error AddressUtils__SendValueFailed();\\n\\n    function toString(address account) internal pure returns (string memory) {\\n        return uint256(uint160(account)).toHexString(20);\\n    }\\n\\n    function isContract(address account) internal view returns (bool) {\\n        uint256 size;\\n        assembly {\\n            size := extcodesize(account)\\n        }\\n        return size > 0;\\n    }\\n\\n    function sendValue(address payable account, uint256 amount) internal {\\n        (bool success, ) = account.call{ value: amount }('');\\n        if (!success) revert AddressUtils__SendValueFailed();\\n    }\\n\\n    function functionCall(\\n        address target,\\n        bytes memory data\\n    ) internal returns (bytes memory) {\\n        return\\n            functionCall(target, data, 'AddressUtils: failed low-level call');\\n    }\\n\\n    function functionCall(\\n        address target,\\n        bytes memory data,\\n        string memory error\\n    ) internal returns (bytes memory) {\\n        return _functionCallWithValue(target, data, 0, error);\\n    }\\n\\n    function functionCallWithValue(\\n        address target,\\n        bytes memory data,\\n        uint256 value\\n    ) internal returns (bytes memory) {\\n        return\\n            functionCallWithValue(\\n                target,\\n                data,\\n                value,\\n                'AddressUtils: failed low-level call with value'\\n            );\\n    }\\n\\n    function functionCallWithValue(\\n        address target,\\n        bytes memory data,\\n        uint256 value,\\n        string memory error\\n    ) internal returns (bytes memory) {\\n        if (value > address(this).balance)\\n            revert AddressUtils__InsufficientBalance();\\n        return _functionCallWithValue(target, data, value, error);\\n    }\\n\\n    /**\\n     * @notice execute arbitrary external call with limited gas usage and amount of copied return data\\n     * @dev derived from https://github.com/nomad-xyz/ExcessivelySafeCall (MIT License)\\n     * @param target recipient of call\\n     * @param gasAmount gas allowance for call\\n     * @param value native token value to include in call\\n     * @param maxCopy maximum number of bytes to copy from return data\\n     * @param data encoded call data\\n     * @return success whether call is successful\\n     * @return returnData copied return data\\n     */\\n    function excessivelySafeCall(\\n        address target,\\n        uint256 gasAmount,\\n        uint256 value,\\n        uint16 maxCopy,\\n        bytes memory data\\n    ) internal returns (bool success, bytes memory returnData) {\\n        returnData = new bytes(maxCopy);\\n\\n        assembly {\\n            // execute external call via assembly to avoid automatic copying of return data\\n            success := call(\\n                gasAmount,\\n                target,\\n                value,\\n                add(data, 0x20),\\n                mload(data),\\n                0,\\n                0\\n            )\\n\\n            // determine whether to limit amount of data to copy\\n            let toCopy := returndatasize()\\n\\n            if gt(toCopy, maxCopy) {\\n                toCopy := maxCopy\\n            }\\n\\n            // store the length of the copied bytes\\n            mstore(returnData, toCopy)\\n\\n            // copy the bytes from returndata[0:toCopy]\\n            returndatacopy(add(returnData, 0x20), 0, toCopy)\\n        }\\n    }\\n\\n    function _functionCallWithValue(\\n        address target,\\n        bytes memory data,\\n        uint256 value,\\n        string memory error\\n    ) private returns (bytes memory) {\\n        if (!isContract(target)) revert AddressUtils__NotContract();\\n\\n        (bool success, bytes memory returnData) = target.call{ value: value }(\\n            data\\n        );\\n\\n        if (success) {\\n            return returnData;\\n        } else if (returnData.length > 0) {\\n            assembly {\\n                let returnData_size := mload(returnData)\\n                revert(add(32, returnData), returnData_size)\\n            }\\n        } else {\\n            revert(error);\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0x7d924db4dbd9210923ab08db77db3c77438014c255fd49fa208ebce283d991bf\",\"license\":\"MIT\"},\"@solidstate/contracts/utils/UintUtils.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity ^0.8.8;\\n\\n/**\\n * @title utility functions for uint256 operations\\n * @dev derived from https://github.com/OpenZeppelin/openzeppelin-contracts/ (MIT license)\\n */\\nlibrary UintUtils {\\n    error UintUtils__InsufficientHexLength();\\n\\n    bytes16 private constant HEX_SYMBOLS = '0123456789abcdef';\\n\\n    function add(uint256 a, int256 b) internal pure returns (uint256) {\\n        return b < 0 ? sub(a, -b) : a + uint256(b);\\n    }\\n\\n    function sub(uint256 a, int256 b) internal pure returns (uint256) {\\n        return b < 0 ? add(a, -b) : a - uint256(b);\\n    }\\n\\n    function toString(uint256 value) internal pure returns (string memory) {\\n        if (value == 0) {\\n            return '0';\\n        }\\n\\n        uint256 temp = value;\\n        uint256 digits;\\n\\n        while (temp != 0) {\\n            digits++;\\n            temp /= 10;\\n        }\\n\\n        bytes memory buffer = new bytes(digits);\\n\\n        while (value != 0) {\\n            digits -= 1;\\n            buffer[digits] = bytes1(uint8(48 + uint256(value % 10)));\\n            value /= 10;\\n        }\\n\\n        return string(buffer);\\n    }\\n\\n    function toHexString(uint256 value) internal pure returns (string memory) {\\n        if (value == 0) {\\n            return '0x00';\\n        }\\n\\n        uint256 length = 0;\\n\\n        for (uint256 temp = value; temp != 0; temp >>= 8) {\\n            unchecked {\\n                length++;\\n            }\\n        }\\n\\n        return toHexString(value, length);\\n    }\\n\\n    function toHexString(\\n        uint256 value,\\n        uint256 length\\n    ) internal pure returns (string memory) {\\n        bytes memory buffer = new bytes(2 * length + 2);\\n        buffer[0] = '0';\\n        buffer[1] = 'x';\\n\\n        unchecked {\\n            for (uint256 i = 2 * length + 1; i > 1; --i) {\\n                buffer[i] = HEX_SYMBOLS[value & 0xf];\\n                value >>= 4;\\n            }\\n        }\\n\\n        if (value != 0) revert UintUtils__InsufficientHexLength();\\n\\n        return string(buffer);\\n    }\\n}\\n\",\"keccak256\":\"0x5aaeaea22a0800402c6f2d8ce6185293bc64f74f6c390c1b1c53b624b43972f8\",\"license\":\"MIT\"},\"contracts/facets/minting/SilksMinterFacet.sol\":{\"content\":\"// SPDX-License-Identifier: UNLICENSED\\npragma solidity ^0.8.23;\\n\\nimport {SilksMinterStorage} from \\\"./SilksMinterStorage.sol\\\";\\nimport {EnumerableSet} from \\\"@solidstate/contracts/data/EnumerableSet.sol\\\";\\nimport {ContractType} from \\\"../../utils/constants.sol\\\";\\nimport {IERC721Mintable} from \\\"../../interfaces/IERC721Mintable.sol\\\";\\nimport {IAvatarNFT} from \\\"../../interfaces/IAvatarNFT.sol\\\";\\nimport {IHorseNFT} from \\\"../../interfaces/IHorseNFT.sol\\\";\\nimport {AccessControlInternal} from \\\"@solidstate/contracts/access/access_control/AccessControlInternal.sol\\\";\\nimport {MINTER_ADMIN_ROLE} from \\\"../../utils/constants.sol\\\";\\n\\ncontract SilksMinterFacet is AccessControlInternal {\\n    using EnumerableSet for EnumerableSet.AddressSet;\\n    using EnumerableSet for EnumerableSet.UintSet;\\n    using SilksMinterStorage for SilksMinterStorage.Layout;\\n\\n    /// @notice Emitted when new tokens are minted\\n    /// @param contractAddress The address of the contract where minting occurred\\n    /// @param to The address receiving the minted tokens\\n    /// @param quantity The number of tokens minted\\n    /// @param value The value associated with the minting event\\n    event Minted(\\n        address contractAddress,\\n        address indexed to,\\n        uint256 quantity,\\n        uint256 value\\n    );\\n\\n    /// @notice Emitted when tokens are airdropped to an address\\n    /// @param contractAddress The address of the contract from which the airdrop is initiated\\n    /// @param to The address receiving the airdropped tokens\\n    /// @param quantity The number of tokens airdropped\\n    event Airdropped(\\n        address contractAddress,\\n        address indexed to,\\n        uint256 quantity\\n    );\\n\\n    /// @dev Parameters required for minting operations, specifying season and payout tier for Horses, alongside quantity and recipient address\\n    /// @param seasonId The season ID related to the Horse\\n    /// @param payoutTier The payout tier for the Horse\\n    /// @param quantity The number of tokens to mint\\n    /// @param to The recipient address for the minted tokens\\n    struct MintParams {\\n        uint256 seasonId;\\n        uint256 payoutTier;\\n        uint256 quantity;\\n        address to;\\n    }\\n\\n    /// @dev Structure defining a HorseV2 discount an avatar is entitled to, including the AvatarID, index, and percentage of the discount\\n    /// @param avatarId The unique ID for the avatar\\n    /// @param discountIndex The index for tracking the discount\\n    /// @param discountPercentage The percentage of the discount\\n    struct AvatarDiscount {\\n        uint256 avatarId;\\n        int256 discountIndex;\\n        uint256 discountPercentage;\\n    }\\n\\n    /// @dev Represents the return structure for a discount query, detailing the discount, its validity period, and affected avatars\\n    /// @param discount The discount percentage\\n    /// @param discountStartDate The start date for the discount period\\n    /// @param discountExpiration The expiration date for the discount period\\n    /// @param avatarStartId The starting ID of avatars eligible for the discount\\n    /// @param avatarEndId The ending ID of avatars eligible for the discount\\n    /// @param usedAvatarTokens The IDs of avatars that have already used the discount\\n    struct DiscountReturn {\\n        uint256 discount;\\n        uint256 discountStartDate;\\n        uint256 discountExpiration;\\n        uint256 avatarStartId;\\n        uint256 avatarEndId;\\n        uint256[] usedAvatarTokens;\\n    }\\n\\n    error MintExlusiveToAvatarHolders();\\n    error InsufficientFunds(uint256 _required, uint256 _sent);\\n    error MintingFailed(bytes data);\\n    error IncorrectAvatarOwner(\\n        uint256 _avatarId,\\n        address _owner,\\n        address _sender\\n    );\\n    error DiscountNotFound(uint256 _discountIndex);\\n    error AvatarNotEligibleForDiscount(uint256 _avatarId, uint256 _seasonId);\\n    error InvalidPayoutTier(uint256 _payoutTier);\\n\\n    /**\\n     * @notice Modifier to check if HorseV2 minting is exclusive to Avatar holders\\n     * @param contractAddress The address of the contract that tokens are being\\n     * minted for\\n     */\\n    modifier checkMintingExclusiveToAvatarHolders(address contractAddress) {\\n        SilksMinterStorage.Layout storage l = SilksMinterStorage.layout();\\n\\n        // If the contractAddress is for contractType.HorseV2, then we need to\\n        // check if the minting is exclusive to Avatar holders\\n        if (l.mintingExclusiveToAvatarHolders) {\\n            if (\\n                l.getContract(contractAddress).contractType ==\\n                ContractType.HorseV2\\n            ) {\\n                if (\\n                    block.timestamp >= l.mintingExclusionStartDateTime &&\\n                    block.timestamp <= l.mintingExclusionEndDateTime\\n                ) {\\n                    if (\\n                        IAvatarNFT(l.avatarAddress).balanceOf(msg.sender) == 0\\n                    ) {\\n                        revert MintExlusiveToAvatarHolders();\\n                    }\\n                }\\n            }\\n        }\\n\\n        _;\\n    }\\n\\n    /**\\n     * @notice External function to mint tokens to the specified address\\n     * @dev This is the main function for web3 minting to purchase and mint tokens.\\n     * @param contractAddress The address of the contract to mint tokens to\\n     * @param params The minting parameters\\n     * @param additionalPayload The additional payload to be used for minting\\n     * @param avatarIds The avatarIds to be added to the usedAvatarTokens list\\n     */\\n    function mint(\\n        address contractAddress,\\n        MintParams memory params,\\n        bytes memory additionalPayload,\\n        uint256[] calldata avatarIds\\n    ) public payable checkMintingExclusiveToAvatarHolders(contractAddress) {\\n        SilksMinterStorage.Layout storage l = SilksMinterStorage.layout();\\n        SilksMinterStorage.ContractData storage contractData = l.getContract(\\n            contractAddress\\n        );\\n        IAvatarNFT avatarContract = IAvatarNFT(l.avatarAddress);\\n\\n        mintTokens(contractAddress, params, additionalPayload);\\n\\n        // Calculate price and check if the user has sent enough value\\n        uint256 pricePerToken = tokenPrice(contractAddress, params.payoutTier);\\n        uint256 requiredValue = pricePerToken * params.quantity;\\n\\n        if (contractData.contractType == ContractType.HorseV2) {\\n            uint256 totalDiscount = calculateDiscount(\\n                avatarIds,\\n                pricePerToken,\\n                avatarContract,\\n                params.quantity,\\n                params.seasonId\\n            );\\n\\n            requiredValue -= totalDiscount;\\n        }\\n\\n        // Emit an event with mint details\\n        emit Minted(contractAddress, params.to, params.quantity, requiredValue);\\n\\n        if (msg.value < requiredValue) {\\n            revert InsufficientFunds(requiredValue, msg.value);\\n        }\\n\\n        // Refund excess value\\n        if (msg.value > requiredValue) {\\n            payable(msg.sender).transfer(msg.value - requiredValue);\\n        }\\n    }\\n\\n    /**\\n     * Airdrops tokens to the specified address and adds the avatarIds to the usedAvatarTokens list\\n     * @param contractAddress The address of the contract to airdrop tokens to\\n     * @param params The minting parameters\\n     * @param additionalPayload The additional payload to be used for minting\\n     */\\n    function airdrop(\\n        address contractAddress,\\n        MintParams memory params,\\n        bytes memory additionalPayload\\n    ) external onlyRole(MINTER_ADMIN_ROLE) {\\n        mintTokens(contractAddress, params, additionalPayload);\\n\\n        emit Airdropped(contractAddress, params.to, params.quantity);\\n    }\\n\\n    /**\\n     * Airdrops tokens to the specified address and adds the avatarIds to the usedAvatarTokens list\\n     * @param contractAddress The address of the contract to airdrop tokens to\\n     * @param params The minting parameters\\n     * @param additionalPayload The additional payload to be used for minting\\n     * @param avatarIds The avatarIds to be added to the usedAvatarTokens list\\n     */\\n    function airdrop(\\n        address contractAddress,\\n        MintParams memory params,\\n        bytes memory additionalPayload,\\n        uint256[] calldata avatarIds\\n    ) external onlyRole(MINTER_ADMIN_ROLE) {\\n        mintTokens(contractAddress, params, additionalPayload);\\n\\n        emit Airdropped(contractAddress, params.to, params.quantity);\\n\\n        uint256 i;\\n        uint256 tokenIdLength = avatarIds.length;\\n        for (; i < tokenIdLength; ) {\\n            (int256 discountIndex, ) = getDiscountForAvatar(\\n                avatarIds[i],\\n                params.seasonId\\n            );\\n\\n            if (discountIndex == -1) {\\n                revert AvatarNotEligibleForDiscount(\\n                    avatarIds[i],\\n                    params.seasonId\\n                );\\n            }\\n\\n            SilksMinterStorage\\n                .layout()\\n                .seasonIdToDiscounts[params.seasonId][uint256(discountIndex)]\\n                .usedAvatarTokens\\n                .add(avatarIds[i]);\\n\\n            unchecked {\\n                ++i;\\n            }\\n        }\\n    }\\n\\n    function tokenPrice(\\n        address contractAddress,\\n        uint256 tier // 0 for no tiers\\n    ) public view returns (uint256 price) {\\n        SilksMinterStorage.Layout storage l = SilksMinterStorage.layout();\\n        SilksMinterStorage.ContractData storage contractData = l.getContract(\\n            contractAddress\\n        );\\n        if (!contractData.tiers.contains(tier)) {\\n            revert InvalidPayoutTier(tier);\\n        }\\n\\n        uint256 _tokenPrice = contractData.tierToPrice[tier];\\n\\n        return\\n            contractData.isPriceUSD\\n                ? l.convertUSDtoWei(_tokenPrice)\\n                : _tokenPrice;\\n    }\\n\\n    /**\\n     *  Mint tokens to the specified address\\n     * @param contractAddress  The address of the contract to mint tokens to\\n     * @param params The minting parameters\\n     * @param additionalPayload  The additional payload to be used for minting\\n     */\\n    function mintTokens(\\n        address contractAddress,\\n        MintParams memory params,\\n        bytes memory additionalPayload\\n    ) internal {\\n        SilksMinterStorage.Layout storage l = SilksMinterStorage.layout();\\n        SilksMinterStorage.ContractData storage contractData = l.getContract(\\n            contractAddress\\n        );\\n\\n        IERC721Mintable tokenContract = IERC721Mintable(\\n            contractData.contractAddress\\n        );\\n\\n        if (contractData.contractType == ContractType.HorseV2) {\\n            IHorseNFT(contractData.contractAddress).externalMint(\\n                params.seasonId,\\n                params.payoutTier,\\n                params.quantity,\\n                params.to\\n            );\\n        } else if (contractData.contractType == ContractType.Avatar) {\\n            IAvatarNFT(contractData.contractAddress).mint(\\n                params.to,\\n                params.quantity\\n            );\\n        } else {\\n            (bool success, bytes memory data) = address(tokenContract).call(\\n                additionalPayload\\n            );\\n            if (!success) {\\n                revert MintingFailed(data);\\n            }\\n        }\\n    }\\n\\n    function calculateDiscount(\\n        uint256[] calldata avatarIds,\\n        uint256 pricePerToken,\\n        IAvatarNFT avatarContract,\\n        uint256 maxDiscounts,\\n        uint256 seasonId\\n    ) internal returns (uint256 totalDiscount) {\\n        SilksMinterStorage.Layout storage l = SilksMinterStorage.layout();\\n\\n        uint256 appliedDiscounts;\\n        uint256 i;\\n        uint256 avatarsLength = avatarIds.length;\\n        for (; i < avatarsLength; ) {\\n            if (appliedDiscounts >= maxDiscounts) {\\n                break;\\n            }\\n\\n            uint256 avatarId = avatarIds[i];\\n            uint256 j = 0;\\n            uint256 discountLength = l.seasonIdToDiscounts[seasonId].length;\\n            for (; j < discountLength; ) {\\n                SilksMinterStorage.Discount storage discount = l\\n                    .seasonIdToDiscounts[seasonId][j];\\n\\n                if (\\n                    block.timestamp >= discount.discountStartDate &&\\n                    block.timestamp <= discount.discountExpiration &&\\n                    avatarId >= discount.avatarStartId &&\\n                    avatarId <= discount.avatarEndId &&\\n                    !discount.usedAvatarTokens.contains(avatarId)\\n                ) {\\n                    if (avatarContract.ownerOf(avatarId) != msg.sender) {\\n                        revert IncorrectAvatarOwner(\\n                            avatarId,\\n                            avatarContract.ownerOf(avatarId),\\n                            msg.sender\\n                        );\\n                    }\\n\\n                    totalDiscount += (pricePerToken * discount.discount) / 100;\\n                    appliedDiscounts++;\\n\\n                    discount.usedAvatarTokens.add(avatarId);\\n\\n                    break;\\n                }\\n\\n                unchecked {\\n                    ++j;\\n                }\\n            }\\n\\n            unchecked {\\n                ++i;\\n            }\\n        }\\n    }\\n\\n    /**\\n     * Check if an avatar is eligible for a discount\\n     * @param avatarId  The avatar ID to check for discount\\n     * @param seasonId  The season ID to check for discount\\n     */\\n    function isAvatarEligibleForDiscount(\\n        uint256 avatarId,\\n        uint256 seasonId\\n    ) public view returns (bool) {\\n        SilksMinterStorage.Layout storage l = SilksMinterStorage.layout();\\n\\n        uint256[] memory currentDiscounts = getActiveDiscountIds(seasonId);\\n\\n        uint256 i;\\n        uint256 currentDiscountsLength = currentDiscounts.length;\\n        for (; i < currentDiscountsLength; ) {\\n            SilksMinterStorage.Discount storage discount = l\\n                .seasonIdToDiscounts[seasonId][currentDiscounts[i]];\\n\\n            if (\\n                avatarId >= discount.avatarStartId &&\\n                avatarId <= discount.avatarEndId &&\\n                !discount.usedAvatarTokens.contains(avatarId)\\n            ) {\\n                return true;\\n            }\\n\\n            unchecked {\\n                ++i;\\n            }\\n        }\\n        return false;\\n    }\\n\\n    /**\\n     * Get the count of active discounts for a given seasonId\\n     * @param seasonId The season ID to check for active discounts\\n     * @return currentDiscountsCount uint256 The count of active discounts\\n     */\\n    function getActiveDiscountCount(\\n        uint256 seasonId\\n    ) public view returns (uint256 currentDiscountsCount) {\\n        SilksMinterStorage.Layout storage l = SilksMinterStorage.layout();\\n\\n        uint256 i;\\n        uint256 discountLength = l.seasonIdToDiscounts[seasonId].length;\\n        for (; i < discountLength; ) {\\n            SilksMinterStorage.Discount storage discount = l\\n                .seasonIdToDiscounts[seasonId][i];\\n\\n            if (\\n                block.timestamp >= discount.discountStartDate &&\\n                block.timestamp <= discount.discountExpiration\\n            ) {\\n                currentDiscountsCount++;\\n            }\\n\\n            unchecked {\\n                ++i;\\n            }\\n        }\\n\\n        return currentDiscountsCount;\\n    }\\n\\n    /**\\n     * @notice Returns the discount IDs that are currently active for a given seasonId\\n     * @param seasonId The season ID to check for active discounts\\n     * @return currentDiscounts uint256[] The active discount IDs\\n     */\\n    function getActiveDiscountIds(\\n        uint256 seasonId\\n    ) public view returns (uint256[] memory currentDiscounts) {\\n        SilksMinterStorage.Layout storage l = SilksMinterStorage.layout();\\n\\n        uint256 count = getActiveDiscountCount(seasonId);\\n        uint256[] memory activeDiscounts = new uint256[](count);\\n\\n        uint256 activeDiscountTrackerIndex = 0;\\n        uint256 i;\\n        uint256 discountLength = l.seasonIdToDiscounts[seasonId].length;\\n        for (; i < discountLength; ) {\\n            SilksMinterStorage.Discount storage discount = l\\n                .seasonIdToDiscounts[seasonId][i];\\n\\n            if (\\n                block.timestamp >= discount.discountStartDate &&\\n                block.timestamp <= discount.discountExpiration\\n            ) {\\n                activeDiscounts[activeDiscountTrackerIndex] = i;\\n                activeDiscountTrackerIndex++;\\n            }\\n\\n            unchecked {\\n                ++i;\\n            }\\n        }\\n        return activeDiscounts;\\n    }\\n\\n    /**\\n     * @notice Returns the active discounts for a given seasonId\\n     * @param seasonId The season ID to check for active discounts\\n     * @return activeDiscounts DiscountReturn[] The active discounts\\n     */\\n    function getActiveDiscounts(\\n        uint256 seasonId\\n    ) public view returns (DiscountReturn[] memory activeDiscounts) {\\n        SilksMinterStorage.Layout storage l = SilksMinterStorage.layout();\\n\\n        uint256 count = getActiveDiscountCount(seasonId);\\n        activeDiscounts = new DiscountReturn[](count);\\n\\n        uint256 activeDiscountTrackerIndex = 0;\\n        uint256 i;\\n        uint256 discountLength = l.seasonIdToDiscounts[seasonId].length;\\n        for (; i < discountLength; ) {\\n            SilksMinterStorage.Discount storage discount = l\\n                .seasonIdToDiscounts[seasonId][i];\\n\\n            if (\\n                block.timestamp >= discount.discountStartDate &&\\n                block.timestamp <= discount.discountExpiration\\n            ) {\\n                // activeDiscounts[activeDiscountTrackerIndex] = discount;\\n                DiscountReturn memory _discount = DiscountReturn({\\n                    discount: discount.discount,\\n                    discountExpiration: discount.discountExpiration,\\n                    discountStartDate: discount.discountStartDate,\\n                    usedAvatarTokens: discount.usedAvatarTokens.toArray(),\\n                    avatarStartId: discount.avatarStartId,\\n                    avatarEndId: discount.avatarEndId\\n                });\\n                activeDiscounts[activeDiscountTrackerIndex] = _discount;\\n                activeDiscountTrackerIndex++;\\n            }\\n\\n            unchecked {\\n                ++i;\\n            }\\n        }\\n        return activeDiscounts;\\n    }\\n\\n    /**\\n     * @notice Returns all discounts for a given seasonId, regardless of whether they are active or not\\n     * @param seasonId The season ID to check for active discounts\\n     * @return allDiscounts DiscountReturn[] The active discounts\\n     */\\n    function getAllDiscounts(\\n        uint256 seasonId\\n    ) public view returns (DiscountReturn[] memory allDiscounts) {\\n        SilksMinterStorage.Layout storage l = SilksMinterStorage.layout();\\n\\n        uint256 count = l.seasonIdToDiscounts[seasonId].length;\\n        allDiscounts = new DiscountReturn[](count);\\n\\n        uint256 i;\\n        for (; i < count; ) {\\n            SilksMinterStorage.Discount storage discount = l\\n                .seasonIdToDiscounts[seasonId][i];\\n\\n            DiscountReturn memory _discount = DiscountReturn({\\n                discount: discount.discount,\\n                discountExpiration: discount.discountExpiration,\\n                discountStartDate: discount.discountStartDate,\\n                usedAvatarTokens: discount.usedAvatarTokens.toArray(),\\n                avatarStartId: discount.avatarStartId,\\n                avatarEndId: discount.avatarEndId\\n            });\\n            allDiscounts[i] = _discount;\\n\\n            unchecked {\\n                ++i;\\n            }\\n        }\\n        return allDiscounts;\\n    }\\n\\n    struct ContractDataReturn {\\n        address contractAddress;\\n        string mintFunctionSignature;\\n        ContractType contractType;\\n        bool isPriceUSD;\\n        SilksMinterStorage.AddPayTier[] payTiers;\\n        uint256[] tiers;\\n    }\\n\\n    /**\\n     * @notice Get the contract data for a given contract address\\n     * @param _contractAddress The address of the contract to get ContractData for\\n     * @return _contractData SilksMinterStorage.ContractData The ContractData for the contract\\n     */\\n    function getContract(\\n        address _contractAddress\\n    )\\n        public\\n        view\\n        returns (ContractDataReturn memory _contractData)\\n    // address contractAddress,\\n    // string memory mintFunctionSignature,\\n    // ContractType contractType,\\n    // bool isPriceUSD,\\n    // SilksMinterStorage.AddPayTier[] memory payTiers,\\n    // uint256[] memory tiers\\n    {\\n        SilksMinterStorage.ContractData\\n            storage contractData = SilksMinterStorage.layout().getContract(\\n                _contractAddress\\n            );\\n\\n        _contractData.contractAddress = contractData.contractAddress;\\n        _contractData.mintFunctionSignature = contractData\\n            .mintFunctionSignature;\\n        _contractData.contractType = contractData.contractType;\\n        _contractData.isPriceUSD = contractData.isPriceUSD;\\n        _contractData.payTiers = new SilksMinterStorage.AddPayTier[](\\n            contractData.tiers.length()\\n        );\\n        _contractData.tiers = contractData.tiers.toArray();\\n\\n        uint256 i;\\n        uint256 tiersLength = contractData.tiers.length();\\n        for (; i < tiersLength; ) {\\n            _contractData.payTiers[i] = SilksMinterStorage.AddPayTier({\\n                tier: _contractData.tiers[i],\\n                price: contractData.tierToPrice[_contractData.tiers[i]]\\n            });\\n\\n            unchecked {\\n                ++i;\\n            }\\n        }\\n\\n        return (_contractData);\\n    }\\n\\n    /**\\n     * @notice Return all contract data currently on the marketplace\\n     * @return contractData SilksMinterStorage.ContractData[] The ContractData for all contracts on the marketplace\\n     */\\n    function getContracts()\\n        public\\n        view\\n        returns (ContractDataReturn[] memory contractData)\\n    {\\n        SilksMinterStorage.Layout storage l = SilksMinterStorage.layout();\\n\\n        uint256 count = l.addresses.length();\\n        uint256 i;\\n        contractData = new ContractDataReturn[](count);\\n        for (; i < count; ) {\\n            contractData[i] = getContract(l.addresses.at(i));\\n\\n            unchecked {\\n                ++i;\\n            }\\n        }\\n\\n        return contractData;\\n    }\\n\\n    /**\\n     * @notice Get the discount data for a given discount index and seasonId\\n     * @param discountIndex The index of the discount to get data for\\n     * @param seasonId The season ID to get discount data for\\n     * @return discountPercentage The discount percentage\\n     * @return discountStartDate Unix timestamp for the start date of the discount\\n     * @return discountExpiration Unix timestamp for the expiration date of the discount\\n     * @return usedAvatarTokens Array of avatar tokens that have used the discount\\n     * @return avatarStartId Start ID of the AvatarNFT's range for this discount\\n     * @return avatarEndId End ID of the AvatarNFT's range for this discount\\n     */\\n    function getDiscount(\\n        uint256 discountIndex,\\n        uint256 seasonId\\n    )\\n        public\\n        view\\n        returns (\\n            uint256 discountPercentage,\\n            uint256 discountStartDate,\\n            uint256 discountExpiration,\\n            uint256[] memory usedAvatarTokens, // Using EnumerableSet for efficient tracking\\n            uint256 avatarStartId, // Start ID of the AvatarNFT's range for this discount\\n            uint256 avatarEndId // End ID of the AvatarNFT's range for this discount\\n        )\\n    {\\n        SilksMinterStorage.Layout storage l = SilksMinterStorage.layout();\\n\\n        if (l.seasonIdToDiscounts[seasonId].length <= discountIndex) {\\n            revert DiscountNotFound(discountIndex);\\n        }\\n\\n        SilksMinterStorage.Discount storage discountData = SilksMinterStorage\\n            .layout()\\n            .seasonIdToDiscounts[seasonId][discountIndex];\\n\\n        discountPercentage = discountData.discount;\\n        discountStartDate = discountData.discountStartDate;\\n        discountExpiration = discountData.discountExpiration;\\n        avatarStartId = discountData.avatarStartId;\\n        avatarEndId = discountData.avatarEndId;\\n        usedAvatarTokens = discountData.usedAvatarTokens.toArray();\\n\\n        return (\\n            discountPercentage,\\n            discountStartDate,\\n            discountExpiration,\\n            usedAvatarTokens,\\n            avatarStartId,\\n            avatarEndId\\n        );\\n    }\\n\\n    /**\\n     * @notice Get the address for the Avatar contract on this chain.\\n     */\\n    function getAvatarAddress() public view returns (address) {\\n        return SilksMinterStorage.layout().avatarAddress;\\n    }\\n\\n    /**\\n     * @notice Get the address for the price feed.\\n     */\\n    function getPriceFeed() public view returns (address) {\\n        return SilksMinterStorage.layout().priceFeedAddress;\\n    }\\n\\n    /**\\n     * Given an array of avatarIds and a seasonId, return the avatars that are eligible for a discount\\n     * @param avatarIds Array of avatarIds to check for discount\\n     * @param seasonId Season ID to check for discount\\n     */\\n    function getEligibleAvatarsForDiscount(\\n        uint256[] calldata avatarIds,\\n        uint256 seasonId\\n    ) public view returns (uint256[] memory eligibleAvatars) {\\n        uint256 avatarLength = avatarIds.length;\\n        uint256 eligibleAvatarTrackerIndex;\\n        uint256 i;\\n        for (; i < avatarLength; ) {\\n            if (isAvatarEligibleForDiscount(avatarIds[i], seasonId)) {\\n                eligibleAvatars[eligibleAvatarTrackerIndex] = avatarIds[i];\\n                eligibleAvatarTrackerIndex++;\\n            }\\n\\n            unchecked {\\n                ++i;\\n            }\\n        }\\n\\n        return eligibleAvatars;\\n    }\\n\\n    /**\\n     * Given an avatarId and a seasonId, return the discount index and percentage for the avatar.\\n     * @param avatarId Avatar ID to check for discount\\n     * @param seasonId  Season ID to check for discount\\n     * @return discountIndex int256 The index of the discount\\n     * @return discountPercentage uint256 The discount percentage\\n     */\\n    function getDiscountForAvatar(\\n        uint256 avatarId,\\n        uint256 seasonId\\n    ) private view returns (int256 discountIndex, uint256 discountPercentage) {\\n        SilksMinterStorage.Layout storage l = SilksMinterStorage.layout();\\n\\n        uint256[] memory currentDiscounts = getActiveDiscountIds(seasonId);\\n\\n        uint256 i;\\n        uint256 currentDiscountsLength = currentDiscounts.length;\\n        for (; i < currentDiscountsLength; ) {\\n            SilksMinterStorage.Discount storage discount = l\\n                .seasonIdToDiscounts[seasonId][currentDiscounts[i]];\\n\\n            if (\\n                avatarId >= discount.avatarStartId &&\\n                avatarId <= discount.avatarEndId &&\\n                !discount.usedAvatarTokens.contains(avatarId)\\n            ) {\\n                return (int256(currentDiscounts[i]), discount.discount);\\n            }\\n\\n            unchecked {\\n                ++i;\\n            }\\n        }\\n\\n        discountIndex = -1;\\n        discountPercentage = 0;\\n        return (discountIndex, discountPercentage);\\n    }\\n\\n    /**\\n     * Given an array of avatarIds and a seaosonId, return the avatars that are eligible for a discount\\n     * and the discountIndex for the given avatarId.\\n     * @param avatarIds Array of avatarIds to check for discount\\n     * @param seasonId Season ID to check for discount\\n     * @return eligibleAvatarsDiscounts AvatarDiscount[] Array of eligible avatars and their discountIndexes\\n     */\\n    function getDiscountsForAvatars(\\n        uint256[] calldata avatarIds,\\n        uint256 seasonId\\n    ) public view returns (AvatarDiscount[] memory eligibleAvatarsDiscounts) {\\n        uint256 avatarLength = avatarIds.length;\\n        eligibleAvatarsDiscounts = new AvatarDiscount[](avatarLength); // Initialize with maximum possible size\\n        uint256 eligibleAvatarCount = 0;\\n\\n        for (uint256 i = 0; i < avatarLength; i++) {\\n            if (isAvatarEligibleForDiscount(avatarIds[i], seasonId)) {\\n                eligibleAvatarsDiscounts[eligibleAvatarCount]\\n                    .avatarId = avatarIds[i];\\n                // Set discountIndex and discountPercentage\\n                (\\n                    eligibleAvatarsDiscounts[eligibleAvatarCount].discountIndex,\\n                    eligibleAvatarsDiscounts[eligibleAvatarCount]\\n                        .discountPercentage\\n                ) = getDiscountForAvatar(avatarIds[i], seasonId);\\n                eligibleAvatarCount++;\\n            }\\n        }\\n        // Note: Here, you might need to adjust the array size if you want to strictly return only the eligible ones\\n\\n        return eligibleAvatarsDiscounts;\\n    }\\n}\\n\",\"keccak256\":\"0x8f1d8022f3d231cd66ff2e025e558a87b23c2aaf6c10e4547eb84447c63ce6c8\",\"license\":\"UNLICENSED\"},\"contracts/facets/minting/SilksMinterStorage.sol\":{\"content\":\"// SPDX-License-Identifier: UNLICENSED\\npragma solidity ^0.8.18;\\n\\nimport {AggregatorV3Interface} from \\\"@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol\\\";\\n\\nimport {EnumerableSet} from \\\"@solidstate/contracts/data/EnumerableSet.sol\\\";\\nimport {ContractType} from \\\"../../utils/constants.sol\\\";\\n\\nlibrary SilksMinterStorage {\\n    using SilksMinterStorage for Layout;\\n    using EnumerableSet for EnumerableSet.AddressSet;\\n    using EnumerableSet for EnumerableSet.UintSet;\\n\\n    bytes32 internal constant STORAGE_SLOT =\\n        keccak256(\\\"silks.contracts.storage.Minter\\\");\\n\\n    // Custom errors for specific revert scenarios\\n    error ContractIdentifierDoesNotExist(address _contractAddress);\\n    error ContractAlreadyExists(address _contractAddress);\\n    error InvalidOverlapInDiscounts(uint256 _seasonId, uint256 _discountId);\\n    error IdentifierNotFound(address _contractAddress);\\n    error DuplicatePayTier(uint256 _tier);\\n\\n    struct Discount {\\n        uint256 discount; // Percentage for discount\\n        uint256 discountExpiration; // Unix timestamp for discount expiration\\n        uint256 discountStartDate; // Unix timestamp for discount start date\\n        EnumerableSet.UintSet usedAvatarTokens; // Set of avatar tokens that have used the discount\\n        uint256 avatarStartId; // Start of avatar token range\\n        uint256 avatarEndId; // End of avatar token range\\n    }\\n\\n    struct ContractData {\\n        address contractAddress; // Address of the contract\\n        string mintFunctionSignature; // Signature of the mint function\\n        ContractType contractType; // Type of contract\\n        bool isPriceUSD; // Boolean to check if price is in USD\\n        mapping(uint256 => uint256) tierToPrice; // Mapping of tier to price\\n        EnumerableSet.UintSet tiers; // Set of tiers\\n    }\\n\\n    struct Layout {\\n        mapping(uint256 => Discount[]) seasonIdToDiscounts; // Mapping of seasonId to discounts\\n        mapping(address => ContractData) contractsData; // Mapping of contract address to contract data\\n        EnumerableSet.AddressSet addresses; // Set of contract addresses\\n        address avatarAddress; // Address of the avatar contract\\n        bool mintingExclusiveToAvatarHolders; // Boolean to check if minting is exclusive to avatar holders\\n        uint256 mintingExclusionStartDateTime; // Unix timestamp for minting exclusion start date\\n        uint256 mintingExclusionEndDateTime; // Unix timestamp for minting exclusion end date\\n        address priceFeedAddress; // Address of the price feed for ETH/USD conversion\\n    }\\n\\n    struct AddPayTier {\\n        uint256 tier;\\n        uint256 price;\\n    }\\n\\n    function layout() internal pure returns (Layout storage l) {\\n        bytes32 slot = STORAGE_SLOT;\\n        assembly {\\n            l.slot := slot\\n        }\\n    }\\n\\n    function removeContractData(\\n        Layout storage l,\\n        address contractAddress\\n    ) internal {\\n        if (l.contractsData[contractAddress].contractAddress == address(0))\\n            revert ContractIdentifierDoesNotExist(contractAddress);\\n        delete l.contractsData[contractAddress];\\n        l.addresses.remove(contractAddress);\\n    }\\n\\n    function contains(\\n        Layout storage l,\\n        address contractAddress\\n    ) internal view returns (bool) {\\n        return l.addresses.contains(contractAddress);\\n    }\\n\\n    function addContract(\\n        Layout storage l,\\n        address contractAddress,\\n        string memory mintFunctionSignature,\\n        ContractType contractType,\\n        bool isPriceUSD,\\n        AddPayTier[] memory payTiers\\n    ) internal {\\n        if (l.contractsData[contractAddress].contractAddress != address(0))\\n            revert ContractAlreadyExists(contractAddress);\\n\\n        ContractData storage contractData = l.contractsData[contractAddress];\\n        contractData.contractAddress = contractAddress;\\n        contractData.mintFunctionSignature = mintFunctionSignature;\\n        contractData.contractType = contractType;\\n        contractData.isPriceUSD = isPriceUSD;\\n\\n        uint256 i;\\n        uint256 length = payTiers.length;\\n        for (; i < length; ) {\\n            setPayTier(l, contractAddress, payTiers[i].tier, payTiers[i].price);\\n\\n            unchecked {\\n                ++i;\\n            }\\n        }\\n\\n        l.addresses.add(contractAddress);\\n    }\\n\\n    function addDiscount(\\n        Layout storage l,\\n        address contractAddress,\\n        uint256 discount,\\n        uint256 discountExpiration,\\n        uint256 discountStartDate,\\n        uint256 avatarStartId,\\n        uint256 avatarEndId,\\n        uint256 seasonId\\n    ) internal {\\n        if (l.contractsData[contractAddress].contractAddress == address(0))\\n            revert ContractIdentifierDoesNotExist(contractAddress);\\n\\n        uint256 i;\\n        uint256 length = l.seasonIdToDiscounts[seasonId].length;\\n        for (; i < length; ) {\\n            Discount storage existingDiscount = l.seasonIdToDiscounts[seasonId][\\n                i\\n            ];\\n            bool isTimeOverlapping = (discountStartDate <\\n                existingDiscount.discountExpiration) &&\\n                (discountExpiration > existingDiscount.discountStartDate);\\n            bool isTokenIdRangeOverlapping = !(avatarEndId <\\n                existingDiscount.avatarStartId ||\\n                avatarStartId > existingDiscount.avatarEndId);\\n            if (isTimeOverlapping && isTokenIdRangeOverlapping)\\n                revert InvalidOverlapInDiscounts(seasonId, i);\\n            unchecked {\\n                ++i;\\n            }\\n        }\\n\\n        Discount storage newDiscount = l.seasonIdToDiscounts[seasonId].push();\\n\\n        newDiscount.discount = discount;\\n        newDiscount.discountExpiration = discountExpiration;\\n        newDiscount.discountStartDate = discountStartDate;\\n        newDiscount.avatarStartId = avatarStartId;\\n        newDiscount.avatarEndId = avatarEndId;\\n    }\\n\\n    function removeContract(\\n        Layout storage l,\\n        address contractAddress\\n    ) internal {\\n        if (!l.contains(contractAddress))\\n            revert IdentifierNotFound(contractAddress);\\n        l.removeContractData(contractAddress);\\n    }\\n\\n    function updateContract(\\n        Layout storage l,\\n        address oldContractAddress,\\n        address newContractAddress,\\n        string calldata newFunctionSignature,\\n        ContractType newContractType,\\n        bool isPriceUSD,\\n        AddPayTier[] calldata payTiers\\n    ) internal {\\n        if (!l.contains(oldContractAddress)) {\\n            revert IdentifierNotFound(oldContractAddress);\\n        }\\n\\n        l.removeContractData(oldContractAddress);\\n\\n        ContractData storage contractData = l.contractsData[newContractAddress];\\n        contractData.contractAddress = newContractAddress;\\n        contractData.mintFunctionSignature = newFunctionSignature;\\n        contractData.contractType = newContractType;\\n        contractData.isPriceUSD = isPriceUSD;\\n        \\n\\n        uint256 i;\\n        uint256 length = contractData.tiers.length();\\n        for (; i < length; ) {\\n            delete contractData.tierToPrice[contractData.tiers.at(i)];\\n\\n            unchecked {\\n                ++i;\\n            }\\n        }\\n\\n        uint256 j;\\n        uint256 payTiersLength = payTiers.length;\\n        for (; j < payTiersLength; ) {\\n            setPayTier(\\n                l,\\n                newContractAddress,\\n                payTiers[j].tier,\\n                payTiers[j].price\\n            );\\n\\n            unchecked {\\n                ++j;\\n            }\\n        }\\n    }\\n\\n    function getContract(\\n        Layout storage l,\\n        address contractAddress\\n    ) internal view returns (ContractData storage) {\\n        if (l.contractsData[contractAddress].contractAddress == address(0)) {\\n            revert ContractIdentifierDoesNotExist(contractAddress);\\n        }\\n\\n        return l.contractsData[contractAddress];\\n    }\\n\\n    function getAllIdentifiers(\\n        Layout storage l\\n    ) internal view returns (address[] memory) {\\n        uint256 i;\\n        uint256 addressesLength = l.addresses.length();\\n        address[] memory addresses = new address[](addressesLength);\\n\\n        for (; i < addressesLength; ) {\\n            addresses[i] = l.addresses.at(i);\\n            unchecked {\\n                ++i;\\n            }\\n        }\\n        return addresses;\\n    }\\n\\n    /**\\n     * @notice Returns the Price Feed address\\n     * @return priceFeed Price Feed address\\n     */\\n    function getPriceFeed(\\n        Layout storage l\\n    ) internal view returns (AggregatorV3Interface priceFeed) {\\n        priceFeed = AggregatorV3Interface(l.priceFeedAddress);\\n\\n        return priceFeed;\\n    }\\n\\n    /**\\n     * @notice Returns the latest price\\n     * @return latest price\\n     */\\n    function getLatestPrice(Layout storage l) internal view returns (uint256) {\\n        AggregatorV3Interface priceFeed = l.getPriceFeed();\\n        (, int256 price, , , ) = priceFeed.latestRoundData();\\n\\n        return uint256(price);\\n    }\\n\\n    // convertUSDtoWei\\n    function convertUSDtoWei(\\n        Layout storage l,\\n        uint256 _price\\n    ) internal view returns (uint256) {\\n        return (1e18 / (getLatestPrice(l) / 1e6)) * _price;\\n    }\\n\\n    function setPayTier(\\n        Layout storage l,\\n        address _contractAddress,\\n        uint256 _tier,\\n        uint256 _price\\n    ) public {\\n        ContractData storage contractData = getContract(l, _contractAddress);\\n\\n        if (contractData.tiers.contains(_tier)) {\\n            revert DuplicatePayTier(_tier);\\n        }\\n\\n        contractData.tiers.add(_tier);\\n        contractData.tierToPrice[_tier] = _price;        \\n    }\\n}\\n\",\"keccak256\":\"0x29a490a051243ee367ee75479668a863e6a1a4e6248a4530bf873003d84f626d\",\"license\":\"UNLICENSED\"},\"contracts/interfaces/IAvatarNFT.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.23;\\n\\ninterface IAvatarNFT {\\n    // onlyOwner Functions\\n    // Create getter functions for the above variables\\n    function _publicSaleTime() external view returns (uint256);\\n\\n    function _preSaleTime() external view returns (uint256);\\n\\n    function _maxPerAddress() external view returns (uint256);\\n\\n    function _presaleMaxPerAddress() external view returns (uint256);\\n\\n    function _presalePrice() external view returns (uint256);\\n\\n    function _merkleRoot() external view returns (bytes32);\\n\\n    function _maxTxPerAddress() external view returns (uint256);\\n\\n    /**\\n     * onlyOwner function to mint Avatar NFTS\\n     * @param to address to mint to\\n     * @param count amount to mint\\n     */\\n    function mint(address to, uint256 count) external;\\n\\n    function PRICE() external view returns (uint256);\\n\\n    function _price() external view returns (uint256);\\n\\n    function totalSupply() external view returns (uint256);\\n\\n    function _maxSupply() external view returns (uint256);\\n\\n    function ownerOf(uint256 tokenId) external view returns (address);\\n\\n    function owner() external view returns (address);\\n\\n    function balanceOf(address owner) external view returns (uint256);\\n\\n    // Admin Proxy functions\\n    function setSaleInformation(\\n        uint256 publicSaleTime,\\n        uint256 preSaleTime,\\n        uint256 maxPerAddress,\\n        uint256 presaleMaxPerAddress,\\n        uint256 price,\\n        uint256 presalePrice,\\n        bytes32 merkleRoot,\\n        uint256 maxTxPerAddress\\n    ) external;\\n\\n    function setBaseUri(string memory baseUri) external;\\n\\n    function setMerkleRoot(bytes32 merkleRoot) external;\\n\\n    function pause() external;\\n\\n    function unpause() external;\\n\\n    function transferOwnership(address newOwner) external;\\n}\\n\",\"keccak256\":\"0x8133fee37d524f27db50cd835531263d4c5beee47cd23a4f3fd287a8da8eaedd\",\"license\":\"MIT\"},\"contracts/interfaces/IERC721Mintable.sol\":{\"content\":\"// SPDX-License-Identifier: UNLICENSED\\npragma solidity ^0.8.23;\\n\\ninterface IERC721Mintable {\\n    function _price() external view returns (uint256);\\n\\n    function totalSupply() external view returns (uint256);\\n\\n    function _maxSupply() external view returns (uint256);\\n}\",\"keccak256\":\"0xa1c0675b70157d2345949a6e6a5d0c05cb5d4729ed3931c14d1f327c7ac45051\",\"license\":\"UNLICENSED\"},\"contracts/interfaces/IHorseNFT.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.23;\\n\\n// import  {IERC721} from \\\"@openzeppelin/contracts/token/ERC721/IERC721.sol\\\";\\n\\ninterface IHorseNFT {\\n    enum MintMethod {\\n        PURCHASE,\\n        AIRDROP,\\n        EXTERNAL_MINT\\n    }\\n\\n    error InvalidAddress(address _address);\\n    error InvalidSeason(uint256 _sent);\\n    error InvalidPayoutTier(uint256 _sent);\\n    error InvalidTokenId(uint256 _sent);\\n    error InvalidIntValue(string _reason, uint256 _sent, uint256 _expected);\\n    error InvalidStringValue(string _reason, string _sent, string _expected);\\n    error InvalidExternalMintAddress(address _sender);\\n    error MaxHorsesPerWalletExceeded(address _walletAddress);\\n    error PayoutTierMaxSupplyExceeded(uint256 _payoutTier);\\n    error MintFailed(\\n        string _reason,\\n        uint256 _seasonId,\\n        uint256 _payoutTier,\\n        uint256 _quantity,\\n        MintMethod _method,\\n        address _to\\n    );\\n\\n    // Can be called by ExtMintAddress on the HorseNFT contract\\n    // V1\\n    /**\\n     * extMint function to mint horse NFTs for V1\\n     * @param to The address to mint to.\\n     * @param amountReq The amount of horse NFTs to mint.\\n     */\\n    function extMint(address to, uint256 amountReq) external;\\n\\n    // V2\\n    /**\\n     * externalMint function to mint horse NFTs for V2\\n     * @param _seasonId The season for the Horses to be minted.\\n     * @param _payoutTier  The payout tier for the horse to be minted.\\n     * @param _quantity The quantity to be minted.\\n     * @param _to The address to mint to.\\n     */\\n    function externalMint(\\n        uint256 _seasonId,\\n        uint256 _payoutTier,\\n        uint256 _quantity,\\n        address _to\\n    ) external;\\n\\n    function purchase(\\n        uint256 _seasonId,\\n        uint256 _payoutTier,\\n        uint256 _quantity\\n    ) external payable;\\n\\n    function allowExternalMintAddress(address _extMintAddress) external;\\n\\n    function balanceOf(address owner) external view returns (uint256);\\n\\n    function payoutTier(\\n        uint256 _payoutTier\\n    )\\n        external\\n        view\\n        returns (\\n            uint256 tierId,\\n            string memory description,\\n            uint256 price,\\n            uint256 maxPerTx,\\n            uint256 payoutPct,\\n            uint256 maxSupply,\\n            bool paused,\\n            bool valid\\n        );\\n}\\n\",\"keccak256\":\"0x8542d614f2891e866333826c71ac0db4ecdd7e1bf70d3f49225927cb41e88c13\",\"license\":\"MIT\"},\"contracts/utils/constants.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.18;\\n\\nenum ContractType {\\n    Avatar,\\n    HorseV1,\\n    HorseV2,\\n    Other\\n}\\n\\nbytes32 constant MINTER_ADMIN_ROLE = keccak256(\\\"MINTER_ADMIN_ROLE\\\");\\n\",\"keccak256\":\"0xbd1d4ff4f00570bb8de7eb27e089fe4455a306807b1344c4a80732f285382bca\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x60808060405234610016576123e5908161001c8239f35b600080fdfe6080604052600436101561001257600080fd5b60003560e01c80630ad1c2fa1461115d5780630d9f92681461113f57806354d02b4214610ba65780635a9f74b914610a8157806373ae73ef14610a3b57806374787d20146108ed578063916c03ba146108be5780639e87a5cd14610878578063b39e9d7114610729578063b7e1b1c714610706578063c3a2a93a146105b8578063d380e59d14610426578063f2c1d2f0146102b0578063f69cce0b146101e4578063fa211e28146101ad5763fb201b15146100cc57600080fd5b346101a85760c06003193601126101a8576100e5611195565b60806023193601126101a8576040516100fd816112f6565b60243581526044356020820152604081019160643583526084356001600160a01b039081811681036101a8576060840190815260a43567ffffffffffffffff81116101a8577f6338f69390e35a535a8a45841594668201ebcd1a8d9561f38ae0e589140233bf94610175610184923690600401611381565b9061017e611f4c565b85611d73565b519351604080516001600160a01b03949094168452602084019190915293169290a2005b600080fd5b346101a85760206003193601126101a8576101e06101cc600435611c0e565b6040519182916020835260208301906114ad565b0390f35b346101a8576101f236611581565b9060009260005b828110610245576040518060208082019060208352606051809252604083019160809160005b82811061022e57505050500390f35b83518552869550938101939281019260010161021f565b61025a84610254838686611953565b35611b54565b610267575b6001016101f9565b93610273858484611953565b3560605182101561029a578161029291608060019460051b0152611881565b94905061025f565b634e487b7160e01b600052603260045260246000fd5b346101a8576102be36611581565b90916102c9836115e7565b926102d76040519485611342565b8084526102e3816115e7565b92601f196020940160005b8181106103d257505060009060005b83811061035557604080518781528851818901819052898901928201908960005b82811061032b5784840385f35b8551805185528083015185840152604090810151908501529481019460609093019260010161031e565b61036482610254838789611953565b610371575b6001016102fd565b916103ca600191610383858789611953565b3561038e828b6115ff565b5152886103a6856103a0888a8c611953565b35612262565b60406103c1858d6103b9828897986115ff565b5101946115ff565b51015252611881565b929050610369565b60405190606082019180831067ffffffffffffffff841117610410578792604052600081526000838201526000604082015282828a010152016102ee565b634e487b7160e01b600052604160045260246000fd5b346101a85760206003193601126101a85761044a610445600435611890565b611ada565b60009060006004356000527f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a759904602052604060002054905b81811061049657604051806101e085826114e1565b6004356000527f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a7599046020526104ce816040600020611865565b5060028101549081421015806105aa575b6104ee575b5050600101610481565b80959295549160018201549160038101926040519384602082549182815201916000526020600020906000905b808210610592575050509161058a95939161053c8660019997950385611342565b600660058301549201549260405195610554876112da565b8652602086015260408501526060840152608083015260a082015261057982876115ff565b5261058481866115ff565b50611881565b9390856104e4565b9091926001602081928654815201940192019061051b565b5060018101544211156104df565b346101a85760006003193601126101a8577f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a7599068054906000916105f9816115e7565b916106076040519384611342565b818352610613826115e7565b93601f19602095018560005b8281106106ea575050505b828110610693575050506040519082820192808352815180945260408301938160408260051b8601019301916000955b8287106106675785850386f35b90919293828061068383603f198a600196030186528851611227565b960192019601959291909261065a565b600190826000526106ce6001600160a01b03827e5aa668c03e7cd07776f2f7423898c601c311e653b7cf64175e7363cd7e890a015416611613565b6106d882876115ff565b526106e381866115ff565b500161062a565b6106f59593956115b4565b82828901015201869094929461061f565b346101a857602061071f61071936611497565b90611b54565b6040519015158152f35b346101a85760206003193601126101a8576004356000527f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a75990460205260406000205461077381611ada565b9060005b81811061078c57604051806101e085826114e1565b6004356000527f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a7599046020526107c4816040600020611865565b5090815460019283810154906002810154906003810192604051808560208297549384815201906000526020600020926000905b8b81831061085e5750505061080f92500385611342565b600660058301549201549260405195610827876112da565b8652602086015260408501526060840152608083015260a082015261084c82866115ff565b5261085781856115ff565b5001610777565b9193509160208291865481520194019201879293916107f8565b346101a85760006003193601126101a85760206001600160a01b037f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a75990b5416604051908152f35b346101a85760406003193601126101a85760206108e56108dc611195565b60243590611963565b604051908152f35b346101a8576109136108fe366113f9565b92939161090c959195611f4c565b8483611d73565b7f6338f69390e35a535a8a45841594668201ebcd1a8d9561f38ae0e589140233bf6001600160a01b036060850151169160408501519061096e60405192839283602090939291936001600160a01b0360408201951681520152565b0390a260005b81811061097d57005b61099461098b828487611953565b35845190612262565b5060001981146109f857906109f16109db60019386516000527f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a7599046020526040600020611865565b5060036109e984878a611953565b35910161231f565b5001610974565b50610a0591604494611953565b359051604051917fc7768ae300000000000000000000000000000000000000000000000000000000835260048301526024820152fd5b346101a85760006003193601126101a85760206001600160a01b037f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a7599085416604051908152f35b346101a857610a8f36611497565b90816000527f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a759904602092818452826040600020541115610b755790610add929160005283526040600020611865565b508054906002810154906001808201546005830154936003600685015494016040518094898354928381520192600052896000209160005b8b828210610b62578b8b8b610b538c8c8c610b32838e0384611342565b6040519788978852870152604086015260c0606086015260c08501906114ad565b91608084015260a08301520390f35b8454865290940193928201928201610b15565b602483604051907f3299391f0000000000000000000000000000000000000000000000000000000082526004820152fd5b610baf366113f9565b907f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a759908949294549060ff8260a01c16611010575b610bf6610bee85611cf3565b968686611d73565b610c04602086015185611963565b9060ff6002610c17604089015185611933565b980154166004811015610ffa57600214610cfe575b5050505060607f03f17d66ad3bf18e9412eb06582908831508cdb9b8da9cddb1431f645a5b86329160406001600160a01b0383860151169401516001600160a01b03604051921682526020820152846040820152a2803410610cc757803411610c9157005b60008080610ca0819434611946565b818115610cbe575b3390f115610cb257005b6040513d6000823e3d90fd5b506108fc610ca8565b604490604051907f03eb8b540000000000000000000000000000000000000000000000000000000082526004820152346024820152fd5b6040869794959701519186519160009660009160005b828110610d5a575b5050505050505050610d517f03f17d66ad3bf18e9412eb06582908831508cdb9b8da9cddb1431f645a5b863292606092611946565b93918580610c2c565b86841015610ff557610d6d818484611953565b35600090876000527f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a759904602052604060002054915b828110610db4575b505050600101610d14565b886000527f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a759904602052610dea816040600020611865565b50600281015442101580610fe7575b80610fd9575b80610fcb575b80610fb3575b610e185750600101610da1565b969c91939250506001600160a01b0360208b6024604051809481937f6352211e000000000000000000000000000000000000000000000000000000008352896004840152165afa908115610cb257600091610f94575b506001600160a01b0333911603610ece576064610e8c875489611933565b048101809111610eb8576001926003610ea8610eaf939e611881565b970161231f565b50908d80610da9565b634e487b7160e01b600052601160045260246000fd5b6001600160a01b038360208c6024604051809581937f6352211e000000000000000000000000000000000000000000000000000000008352866004840152165afa918215610cb2576064926001600160a01b0391600091610f65575b50604051927f7f76f3280000000000000000000000000000000000000000000000000000000084526004840152166024820152336044820152fd5b610f87915060203d602011610f8d575b610f7f8183611342565b810190611f2d565b84610f2a565b503d610f75565b610fad915060203d602011610f8d57610f7f8183611342565b8f610e6e565b50600083815260048201602052604090205415610e0b565b506006810154831115610e05565b506005810154831015610dff565b506001810154421115610df9565b610d1c565b634e487b7160e01b600052602160045260246000fd5b60ff600261101d86611cf3565b0154166004811015610ffa57600214611036575b610be2565b7f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a7599095442101580611114575b15610be2576040517f70a082310000000000000000000000000000000000000000000000000000000081523360048201526020816024816001600160a01b0387165afa908115610cb2576000916110e2575b506110315760046040517f09a520f1000000000000000000000000000000000000000000000000000000008152fd5b90506020813d60201161110c575b816110fd60209383611342565b810103126101a85751876110b3565b3d91506110f0565b507f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a75990a54421115611061565b346101a85760206003193601126101a85760206108e5600435611890565b346101a85760206003193601126101a8576101e061118161117c611195565b611613565b604051918291602083526020830190611227565b600435906001600160a01b03821682036101a857565b60005b8381106111be5750506000910152565b81810151838201526020016111ae565b90601f19601f6020936111ec815180928187528780880191016111ab565b0116010190565b90815180825260208080930193019160005b828110611213575050505090565b835185529381019392810192600101611205565b91906001600160a01b0383511681526020906112508285015160c08484015260c08301906111ce565b60409260408601516004811015610ffa5760408495939295015260608601511515606084015260808601519383820360808501528080865193848152019501926000905b8382106112ba57505050505060a06112b7939401519060a08184039101526111f3565b90565b845180518852830151878401529586019593820193600190910190611294565b60c0810190811067ffffffffffffffff82111761041057604052565b6080810190811067ffffffffffffffff82111761041057604052565b6040810190811067ffffffffffffffff82111761041057604052565b67ffffffffffffffff811161041057604052565b90601f601f19910116810190811067ffffffffffffffff82111761041057604052565b67ffffffffffffffff811161041057601f01601f191660200190565b81601f820112156101a85780359061139882611365565b926113a66040519485611342565b828452602083830101116101a857816000926020809301838601378301015290565b9181601f840112156101a85782359167ffffffffffffffff83116101a8576020808501948460051b0101116101a857565b9060e06003198301126101a8576001600160a01b039160043583811681036101a8579260806023198301126101a85760405190611435826112f6565b60243582526044356020830152606435604083015260843590811681036101a85760608201529167ffffffffffffffff60a4358181116101a8578361147c91600401611381565b9260c4359182116101a857611493916004016113c8565b9091565b60031960409101126101a8576004359060243590565b90815180825260208080930193019160005b8281106114cd575050505090565b8351855293810193928101926001016114bf565b6020808201908083528351809252604092604081018260408560051b8401019601946000925b858410611518575050505050505090565b90919293949596858061157083603f1986600196030188528b519060c090825181528483015185820152888301518982015260608084015190820152608080840151908201528160a0809401519382015201906111f3565b990194019401929594939190611507565b60406003198201126101a8576004359067ffffffffffffffff82116101a8576115ac916004016113c8565b909160243590565b604051906115c1826112da565b606060a08360008152826020820152600060408201526000838201528260808201520152565b67ffffffffffffffff81116104105760051b60200190565b805182101561029a5760209160051b010190565b61162461161e6115b4565b91611cf3565b6001600160a01b0381541682526001908181016020604091825190600081549182881c92888116801561185b575b86851081146118475784865285939291879082156118095750506001146117c8575b5061168192500382611342565b81860152600283015460ff8116906004821015610ffa5760ff918488969496015260081c161515606086015260048101918254936116be856115e7565b926116cb83519485611342565b858452601f196116da876115e7565b0160005b81811061179f57505060808801938452825194828688815201906000528260002060005b8989821061178d5750505085611719910386611342565b60a0880194855260030160005b86811061173857505050505050505090565b80611786816117498b948a516115ff565b51611755828b516115ff565b51600052858752876000205488519161176d83611312565b82528782015288519061178083836115ff565b526115ff565b5001611726565b82548452928501929182019101611702565b839085989398516117af81611312565b60008152600083820152828289010152019691966116de565b915050600052818380600020886000915b8583106117f0575050611681935082010138611674565b80919294505483858801015201910184908885936117d9565b7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00168582015261168195151560051b85010192503891506116749050565b602484634e487b7160e01b81526022600452fd5b93607f1693611652565b805482101561029a576000526007602060002091020190600090565b6000198114610eb85760010190565b600090600090600091816000527f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a759904602081602052604093604060002054955b8681106118e0575050505050505090565b8185528383526118f281878720611865565b5060028101544210159081611924575b50611910575b6001016118cf565b9661191c600191611881565b979050611908565b60019150015442111538611902565b81810292918115918404141715610eb857565b91908203918211610eb857565b919081101561029a5760051b0190565b61196f90929192611cf3565b600083815260058201602052604090205415611aa95760009283526003810160205260ff6002604085205492015460081c16600014611aa557600460a06001600160a01b037f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a75990b5416604051928380927ffeaf968c0000000000000000000000000000000000000000000000000000000082525afa8015611a9a578490611a46575b620f42409150048015611a32576112b7929350670de0b6b3a764000004611933565b602484634e487b7160e01b81526012600452fd5b5060a0813d60a011611a92575b81611a6060a09383611342565b81010312611a8e5780611a76620f424092612387565b50611a88608060208301519201612387565b50611a10565b8380fd5b3d9150611a53565b6040513d86823e3d90fd5b9150565b602483604051907fb54df80b0000000000000000000000000000000000000000000000000000000082526004820152fd5b90611ae4826115e7565b604090611af46040519182611342565b838152601f19611b0482956115e7565b019160005b838110611b165750505050565b6020908251611b24816112da565b600081528260008183015260008583015260606000818401526000608084015260a0830152828601015201611b09565b611b5d82611c0e565b8051929060005b848110611b75575050505050600090565b826000527f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a759904602052611bb66040600020611baf83856115ff565b5190611865565b508460058201548110159182611bff575b82611be5575b5050611bdb57600101611b64565b5050505050600190565b600091825260040160205260409020541590508438611bcd565b60068101548211159250611bc7565b611c1781611890565b611c20816115e7565b91611c3c604092611c346040519586611342565b8085526115e7565b91601f19602093013660208601376000918293816000527f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a7599049182602052604060002054955b868110611c92575050505050505090565b81600052838352611ca68186600020611865565b5060028101544210159081611ce4575b50611cc4575b600101611c81565b94611cdc8187611cd66001948c6115ff565b52611881565b959050611cbc565b60019150015442111538611cb6565b6001600160a01b03809116806000527f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a75990591826020526040600020541615611d4257600052602052604060002090565b602490604051907fa110b8780000000000000000000000000000000000000000000000000000000082526004820152fd5b611d7c90611cf3565b6001600160a01b03928382541660ff6002840154166004811015610ffa5760028103611e285750505091809192541690825191602084015191606060408601519501511692813b156101a8576000608492819560405197889687957fba0a44b900000000000000000000000000000000000000000000000000000000875260048701526024860152604485015260648401525af18015610cb257611e1d5750565b611e269061132e565b565b611e9d57505082604091541692606083015116910151823b156101a8576040517f40c10f190000000000000000000000000000000000000000000000000000000081526001600160a01b039290921660048301526024820152906000908290604490829084905af18015610cb257611e1d5750565b9091506000809450809350602083519301915af13d15611f25573d90611ec282611365565b91611ed06040519384611342565b82523d6000602084013e5b15611ee35750565b611f21906040519182917f75970d920000000000000000000000000000000000000000000000000000000083526020600484015260248301906111ce565b0390fd5b606090611edb565b908160209103126101a857516001600160a01b03811681036101a85790565b3360009081527f1cdb71b56cfe48a4724112d097b937eef0957b851bbf9861eb509a8a30083cbb60205260408082205490917f70480ee89cb38eff00b7d23da25713d52ce19c6ed428691d22c58b2f615e3d679115611faa57505050565b33908351926060840184811067ffffffffffffffff82111761224e578552602a845260208401908536833784511561223a57603082538451936001946001101561218b576078602187015360295b8581116121dc57506121b357855192612010846112f6565b604284526020840194606036873784511561219f576030865384516001101561219f5790607860218601536041915b80831161213d57505050612114576120989385936120dc936120cd604894611f2199519889957f416363657373436f6e74726f6c3a206163636f756e7420000000000000000000602088015251809260378801906111ab565b8401917f206973206d697373696e6720726f6c65200000000000000000000000000000006037840152518093868401906111ab565b01036028810185520183611342565b519182917f08c379a00000000000000000000000000000000000000000000000000000000083526020600484015260248301906111ce565b600485517fc9134785000000000000000000000000000000000000000000000000000000008152fd5b909192600f8116601081101561218b57907f3031323334353637383961626364656600000000000000000000000000000000600019921a61217e868961239e565b5360041c9301919061203f565b602484634e487b7160e01b81526032600452fd5b602482634e487b7160e01b81526032600452fd5b600486517fc9134785000000000000000000000000000000000000000000000000000000008152fd5b90600f8116601081101561222657907f3031323334353637383961626364656600000000000000000000000000000000600019921a61221b848a61239e565b5360041c9101611ff8565b602486634e487b7160e01b81526032600452fd5b602483634e487b7160e01b81526032600452fd5b602483634e487b7160e01b81526041600452fd5b9061226c81611c0e565b80519160005b83811061228757505050505060001990600090565b816000527f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a7599046020526122c16040600020611baf83866115ff565b50600581015486101580612311575b806122f9575b6122e35750600101612272565b9594509190506122f392506115ff565b51915490565b506000868152600482016020526040902054156122d6565b5060068101548611156122d0565b60008281526001820160205260408120549093929184911561234057505050565b809192939450546801000000000000000081101561224e576001810180835581101561223a5781846001928594604096526020852001558054948352016020522055600190565b519069ffffffffffffffffffff821682036101a857565b90815181101561029a57016020019056fea26469706673582212207e20018194ab74f0a1294dc69934f50a6670a4e8d0a210338b753bbf9803a6b264736f6c63430008170033",
+  "deployedBytecode": "0x6080604052600436101561001257600080fd5b60003560e01c80630ad1c2fa1461115d5780630d9f92681461113f57806354d02b4214610ba65780635a9f74b914610a8157806373ae73ef14610a3b57806374787d20146108ed578063916c03ba146108be5780639e87a5cd14610878578063b39e9d7114610729578063b7e1b1c714610706578063c3a2a93a146105b8578063d380e59d14610426578063f2c1d2f0146102b0578063f69cce0b146101e4578063fa211e28146101ad5763fb201b15146100cc57600080fd5b346101a85760c06003193601126101a8576100e5611195565b60806023193601126101a8576040516100fd816112f6565b60243581526044356020820152604081019160643583526084356001600160a01b039081811681036101a8576060840190815260a43567ffffffffffffffff81116101a8577f6338f69390e35a535a8a45841594668201ebcd1a8d9561f38ae0e589140233bf94610175610184923690600401611381565b9061017e611f4c565b85611d73565b519351604080516001600160a01b03949094168452602084019190915293169290a2005b600080fd5b346101a85760206003193601126101a8576101e06101cc600435611c0e565b6040519182916020835260208301906114ad565b0390f35b346101a8576101f236611581565b9060009260005b828110610245576040518060208082019060208352606051809252604083019160809160005b82811061022e57505050500390f35b83518552869550938101939281019260010161021f565b61025a84610254838686611953565b35611b54565b610267575b6001016101f9565b93610273858484611953565b3560605182101561029a578161029291608060019460051b0152611881565b94905061025f565b634e487b7160e01b600052603260045260246000fd5b346101a8576102be36611581565b90916102c9836115e7565b926102d76040519485611342565b8084526102e3816115e7565b92601f196020940160005b8181106103d257505060009060005b83811061035557604080518781528851818901819052898901928201908960005b82811061032b5784840385f35b8551805185528083015185840152604090810151908501529481019460609093019260010161031e565b61036482610254838789611953565b610371575b6001016102fd565b916103ca600191610383858789611953565b3561038e828b6115ff565b5152886103a6856103a0888a8c611953565b35612262565b60406103c1858d6103b9828897986115ff565b5101946115ff565b51015252611881565b929050610369565b60405190606082019180831067ffffffffffffffff841117610410578792604052600081526000838201526000604082015282828a010152016102ee565b634e487b7160e01b600052604160045260246000fd5b346101a85760206003193601126101a85761044a610445600435611890565b611ada565b60009060006004356000527f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a759904602052604060002054905b81811061049657604051806101e085826114e1565b6004356000527f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a7599046020526104ce816040600020611865565b5060028101549081421015806105aa575b6104ee575b5050600101610481565b80959295549160018201549160038101926040519384602082549182815201916000526020600020906000905b808210610592575050509161058a95939161053c8660019997950385611342565b600660058301549201549260405195610554876112da565b8652602086015260408501526060840152608083015260a082015261057982876115ff565b5261058481866115ff565b50611881565b9390856104e4565b9091926001602081928654815201940192019061051b565b5060018101544211156104df565b346101a85760006003193601126101a8577f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a7599068054906000916105f9816115e7565b916106076040519384611342565b818352610613826115e7565b93601f19602095018560005b8281106106ea575050505b828110610693575050506040519082820192808352815180945260408301938160408260051b8601019301916000955b8287106106675785850386f35b90919293828061068383603f198a600196030186528851611227565b960192019601959291909261065a565b600190826000526106ce6001600160a01b03827e5aa668c03e7cd07776f2f7423898c601c311e653b7cf64175e7363cd7e890a015416611613565b6106d882876115ff565b526106e381866115ff565b500161062a565b6106f59593956115b4565b82828901015201869094929461061f565b346101a857602061071f61071936611497565b90611b54565b6040519015158152f35b346101a85760206003193601126101a8576004356000527f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a75990460205260406000205461077381611ada565b9060005b81811061078c57604051806101e085826114e1565b6004356000527f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a7599046020526107c4816040600020611865565b5090815460019283810154906002810154906003810192604051808560208297549384815201906000526020600020926000905b8b81831061085e5750505061080f92500385611342565b600660058301549201549260405195610827876112da565b8652602086015260408501526060840152608083015260a082015261084c82866115ff565b5261085781856115ff565b5001610777565b9193509160208291865481520194019201879293916107f8565b346101a85760006003193601126101a85760206001600160a01b037f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a75990b5416604051908152f35b346101a85760406003193601126101a85760206108e56108dc611195565b60243590611963565b604051908152f35b346101a8576109136108fe366113f9565b92939161090c959195611f4c565b8483611d73565b7f6338f69390e35a535a8a45841594668201ebcd1a8d9561f38ae0e589140233bf6001600160a01b036060850151169160408501519061096e60405192839283602090939291936001600160a01b0360408201951681520152565b0390a260005b81811061097d57005b61099461098b828487611953565b35845190612262565b5060001981146109f857906109f16109db60019386516000527f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a7599046020526040600020611865565b5060036109e984878a611953565b35910161231f565b5001610974565b50610a0591604494611953565b359051604051917fc7768ae300000000000000000000000000000000000000000000000000000000835260048301526024820152fd5b346101a85760006003193601126101a85760206001600160a01b037f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a7599085416604051908152f35b346101a857610a8f36611497565b90816000527f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a759904602092818452826040600020541115610b755790610add929160005283526040600020611865565b508054906002810154906001808201546005830154936003600685015494016040518094898354928381520192600052896000209160005b8b828210610b62578b8b8b610b538c8c8c610b32838e0384611342565b6040519788978852870152604086015260c0606086015260c08501906114ad565b91608084015260a08301520390f35b8454865290940193928201928201610b15565b602483604051907f3299391f0000000000000000000000000000000000000000000000000000000082526004820152fd5b610baf366113f9565b907f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a759908949294549060ff8260a01c16611010575b610bf6610bee85611cf3565b968686611d73565b610c04602086015185611963565b9060ff6002610c17604089015185611933565b980154166004811015610ffa57600214610cfe575b5050505060607f03f17d66ad3bf18e9412eb06582908831508cdb9b8da9cddb1431f645a5b86329160406001600160a01b0383860151169401516001600160a01b03604051921682526020820152846040820152a2803410610cc757803411610c9157005b60008080610ca0819434611946565b818115610cbe575b3390f115610cb257005b6040513d6000823e3d90fd5b506108fc610ca8565b604490604051907f03eb8b540000000000000000000000000000000000000000000000000000000082526004820152346024820152fd5b6040869794959701519186519160009660009160005b828110610d5a575b5050505050505050610d517f03f17d66ad3bf18e9412eb06582908831508cdb9b8da9cddb1431f645a5b863292606092611946565b93918580610c2c565b86841015610ff557610d6d818484611953565b35600090876000527f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a759904602052604060002054915b828110610db4575b505050600101610d14565b886000527f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a759904602052610dea816040600020611865565b50600281015442101580610fe7575b80610fd9575b80610fcb575b80610fb3575b610e185750600101610da1565b969c91939250506001600160a01b0360208b6024604051809481937f6352211e000000000000000000000000000000000000000000000000000000008352896004840152165afa908115610cb257600091610f94575b506001600160a01b0333911603610ece576064610e8c875489611933565b048101809111610eb8576001926003610ea8610eaf939e611881565b970161231f565b50908d80610da9565b634e487b7160e01b600052601160045260246000fd5b6001600160a01b038360208c6024604051809581937f6352211e000000000000000000000000000000000000000000000000000000008352866004840152165afa918215610cb2576064926001600160a01b0391600091610f65575b50604051927f7f76f3280000000000000000000000000000000000000000000000000000000084526004840152166024820152336044820152fd5b610f87915060203d602011610f8d575b610f7f8183611342565b810190611f2d565b84610f2a565b503d610f75565b610fad915060203d602011610f8d57610f7f8183611342565b8f610e6e565b50600083815260048201602052604090205415610e0b565b506006810154831115610e05565b506005810154831015610dff565b506001810154421115610df9565b610d1c565b634e487b7160e01b600052602160045260246000fd5b60ff600261101d86611cf3565b0154166004811015610ffa57600214611036575b610be2565b7f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a7599095442101580611114575b15610be2576040517f70a082310000000000000000000000000000000000000000000000000000000081523360048201526020816024816001600160a01b0387165afa908115610cb2576000916110e2575b506110315760046040517f09a520f1000000000000000000000000000000000000000000000000000000008152fd5b90506020813d60201161110c575b816110fd60209383611342565b810103126101a85751876110b3565b3d91506110f0565b507f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a75990a54421115611061565b346101a85760206003193601126101a85760206108e5600435611890565b346101a85760206003193601126101a8576101e061118161117c611195565b611613565b604051918291602083526020830190611227565b600435906001600160a01b03821682036101a857565b60005b8381106111be5750506000910152565b81810151838201526020016111ae565b90601f19601f6020936111ec815180928187528780880191016111ab565b0116010190565b90815180825260208080930193019160005b828110611213575050505090565b835185529381019392810192600101611205565b91906001600160a01b0383511681526020906112508285015160c08484015260c08301906111ce565b60409260408601516004811015610ffa5760408495939295015260608601511515606084015260808601519383820360808501528080865193848152019501926000905b8382106112ba57505050505060a06112b7939401519060a08184039101526111f3565b90565b845180518852830151878401529586019593820193600190910190611294565b60c0810190811067ffffffffffffffff82111761041057604052565b6080810190811067ffffffffffffffff82111761041057604052565b6040810190811067ffffffffffffffff82111761041057604052565b67ffffffffffffffff811161041057604052565b90601f601f19910116810190811067ffffffffffffffff82111761041057604052565b67ffffffffffffffff811161041057601f01601f191660200190565b81601f820112156101a85780359061139882611365565b926113a66040519485611342565b828452602083830101116101a857816000926020809301838601378301015290565b9181601f840112156101a85782359167ffffffffffffffff83116101a8576020808501948460051b0101116101a857565b9060e06003198301126101a8576001600160a01b039160043583811681036101a8579260806023198301126101a85760405190611435826112f6565b60243582526044356020830152606435604083015260843590811681036101a85760608201529167ffffffffffffffff60a4358181116101a8578361147c91600401611381565b9260c4359182116101a857611493916004016113c8565b9091565b60031960409101126101a8576004359060243590565b90815180825260208080930193019160005b8281106114cd575050505090565b8351855293810193928101926001016114bf565b6020808201908083528351809252604092604081018260408560051b8401019601946000925b858410611518575050505050505090565b90919293949596858061157083603f1986600196030188528b519060c090825181528483015185820152888301518982015260608084015190820152608080840151908201528160a0809401519382015201906111f3565b990194019401929594939190611507565b60406003198201126101a8576004359067ffffffffffffffff82116101a8576115ac916004016113c8565b909160243590565b604051906115c1826112da565b606060a08360008152826020820152600060408201526000838201528260808201520152565b67ffffffffffffffff81116104105760051b60200190565b805182101561029a5760209160051b010190565b61162461161e6115b4565b91611cf3565b6001600160a01b0381541682526001908181016020604091825190600081549182881c92888116801561185b575b86851081146118475784865285939291879082156118095750506001146117c8575b5061168192500382611342565b81860152600283015460ff8116906004821015610ffa5760ff918488969496015260081c161515606086015260048101918254936116be856115e7565b926116cb83519485611342565b858452601f196116da876115e7565b0160005b81811061179f57505060808801938452825194828688815201906000528260002060005b8989821061178d5750505085611719910386611342565b60a0880194855260030160005b86811061173857505050505050505090565b80611786816117498b948a516115ff565b51611755828b516115ff565b51600052858752876000205488519161176d83611312565b82528782015288519061178083836115ff565b526115ff565b5001611726565b82548452928501929182019101611702565b839085989398516117af81611312565b60008152600083820152828289010152019691966116de565b915050600052818380600020886000915b8583106117f0575050611681935082010138611674565b80919294505483858801015201910184908885936117d9565b7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00168582015261168195151560051b85010192503891506116749050565b602484634e487b7160e01b81526022600452fd5b93607f1693611652565b805482101561029a576000526007602060002091020190600090565b6000198114610eb85760010190565b600090600090600091816000527f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a759904602081602052604093604060002054955b8681106118e0575050505050505090565b8185528383526118f281878720611865565b5060028101544210159081611924575b50611910575b6001016118cf565b9661191c600191611881565b979050611908565b60019150015442111538611902565b81810292918115918404141715610eb857565b91908203918211610eb857565b919081101561029a5760051b0190565b61196f90929192611cf3565b600083815260058201602052604090205415611aa95760009283526003810160205260ff6002604085205492015460081c16600014611aa557600460a06001600160a01b037f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a75990b5416604051928380927ffeaf968c0000000000000000000000000000000000000000000000000000000082525afa8015611a9a578490611a46575b620f42409150048015611a32576112b7929350670de0b6b3a764000004611933565b602484634e487b7160e01b81526012600452fd5b5060a0813d60a011611a92575b81611a6060a09383611342565b81010312611a8e5780611a76620f424092612387565b50611a88608060208301519201612387565b50611a10565b8380fd5b3d9150611a53565b6040513d86823e3d90fd5b9150565b602483604051907fb54df80b0000000000000000000000000000000000000000000000000000000082526004820152fd5b90611ae4826115e7565b604090611af46040519182611342565b838152601f19611b0482956115e7565b019160005b838110611b165750505050565b6020908251611b24816112da565b600081528260008183015260008583015260606000818401526000608084015260a0830152828601015201611b09565b611b5d82611c0e565b8051929060005b848110611b75575050505050600090565b826000527f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a759904602052611bb66040600020611baf83856115ff565b5190611865565b508460058201548110159182611bff575b82611be5575b5050611bdb57600101611b64565b5050505050600190565b600091825260040160205260409020541590508438611bcd565b60068101548211159250611bc7565b611c1781611890565b611c20816115e7565b91611c3c604092611c346040519586611342565b8085526115e7565b91601f19602093013660208601376000918293816000527f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a7599049182602052604060002054955b868110611c92575050505050505090565b81600052838352611ca68186600020611865565b5060028101544210159081611ce4575b50611cc4575b600101611c81565b94611cdc8187611cd66001948c6115ff565b52611881565b959050611cbc565b60019150015442111538611cb6565b6001600160a01b03809116806000527f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a75990591826020526040600020541615611d4257600052602052604060002090565b602490604051907fa110b8780000000000000000000000000000000000000000000000000000000082526004820152fd5b611d7c90611cf3565b6001600160a01b03928382541660ff6002840154166004811015610ffa5760028103611e285750505091809192541690825191602084015191606060408601519501511692813b156101a8576000608492819560405197889687957fba0a44b900000000000000000000000000000000000000000000000000000000875260048701526024860152604485015260648401525af18015610cb257611e1d5750565b611e269061132e565b565b611e9d57505082604091541692606083015116910151823b156101a8576040517f40c10f190000000000000000000000000000000000000000000000000000000081526001600160a01b039290921660048301526024820152906000908290604490829084905af18015610cb257611e1d5750565b9091506000809450809350602083519301915af13d15611f25573d90611ec282611365565b91611ed06040519384611342565b82523d6000602084013e5b15611ee35750565b611f21906040519182917f75970d920000000000000000000000000000000000000000000000000000000083526020600484015260248301906111ce565b0390fd5b606090611edb565b908160209103126101a857516001600160a01b03811681036101a85790565b3360009081527f1cdb71b56cfe48a4724112d097b937eef0957b851bbf9861eb509a8a30083cbb60205260408082205490917f70480ee89cb38eff00b7d23da25713d52ce19c6ed428691d22c58b2f615e3d679115611faa57505050565b33908351926060840184811067ffffffffffffffff82111761224e578552602a845260208401908536833784511561223a57603082538451936001946001101561218b576078602187015360295b8581116121dc57506121b357855192612010846112f6565b604284526020840194606036873784511561219f576030865384516001101561219f5790607860218601536041915b80831161213d57505050612114576120989385936120dc936120cd604894611f2199519889957f416363657373436f6e74726f6c3a206163636f756e7420000000000000000000602088015251809260378801906111ab565b8401917f206973206d697373696e6720726f6c65200000000000000000000000000000006037840152518093868401906111ab565b01036028810185520183611342565b519182917f08c379a00000000000000000000000000000000000000000000000000000000083526020600484015260248301906111ce565b600485517fc9134785000000000000000000000000000000000000000000000000000000008152fd5b909192600f8116601081101561218b57907f3031323334353637383961626364656600000000000000000000000000000000600019921a61217e868961239e565b5360041c9301919061203f565b602484634e487b7160e01b81526032600452fd5b602482634e487b7160e01b81526032600452fd5b600486517fc9134785000000000000000000000000000000000000000000000000000000008152fd5b90600f8116601081101561222657907f3031323334353637383961626364656600000000000000000000000000000000600019921a61221b848a61239e565b5360041c9101611ff8565b602486634e487b7160e01b81526032600452fd5b602483634e487b7160e01b81526032600452fd5b602483634e487b7160e01b81526041600452fd5b9061226c81611c0e565b80519160005b83811061228757505050505060001990600090565b816000527f67ddab7aa6f9a269bf6ff74574d31b121a3bbf7bf27aac44383142fa5a7599046020526122c16040600020611baf83866115ff565b50600581015486101580612311575b806122f9575b6122e35750600101612272565b9594509190506122f392506115ff565b51915490565b506000868152600482016020526040902054156122d6565b5060068101548611156122d0565b60008281526001820160205260408120549093929184911561234057505050565b809192939450546801000000000000000081101561224e576001810180835581101561223a5781846001928594604096526020852001558054948352016020522055600190565b519069ffffffffffffffffffff821682036101a857565b90815181101561029a57016020019056fea26469706673582212207e20018194ab74f0a1294dc69934f50a6670a4e8d0a210338b753bbf9803a6b264736f6c63430008170033",
+  "devdoc": {
+    "events": {
+      "Airdropped(address,address,uint256)": {
+        "params": {
+          "contractAddress": "The address of the contract from which the airdrop is initiated",
+          "quantity": "The number of tokens airdropped",
+          "to": "The address receiving the airdropped tokens"
+        }
+      },
+      "Minted(address,address,uint256,uint256)": {
+        "params": {
+          "contractAddress": "The address of the contract where minting occurred",
+          "quantity": "The number of tokens minted",
+          "to": "The address receiving the minted tokens",
+          "value": "The value associated with the minting event"
+        }
+      }
+    },
+    "kind": "dev",
+    "methods": {
+      "airdrop(address,(uint256,uint256,uint256,address),bytes)": {
+        "params": {
+          "additionalPayload": "The additional payload to be used for minting",
+          "contractAddress": "The address of the contract to airdrop tokens to",
+          "params": "The minting parameters"
+        }
+      },
+      "airdrop(address,(uint256,uint256,uint256,address),bytes,uint256[])": {
+        "params": {
+          "additionalPayload": "The additional payload to be used for minting",
+          "avatarIds": "The avatarIds to be added to the usedAvatarTokens list",
+          "contractAddress": "The address of the contract to airdrop tokens to",
+          "params": "The minting parameters"
+        }
+      },
+      "getActiveDiscountCount(uint256)": {
+        "params": {
+          "seasonId": "The season ID to check for active discounts"
+        },
+        "returns": {
+          "currentDiscountsCount": "uint256 The count of active discounts"
+        }
+      },
+      "getActiveDiscountIds(uint256)": {
+        "params": {
+          "seasonId": "The season ID to check for active discounts"
+        },
+        "returns": {
+          "currentDiscounts": "uint256[] The active discount IDs"
+        }
+      },
+      "getActiveDiscounts(uint256)": {
+        "params": {
+          "seasonId": "The season ID to check for active discounts"
+        },
+        "returns": {
+          "activeDiscounts": "DiscountReturn[] The active discounts"
+        }
+      },
+      "getAllDiscounts(uint256)": {
+        "params": {
+          "seasonId": "The season ID to check for active discounts"
+        },
+        "returns": {
+          "allDiscounts": "DiscountReturn[] The active discounts"
+        }
+      },
+      "getContract(address)": {
+        "params": {
+          "_contractAddress": "The address of the contract to get ContractData for"
+        },
+        "returns": {
+          "_contractData": "SilksMinterStorage.ContractData The ContractData for the contract"
+        }
+      },
+      "getContracts()": {
+        "returns": {
+          "contractData": "SilksMinterStorage.ContractData[] The ContractData for all contracts on the marketplace"
+        }
+      },
+      "getDiscount(uint256,uint256)": {
+        "params": {
+          "discountIndex": "The index of the discount to get data for",
+          "seasonId": "The season ID to get discount data for"
+        },
+        "returns": {
+          "avatarEndId": "End ID of the AvatarNFT's range for this discount",
+          "avatarStartId": "Start ID of the AvatarNFT's range for this discount",
+          "discountExpiration": "Unix timestamp for the expiration date of the discount",
+          "discountPercentage": "The discount percentage",
+          "discountStartDate": "Unix timestamp for the start date of the discount",
+          "usedAvatarTokens": "Array of avatar tokens that have used the discount"
+        }
+      },
+      "getDiscountsForAvatars(uint256[],uint256)": {
+        "params": {
+          "avatarIds": "Array of avatarIds to check for discount",
+          "seasonId": "Season ID to check for discount"
+        },
+        "returns": {
+          "eligibleAvatarsDiscounts": "AvatarDiscount[] Array of eligible avatars and their discountIndexes"
+        }
+      },
+      "getEligibleAvatarsForDiscount(uint256[],uint256)": {
+        "params": {
+          "avatarIds": "Array of avatarIds to check for discount",
+          "seasonId": "Season ID to check for discount"
+        }
+      },
+      "isAvatarEligibleForDiscount(uint256,uint256)": {
+        "params": {
+          "avatarId": "The avatar ID to check for discount",
+          "seasonId": "The season ID to check for discount"
+        }
+      },
+      "mint(address,(uint256,uint256,uint256,address),bytes,uint256[])": {
+        "details": "This is the main function for web3 minting to purchase and mint tokens.",
+        "params": {
+          "additionalPayload": "The additional payload to be used for minting",
+          "avatarIds": "The avatarIds to be added to the usedAvatarTokens list",
+          "contractAddress": "The address of the contract to mint tokens to",
+          "params": "The minting parameters"
+        }
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "events": {
+      "Airdropped(address,address,uint256)": {
+        "notice": "Emitted when tokens are airdropped to an address"
+      },
+      "Minted(address,address,uint256,uint256)": {
+        "notice": "Emitted when new tokens are minted"
+      }
+    },
+    "kind": "user",
+    "methods": {
+      "airdrop(address,(uint256,uint256,uint256,address),bytes)": {
+        "notice": "Airdrops tokens to the specified address and adds the avatarIds to the usedAvatarTokens list"
+      },
+      "airdrop(address,(uint256,uint256,uint256,address),bytes,uint256[])": {
+        "notice": "Airdrops tokens to the specified address and adds the avatarIds to the usedAvatarTokens list"
+      },
+      "getActiveDiscountCount(uint256)": {
+        "notice": "Get the count of active discounts for a given seasonId"
+      },
+      "getActiveDiscountIds(uint256)": {
+        "notice": "Returns the discount IDs that are currently active for a given seasonId"
+      },
+      "getActiveDiscounts(uint256)": {
+        "notice": "Returns the active discounts for a given seasonId"
+      },
+      "getAllDiscounts(uint256)": {
+        "notice": "Returns all discounts for a given seasonId, regardless of whether they are active or not"
+      },
+      "getAvatarAddress()": {
+        "notice": "Get the address for the Avatar contract on this chain."
+      },
+      "getContract(address)": {
+        "notice": "Get the contract data for a given contract address"
+      },
+      "getContracts()": {
+        "notice": "Return all contract data currently on the marketplace"
+      },
+      "getDiscount(uint256,uint256)": {
+        "notice": "Get the discount data for a given discount index and seasonId"
+      },
+      "getDiscountsForAvatars(uint256[],uint256)": {
+        "notice": "Given an array of avatarIds and a seaosonId, return the avatars that are eligible for a discount and the discountIndex for the given avatarId."
+      },
+      "getEligibleAvatarsForDiscount(uint256[],uint256)": {
+        "notice": "Given an array of avatarIds and a seasonId, return the avatars that are eligible for a discount"
+      },
+      "getPriceFeed()": {
+        "notice": "Get the address for the price feed."
+      },
+      "isAvatarEligibleForDiscount(uint256,uint256)": {
+        "notice": "Check if an avatar is eligible for a discount"
+      },
+      "mint(address,(uint256,uint256,uint256,address),bytes,uint256[])": {
+        "notice": "External function to mint tokens to the specified address"
+      }
+    },
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [],
+    "types": null
+  }
+}

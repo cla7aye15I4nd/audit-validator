@@ -1,0 +1,58 @@
+#include "../common/stdlib.fc";
+#include "../common/dic.fc";
+#include "../common/message.fc";
+#include "op.fc";
+#include "storage.fc";
+#include "errors.fc";
+
+() handle_pool_messages(int op, int query_id, int my_balance, int msg_value, slice in_msg_body) impure inline {
+    if (op == swap_failed) {
+        (cell receipt_info, var message_id, var exit_code, var seconds) = (in_msg_body~load_ref(), in_msg_body~load_uint(256), in_msg_body~load_uint(32), in_msg_body~load_uint(64));
+        slice receipt = receipt_info.begin_parse();
+        (cell receipt_id,int receipt_hash) = (receipt~load_ref(), receipt~load_uint(256));
+        storage::receipt_record_dic~udict_set_builder(DEFAULT_KEY_LENGTH, receipt_hash, begin_cell().store_int(0, 1));
+        var body = begin_cell()
+            .store_uint(resend_to_oracle, 32)
+            .store_uint(query_id, 64)
+            .store_slice(storage::jetton_address)
+            .store_uint(message_id, 256)
+            .store_uint(seconds, 64)
+            .store_uint(exit_code, 32)
+            .store_ref(receipt_id)
+            .end_cell();
+        send_simple_message(0, storage::bridge_address, body, SEND_MODE_CARRY_ALL_REMAINING_MESSAGE_VALUE | SEND_MODE_IGNORE_ERRORS);
+        save_storage();
+        return ();
+    }
+    if (op == record_swap) {
+        (var swap_id, cell receipt_id, var amount) = (in_msg_body~load_ref().begin_parse(), in_msg_body~load_ref(), in_msg_body~load_coins());
+        int swap_id_hash = swap_id~load_uint(256);
+        (var swap_info, int found_swap) = storage::swap_dic.udict_get?(DEFAULT_KEY_LENGTH, swap_id_hash);
+        (int from_chain_id, int orgin_share, int target_share, int swapped_amount, int swapped_times) =
+        (swap_info~load_uint(32), swap_info~load_uint(64), swap_info~load_uint(64), swap_info~load_uint(256), swap_info~load_uint(256));
+        swapped_amount += amount;
+        swapped_times += 1;
+        
+        storage::swap_dic~udict_set_builder(DEFAULT_KEY_LENGTH, swap_id_hash, begin_cell()
+            .store_uint(from_chain_id, 32)
+            .store_uint(orgin_share, 64)
+            .store_uint(target_share, 64)
+            .store_uint(swapped_amount, 256)
+            .store_uint(swapped_times, 256));
+        send_simple_message(0, storage::bridge_address,
+            begin_cell()
+                .store_uint(swap_ok, 32)
+                .store_uint(query_id, 64)
+                .store_uint(from_chain_id, 32)
+                .store_slice(storage::owner)
+                .store_slice(storage::jetton_address)
+                .store_coins(amount)
+                .store_ref(receipt_id)
+                .end_cell()
+            , SEND_MODE_CARRY_ALL_REMAINING_MESSAGE_VALUE | SEND_MODE_IGNORE_ERRORS);
+        save_storage();
+        return ();
+    }
+
+    throw(WRONG_OP);
+}

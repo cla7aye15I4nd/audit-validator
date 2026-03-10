@@ -1,0 +1,42 @@
+;; Setup file for sushi-exchange-tokens tests
+(env-enable-repl-natives true)
+
+(begin-tx "burn test tokens for not ISSUER")
+(env-data {
+  "ns": "sushi"
+})
+(namespace (read-msg "ns"))
+(use base)
+(env-sigs [{"key": 'any, "caps": []}])
+
+(expect-failure "burn should fail when using alice's keyset"
+    "Managed capability not installed: (sushi.sushi-exchange-tokens.BURN \"TEST1\" \"alice\" 1000.0)"
+    (sushi-exchange-tokens.burn "TEST1" ALICE 1000.0))
+(commit-tx)
+
+(begin-tx "burn test tokens for ISSUER")
+(env-data {
+  "ns": "sushi"
+})
+(namespace (read-msg "ns"))
+(use base)
+(env-data {
+  "admin-keyset": {"keys": [ADMIN_KEY], "pred": "keys-all"}
+})
+
+;; Set up ISSUER capabilities after loading all modules
+(env-sigs [{"key": ADMIN_KEY, "caps": [
+  (sushi-exchange-tokens.BURN "TEST1" ADMIN 100.0),
+  (sushi-exchange-tokens.DEBIT "TEST1" ADMIN)
+]}])
+
+;; Store initial balance
+(let ((initial-balance (sushi-exchange-tokens.get-balance "TEST1" ADMIN)))
+  (sushi-exchange-tokens.burn "TEST1" ADMIN 100.0)
+
+  ;; Verify balance decreased by 100.0
+  (expect "Balance should decrease by 100.0"
+    (- initial-balance 100.0)
+    (sushi-exchange-tokens.get-balance "TEST1" ADMIN)))
+
+(commit-tx)

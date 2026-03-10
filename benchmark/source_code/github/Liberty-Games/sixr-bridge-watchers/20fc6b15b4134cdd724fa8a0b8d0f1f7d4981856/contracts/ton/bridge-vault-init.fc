@@ -1,0 +1,30 @@
+;;
+;; TON Bridge Vault - Initialization Data Builder
+;;
+;; This file provides the initialization function for deploying the vault contract.
+;;
+
+#include "stdlib.fc";
+
+;; Build initial storage for the vault contract
+cell build_initial_storage(
+    slice admin_address,           ;; Admin address (can update fee wallet, etc.)
+    slice fee_wallet_address,      ;; Wallet to receive fees
+    slice allowed_jetton_address,  ;; Whitelisted jetton root address
+    int fee_basis_points           ;; Fee percentage in basis points (default 100 = 1%)
+) {
+    ;; Build stats cell
+    cell stats_cell = begin_cell()
+        .store_uint(0, 128)              ;; total_burned = 0
+        .store_uint(0, 128)              ;; total_fees = 0
+    .end_cell();
+
+    ;; Build storage cell
+    return begin_cell()
+        .store_slice(admin_address)
+        .store_slice(fee_wallet_address)
+        .store_slice(allowed_jetton_address)
+        .store_uint(fee_basis_points, 16)  ;; fee_basis_points (default 100 = 1%)
+        .store_ref(stats_cell)
+    .end_cell();
+}

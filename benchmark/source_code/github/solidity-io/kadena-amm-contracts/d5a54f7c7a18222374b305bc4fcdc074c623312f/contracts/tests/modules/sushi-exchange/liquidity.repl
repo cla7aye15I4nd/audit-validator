@@ -1,0 +1,135 @@
+
+(begin-tx "test-liquidity-admin")
+  (env-data {
+  "ns": "sushi"
+})
+(namespace (read-msg "ns"))
+  (use base)
+  
+  (env-data {
+    "admin-keyset": {"keys": [ADMIN_KEY], "pred": "keys-all"},
+    "alice-keyset": {"keys": [ALICE_KEY], "pred": "keys-all"},
+    "bob-keyset": {"keys": [BOB_KEY], "pred": "keys-all"},
+    "charlie-keyset": {"keys": [CHARLIE_KEY], "pred": "keys-all"}
+  })
+  (use token1)
+  (use token2)
+  
+  (let* ((pair (sushi-exchange.get-pair token1 token2))
+         (pair-account (at "account" pair))
+         (pair-key (sushi-exchange.get-pair-key token1 token2))
+         (amount0 100.0)  ;; amount of token1
+         (amount1 100.0)  ;; amount of token2
+        )
+
+      (print (format "pair-account: {}" [pair-account]))
+      
+    ;; Set transfer capabilities for the actual transfer
+    (env-sigs [{"key": ADMIN_KEY, 
+                "caps": [
+                  (token1.TRANSFER ADMIN pair-account 100.0),
+                  (token2.TRANSFER ADMIN pair-account 100.0)
+                ]}
+              ])
+
+    (let ((result (sushi-exchange.add-liquidity 
+      token1 token2 100.0 100.0 0.0 0.0 
+      ADMIN ADMIN constants.ADMIN_GUARD)))
+      (let ((liquidity (at 'liquidity result))
+            (supply (at 'supply result))
+            (amount0 (at 'amount0 result))
+            (amount1 (at 'amount1 result)))
+        (expect "Liquidity should be positive" true (> liquidity 0.0))
+        (expect "Supply should be positive" true (> supply 0.0))
+        (expect "Amount0 should be positive" true (> amount0 0.0))
+        (expect "Amount1 should be positive" true (> amount1 0.0))))
+  )    
+(commit-tx)
+
+(begin-tx "test-liquidity-alice")
+  (env-data {
+  "ns": "sushi"
+})
+(namespace (read-msg "ns"))
+  (use base)
+  
+  (env-data {
+    "admin-keyset": {"keys": [ADMIN_KEY], "pred": "keys-all"},
+    "alice-keyset": {"keys": [ALICE_KEY], "pred": "keys-all"},
+    "bob-keyset": {"keys": [BOB_KEY], "pred": "keys-all"},
+    "charlie-keyset": {"keys": [CHARLIE_KEY], "pred": "keys-all"}
+  })
+  (use token1)
+  (use token2)
+  
+  (let* ((pair (sushi-exchange.get-pair token1 token2))
+         (pair-account (at "account" pair))
+         (pair-key (sushi-exchange.get-pair-key token1 token2))
+         (amount0 100.0)  ;; amount of token1
+         (amount1 100.0)  ;; amount of token2
+        )
+
+      (print (format "pair-account: {}" [pair-account]))
+      
+    ;; Set transfer capabilities for the actual transfer
+    (env-sigs [{"key": ALICE_KEY, 
+                "caps": [
+                  (token1.TRANSFER ALICE pair-account 100.0),
+                  (token2.TRANSFER ALICE pair-account 100.0)
+                ]}
+              ])
+
+    (let ((result (sushi-exchange.add-liquidity 
+      token1 token2 100.0 100.0 0.0 0.0 
+      ALICE ALICE ALICE_GUARD)))
+      (let ((liquidity (at 'liquidity result))
+            (supply (at 'supply result))
+            (amount0 (at 'amount0 result))
+            (amount1 (at 'amount1 result)))
+        (expect "Liquidity should be positive" true (> liquidity 0.0))
+        (expect "Supply should be positive" true (> supply 0.0))
+        (expect "Amount0 should be positive" true (> amount0 0.0))
+        (expect "Amount1 should be positive" true (> amount1 0.0))))
+  )    
+(commit-tx)
+
+(begin-tx "test-remove-liquidity")
+  (env-data {
+  "ns": "sushi"
+})
+(namespace (read-msg "ns"))
+  (use base)
+  (use token1)
+  (use token2)
+
+  (env-data {
+    "admin-keyset": {"keys": [ADMIN_KEY], "pred": "keys-all"}
+  })  
+
+  (let* ((pair (sushi-exchange.get-pair token1 token2))
+         (pair-account (at "account" pair))
+         (pair-key (sushi-exchange.get-pair-key token1 token2))
+         (liquidity 10.0)
+         (total-supply (sushi-exchange-tokens.total-supply pair-key))
+         (balance0 (token1.get-balance pair-account))
+         (balance1 (token2.get-balance pair-account))
+         (amount0 (sushi-exchange.truncate token1 (/ (* liquidity balance0) total-supply)))
+         (amount1 (sushi-exchange.truncate token2 (/ (* liquidity balance1) total-supply))))  
+
+    (env-sigs [{"key": ADMIN_KEY, 
+                "caps": [
+                  (sushi-exchange-tokens.ISSUE),
+                  (sushi-exchange-tokens.TRANSFER pair-key ADMIN pair-account liquidity)
+                ]}])
+
+    (let ((result (sushi-exchange.remove-liquidity 
+      token1 token2 liquidity 0.0 0.0 
+      ADMIN ADMIN constants.ADMIN_GUARD)))
+      (let ((result-amount0 (at 'amount0 result))
+            (result-amount1 (at 'amount1 result)))
+        (print "Remove liquidity result:")
+        (print result)
+        (expect "Amount0 should match calculated amount" amount0 result-amount0)
+        (expect "Amount1 should match calculated amount" amount1 result-amount1))) 
+  )
+(commit-tx)

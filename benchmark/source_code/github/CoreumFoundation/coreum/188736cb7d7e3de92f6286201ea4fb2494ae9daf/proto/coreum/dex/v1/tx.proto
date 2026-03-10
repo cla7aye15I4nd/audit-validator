@@ -1,0 +1,94 @@
+syntax = "proto3";
+package coreum.dex.v1;
+
+import "amino/amino.proto";
+import "coreum/dex/v1/order.proto";
+import "coreum/dex/v1/params.proto";
+import "cosmos/msg/v1/msg.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/CoreumFoundation/coreum/v5/x/dex/types";
+option (gogoproto.goproto_getters_all) = false;
+
+// Msg defines the Msg service.
+service Msg {
+  option (cosmos.msg.v1.service) = true;
+  // UpdateParams is a governance operation to modify the parameters of the module.
+  // NOTE: all parameters must be provided.
+  rpc UpdateParams(MsgUpdateParams) returns (EmptyResponse);
+
+  // PlaceOrder place an order on orderbook.
+  rpc PlaceOrder(MsgPlaceOrder) returns (EmptyResponse);
+  // CancelOrder cancels an order in the orderbook.
+  rpc CancelOrder(MsgCancelOrder) returns (EmptyResponse);
+  // CancelOrdersByDenom cancels all orders by denom and account.
+  rpc CancelOrdersByDenom(MsgCancelOrdersByDenom) returns (EmptyResponse);
+}
+
+message MsgUpdateParams {
+  option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "dex/MsgUpdateParams";
+
+  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  Params params = 2 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+}
+
+// MsgPlaceOrder defines message to place an order on orderbook.
+message MsgPlaceOrder {
+  option (cosmos.msg.v1.signer) = "sender";
+  option (amino.name) = "dex/MsgPlaceOrder";
+
+  // sender is order creator address.
+  string sender = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // type is order type.
+  OrderType type = 2;
+  // id is unique order ID.
+  string id = 3 [(gogoproto.customname) = "ID"];
+  // base_denom is base order denom.
+  string base_denom = 4;
+  // quote_denom is quote order denom
+  string quote_denom = 5;
+  // price is value of one unit of the base_denom expressed in terms of the quote_denom.
+  string price = 6 [(gogoproto.customtype) = "Price"];
+  // quantity is amount of the base base_denom being traded.
+  string quantity = 7 [
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+  // side is order side.
+  Side side = 8;
+  // good_til is order good til
+  GoodTil good_til = 9;
+  // time_in_force is order time in force
+  TimeInForce time_in_force = 10;
+}
+
+// MsgCancelOrder defines message to cancel the order in the orderbook.
+message MsgCancelOrder {
+  option (cosmos.msg.v1.signer) = "sender";
+  option (amino.name) = "dex/MsgCancelOrder";
+
+  // sender is order creator address.
+  string sender = 1;
+  // id is unique order ID.
+  string id = 2 [(gogoproto.customname) = "ID"];
+}
+
+// MsgCancelOrdersByDenom defines message to cancel all orders by denom and account.
+message MsgCancelOrdersByDenom {
+  option (cosmos.msg.v1.signer) = "sender";
+  option (amino.name) = "dex/MsgCancelOrdersByDenom";
+
+  // sender is order creator address.
+  string sender = 1;
+  // account is order creator address.
+  string account = 2;
+  // denom is orders denom.
+  string denom = 3;
+}
+
+message EmptyResponse {}

@@ -1,0 +1,158 @@
+/*
+ * TL-B Schema Definitions for TON Bridge Vault
+ *
+ * This file defines the binary serialization format for all vault operations,
+ * events, and storage structures.
+ */
+
+//
+// ============================================================================
+// STORAGE STRUCTURE
+// ============================================================================
+//
+
+// Vault statistics stored in reference cell
+vault_stats#_
+    total_burned:uint128        // Total amount burned (for stats)
+    total_fees:uint128          // Total fees collected (for stats)
+    = VaultStats;
+
+// Vault storage layout (optimized to fit within cell size limits)
+// Note: 3 addresses (267 bits each) + uint16 = 817 bits + 1 ref < 1023 bit limit
+vault_storage#56415554
+    admin:MsgAddressInt         // Admin address (for governance)
+    fee_wallet:MsgAddressInt    // Wallet to receive fees
+    allowed_jetton:MsgAddressInt // Whitelisted jetton root address
+    fee_basis_points:uint16     // Fee percentage in basis points (100 = 1%, max 1000 = 10%)
+    stats:^VaultStats           // Reference to stats cell
+    = VaultStorage;
+
+//
+// ============================================================================
+// GOVERNANCE OPERATIONS
+// ============================================================================
+//
+
+// Set fee wallet address (admin only)
+set_fee_wallet#46454557
+    new_fee_wallet:MsgAddressInt
+    = SetFeeWallet;
+
+// Set fee basis points (admin only)
+set_fee_basis_points#46454250
+    new_fee_basis_points:uint16     // New fee in basis points (0-1000, max 10%)
+    = SetFeeBasisPoints;
+
+// Set admin address (admin only)
+set_admin#41444d4e
+    new_admin:MsgAddressInt
+    = SetAdmin;
+
+// Set allowed jetton root (admin only)
+set_allowed_jetton#414c4c57
+    new_jetton:MsgAddressInt
+    = SetAllowedJetton;
+
+//
+// ============================================================================
+// EVENT LOGS (Internal messages emitted for off-chain monitoring)
+// ============================================================================
+//
+
+// Emitted when jettons are deposited to vault (before burn)
+deposit_log#4445504f
+    from_address:MsgAddressInt  // User who sent jettons
+    total_amount:uint128        // Total amount deposited (100%)
+    fee_amount:uint128          // Fee amount (1%)
+    burn_amount:uint128         // Burn amount (99%)
+    timestamp:uint64            // Deposit timestamp
+    = DepositLog;
+
+// Emitted when jettons are burned (watchers listen for this)
+burn_log#4255524e
+    from_address:MsgAddressInt  // User who initiated bridge
+    burn_amount:uint128         // Amount burned = amount to mint on EVM (99%)
+    fee_amount:uint128          // Fee collected (1%)
+    original_amount:uint128     // Original amount deposited (100%)
+    timestamp:uint64            // Burn timestamp
+    = BurnLog;
+
+// Emitted when fee wallet is updated
+fee_wallet_updated_log#46454557
+    old_fee_wallet:MsgAddressInt
+    new_fee_wallet:MsgAddressInt
+    timestamp:uint64
+    = FeeWalletUpdatedLog;
+
+// Emitted when fee basis points are updated
+fee_basis_points_updated_log#46454250
+    old_fee_basis_points:uint16
+    new_fee_basis_points:uint16
+    timestamp:uint64
+    = FeeBasisPointsUpdatedLog;
+
+// Emitted when admin is updated
+admin_updated_log#41444d4e
+    old_admin:MsgAddressInt
+    new_admin:MsgAddressInt
+    timestamp:uint64
+    = AdminUpdatedLog;
+
+// Emitted when allowed jetton is updated
+jetton_updated_log#414c4c57
+    old_jetton:MsgAddressInt
+    new_jetton:MsgAddressInt
+    timestamp:uint64
+    = JettonUpdatedLog;
+
+//
+// ============================================================================
+// JETTON OPERATIONS (TEP-74 Standard)
+// ============================================================================
+//
+
+// Jetton transfer notification (received from jetton wallet)
+// This is the standard TEP-74 jetton transfer notification
+transfer_notification#7362d09c
+    query_id:uint64
+    amount:Coins
+    sender:MsgAddressInt
+    forward_payload:(Either Cell ^Cell)
+    = JettonTransferNotification;
+
+// Jetton transfer (sent to jetton wallet for fee transfer)
+jetton_transfer#f8a7ea5
+    query_id:uint64
+    amount:Coins
+    destination:MsgAddressInt
+    response_destination:MsgAddressInt
+    custom_payload:(Maybe ^Cell)
+    forward_ton_amount:Coins
+    forward_payload:(Either Cell ^Cell)
+    = JettonTransfer;
+
+// Jetton burn (sent to jetton wallet)
+jetton_burn#595f07bc
+    query_id:uint64
+    amount:Coins
+    response_destination:MsgAddressInt
+    = JettonBurn;
+
+//
+// ============================================================================
+// FEE CONFIGURATION
+// ============================================================================
+//
+
+// Fee configuration is now dynamic (stored in contract state):
+// fee_basis_points: uint16 (default 100 = 1%, max 1000 = 10%)
+// BPS_DENOMINATOR = 10000 (100%)
+//
+// Formula: fee_amount = (total_amount * fee_basis_points) / 10000
+// Examples:
+//   fee_basis_points = 100 (1%):  1000 jettons → 10 fee, 990 burned
+//   fee_basis_points = 50 (0.5%): 1000 jettons → 5 fee, 995 burned
+//   fee_basis_points = 200 (2%):  1000 jettons → 20 fee, 980 burned
+//
+// Fee can be updated by admin via OP_SET_FEE_BASIS_POINTS operation
+// or by multisig governance via ACTION_SET_VAULT_FEE_BASIS_POINTS

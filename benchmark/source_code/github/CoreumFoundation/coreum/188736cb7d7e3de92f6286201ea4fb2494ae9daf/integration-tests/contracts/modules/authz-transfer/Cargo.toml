@@ -1,0 +1,21 @@
+[package]
+name = "authz-transfer"
+version = "0.1.0"
+authors = ["Coreum"]
+edition = "2021"
+
+exclude = ["authz-transfer.wasm", "checksums.txt"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+library = []
+
+[dependencies]
+thiserror.workspace = true
+cosmwasm-std.workspace = true
+cw2.workspace = true
+cw-storage-plus.workspace = true
+cosmwasm-schema.workspace = true
+coreum-wasm-sdk.workspace = true

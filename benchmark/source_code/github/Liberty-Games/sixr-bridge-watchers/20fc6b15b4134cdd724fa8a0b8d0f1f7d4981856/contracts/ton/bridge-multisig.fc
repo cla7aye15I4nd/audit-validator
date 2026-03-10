@@ -1,0 +1,1082 @@
+;;
+;; TON Bridge Multisig Contract
+;;
+;; This contract implements a multisig bridge with:
+;; - 3-of-5 watcher quorum for mint operations (EVM->TON)
+;; - 3-of-5 governance quorum for admin operations
+;; - Ed25519 signature verification
+;; - Replay protection via nonces
+;; - Event logging via internal messages
+;;
+
+#include "stdlib.fc";
+
+;; ============================================================================
+;; CONSTANTS
+;; ============================================================================
+
+;; Operation codes
+const int OP_EXECUTE_MINT = 0x4d494e54;           ;; "MINT"
+const int OP_EXECUTE_GOVERNANCE = 0x474f5645;     ;; "GOVE"
+const int OP_EXECUTE_WITHDRAW_TON = 0x574452415720; ;; "WDRAW " - Withdraw TON funds with 3-of-5
+const int OP_MINT_JETTON = 0x15;                  ;; Jetton mint (21)
+const int OP_INTERNAL_TRANSFER = 0x178d4519;      ;; Jetton internal transfer
+const int OP_TRANSFER_OWNERSHIP = 3;              ;; change_admin (TEP-74 standard)
+
+;; Vault operation codes (for governance actions sent to vault)
+const int OP_VAULT_SET_FEE_WALLET = 0x46454557;         ;; "FEEW" - Set vault fee wallet
+const int OP_VAULT_SET_FEE_BASIS_POINTS = 0x46454250;   ;; "FEBP" - Set vault fee basis points
+
+;; Governance action types
+const int ACTION_UPDATE_WATCHERS = 0x01;
+const int ACTION_UPDATE_GOVERNANCE = 0x02;
+const int ACTION_SET_TOKEN_STATUS = 0x03;
+const int ACTION_TRANSFER_TOKEN_OWNER = 0x04;
+const int ACTION_WITHDRAW_TON_FUNDS = 0x05;
+const int ACTION_MAP_TOKEN = 0x06;
+const int ACTION_SET_MINT_NONCE = 0x07;
+const int ACTION_SET_FEE_WALLET = 0x08;
+const int ACTION_SET_VAULT_FEE_RECIPIENT = 0x09;
+const int ACTION_SET_VAULT_FEE_BASIS_POINTS = 0x0A;
+
+;; Thresholds
+const int WATCHER_THRESHOLD = 3;
+const int WATCHER_COUNT = 5;
+const int GOVERNANCE_THRESHOLD = 3;
+const int GOVERNANCE_COUNT = 5;
+
+;; Gas constants
+const int GAS_FOR_JETTON_MINT = 250000000;        ;; 0.25 TON for jetton mint (total)
+const int GAS_FOR_LOG = 10000000;                 ;; 0.01 TON for event log
+const int GAS_FOR_VAULT_OP = 50000000;            ;; 0.05 TON for vault operations
+const int JW_FORWARD_VALUE = 50000000;            ;; 0.05 TON to jetton wallet
+const int OWNER_FORWARD_TON = 50000000;           ;; 0.05 TON JW -> owner
+
+;; Error codes
+const int ERR_UNAUTHORIZED = 100;
+const int ERR_INVALID_SIGNATURE = 101;
+const int ERR_DUPLICATE_SIGNER = 102;
+const int ERR_THRESHOLD_NOT_MET = 103;
+const int ERR_INVALID_NONCE = 104;
+const int ERR_PAYLOAD_CONSUMED = 105;
+const int ERR_TOKEN_NOT_ALLOWED = 106;
+const int ERR_INVALID_ACTION = 107;
+const int ERR_INVALID_WATCHER_COUNT = 108;
+const int ERR_INVALID_GOVERNANCE_COUNT = 109;
+const int ERR_INSUFFICIENT_BALANCE = 110;
+const int ERR_INVALID_DESTINATION = 111;
+
+;; ============================================================================
+;; STORAGE LAYOUT
+;; ============================================================================
+
+;; Storage structure (optimized to fit within 4 refs per cell limit):
+;; Main cell:
+;; (
+;;   watchers:           ^dict(uint8 -> bits256)  - Watcher public keys by index (5 watchers)
+;;   governance:         ^dict(uint8 -> bits256)  - Governance public keys by index (5 members)
+;;   allowed_jettons:    ^dict(MsgAddressInt -> uint1) - Jetton whitelist
+;;   operations:         ^Cell                   - Operations data (see below)
+;;   mint_nonce:         uint64                  - Last consumed mint nonce
+;;   governance_nonce:   uint64                  - Last consumed governance nonce
+;;   governance_epoch:   uint64                  - Increments on watcher/governance rotation
+;; )
+;;
+;; Operations cell contains:
+;; (
+;;   token_mappings:     ^dict(bits256 -> MsgAddressInt) - EVM token -> TON jetton root
+;;   consumed_hashes:    ^dict(bits256 -> uint1) - Consumed payload hashes
+;;   consumed_references: ^dict(uint64 -> uint1)  - Consumed withdrawal references
+;;   fee_wallet:         MsgAddressInt           - Wallet to receive 1% bridge fees (TON->EVM flow)
+;; )
+
+global cell watchers;
+global cell governance;
+global cell allowed_jettons;
+global cell token_mappings;
+global int mint_nonce;
+global int governance_nonce;
+global int governance_epoch;
+global cell consumed_hashes;
+global cell consumed_references;
+global slice fee_wallet;
+
+;; Some dictionaries (token mappings, consumed hashes/references) are stored empty in
+;; the initial state. When represented as raw cells they lack any bits/refs, which
+;; causes udict_* helpers to underflow on first access. This helper normalizes such
+;; cells by replacing them with a fresh empty dict before the rest of the contract
+;; logic touches them.
+;;
+;; Key insight: Empty dicts in TVM are represented as () (null), which works for
+;; dict operations. Empty cells (0 bits, 0 refs) do NOT work for dict operations.
+cell ensure_initialized_dict(cell dict_cell) inline {
+    slice dict_slice = dict_cell.begin_parse();
+    if ((slice_bits(dict_slice) == 0) & (slice_refs(dict_slice) == 0)) {
+        return new_dict();
+    }
+    return dict_cell;
+}
+
+() load_data() impure {
+    slice ds = get_data().begin_parse();
+    ;; Load watchers, governance, allowed_jettons
+    ;; These dicts should NEVER be empty (watchers has 5 members, governance has 5)
+    watchers = ds~load_ref();
+    governance = ds~load_ref();
+    allowed_jettons = ds~load_ref();
+
+    ;; Operations cell contains: token_mappings, consumed_hashes, consumed_references, fee_wallet
+    ;; Dicts CAN be empty initially, stored as empty cells (0 bits, 0 refs)
+    cell operations_cell = ds~load_ref();
+    slice ops = operations_cell.begin_parse();
+    token_mappings = ensure_initialized_dict(ops~load_ref());
+    consumed_hashes = ensure_initialized_dict(ops~load_ref());
+    consumed_references = ensure_initialized_dict(ops~load_ref());
+    fee_wallet = ops~load_msg_addr();  ;; Load fee wallet address
+
+    ;; ensure_initialized_dict() converts empty cells → () for dict operations
+
+    mint_nonce = ds~load_uint(64);
+    governance_nonce = ds~load_uint(64);
+    governance_epoch = ds~load_uint(64);
+}
+
+;; Convert dict to storable cell: () → empty cell, or return cell as-is
+;; This allows us to store () dicts using store_ref()
+cell dict_as_cell(cell dict) inline_ref {
+    ifnot (null?(dict)) {
+        return dict;
+    }
+    ;; dict is (), return empty cell
+    return begin_cell().end_cell();
+}
+
+() save_data() impure {
+    ;; Build operations cell: token_mappings, consumed_hashes, consumed_references, fee_wallet
+    ;; Convert () → empty cell before storing with store_ref()
+    cell operations_cell = begin_cell()
+        .store_ref(dict_as_cell(token_mappings))
+        .store_ref(dict_as_cell(consumed_hashes))
+        .store_ref(dict_as_cell(consumed_references))
+        .store_slice(fee_wallet)
+    .end_cell();
+
+    ;; Build main storage (4 refs max per cell)
+    set_data(
+        begin_cell()
+            .store_ref(watchers)
+            .store_ref(governance)
+            .store_ref(allowed_jettons)
+            .store_ref(operations_cell)
+            .store_uint(mint_nonce, 64)
+            .store_uint(governance_nonce, 64)
+            .store_uint(governance_epoch, 64)
+        .end_cell()
+    );
+}
+
+;; ============================================================================
+;; HELPER FUNCTIONS
+;; ============================================================================
+
+;; Check if a public key exists in a dictionary
+int dict_has_key(cell dict, int key) inline {
+    (slice value, int found) = dict.udict_get?(8, key);
+    return found;
+}
+
+;; Get public key from dictionary by index
+int get_pubkey(cell dict, int index) inline {
+    (slice value, int found) = dict.udict_get?(8, index);
+    throw_unless(ERR_UNAUTHORIZED, found);
+    return value~load_uint(256);
+}
+
+;; Set public key in dictionary at index
+cell set_pubkey(cell dict, int index, int pubkey) inline {
+    return dict.udict_set_builder(8, index, begin_cell().store_uint(pubkey, 256));
+}
+
+;; Check if jetton is allowed
+int is_jetton_allowed(slice jetton_addr) inline {
+    int addr_hash = slice_hash(jetton_addr);
+    (slice value, int found) = allowed_jettons.udict_get?(256, addr_hash);
+    if (~ found) {
+        return 0;
+    }
+    return value~load_uint(1);
+}
+
+;; Set jetton allowed status
+() set_jetton_allowed(slice jetton_addr, int status) impure inline {
+    int addr_hash = slice_hash(jetton_addr);
+    allowed_jettons = allowed_jettons.udict_set_builder(256, addr_hash, begin_cell().store_uint(status, 1));
+}
+
+;; Get TON jetton root for EVM token
+;; Returns (jetton_root_slice, found)
+(slice, int) get_token_mapping(int evm_token) inline {
+    (slice value, int found) = token_mappings.udict_get?(256, evm_token);
+    if (~ found) {
+        return (begin_cell().end_cell().begin_parse(), 0);
+    }
+    return (value~load_msg_addr(), 1);
+}
+
+;; Set token mapping
+() set_token_mapping(int evm_token, slice ton_jetton_root) impure inline {
+    token_mappings = token_mappings.udict_set_builder(256, evm_token, begin_cell().store_slice(ton_jetton_root));
+}
+
+;; Check if payload hash has been consumed
+int is_hash_consumed(int hash) inline {
+    (slice value, int found) = consumed_hashes.udict_get?(256, hash);
+    if (~ found) {
+        return 0;
+    }
+    return value~load_uint(1);
+}
+
+;; Mark payload hash as consumed
+() mark_hash_consumed(int hash) impure inline {
+    consumed_hashes = consumed_hashes.udict_set_builder(256, hash, begin_cell().store_uint(1, 1));
+}
+
+;; Validate that destination address is a valid TON address
+() validate_destination_address(slice addr) impure inline {
+    ;; Check that address is not empty and is properly formatted
+    ;; MsgAddressInt should have proper structure (addr_std$10 or addr_var$11)
+    throw_if(ERR_INVALID_DESTINATION, addr.slice_empty?());
+
+    ;; Parse address prefix to ensure it's valid
+    int addr_type = addr.preload_uint(2);
+    ;; Valid types: addr_std (0b10) or addr_var (0b11)
+    throw_unless(ERR_INVALID_DESTINATION, (addr_type == 2) | (addr_type == 3));
+}
+
+;; Check if withdrawal reference has been consumed
+int is_reference_consumed(int reference) inline {
+    (slice value, int found) = consumed_references.udict_get?(64, reference);
+    if (~ found) {
+        return 0;
+    }
+    return value~load_uint(1);
+}
+
+;; Mark withdrawal reference as consumed
+() mark_reference_consumed(int reference) impure inline {
+    consumed_references = consumed_references.udict_set_builder(64, reference, begin_cell().store_uint(1, 1));
+}
+
+;; ============================================================================
+;; PAYLOAD HASHING
+;; ============================================================================
+
+;; Hash mint payload according to TL-B schema
+;; mint_payload#4d494e54 origin_chain_id:uint32 token:bits256 ton_recipient:MsgAddressInt amount:uint128 nonce:uint64 epoch:uint64 = MintPayload;
+int hash_mint_payload(int origin_chain_id, int token, slice ton_recipient, int amount, int nonce, int epoch) inline {
+    cell payload = begin_cell()
+        .store_uint(0x4d494e54, 32)         ;; mint_payload tag
+        .store_uint(origin_chain_id, 32)
+        .store_uint(token, 256)
+        .store_slice(ton_recipient)
+        .store_uint(amount, 128)
+        .store_uint(nonce, 64)
+        .store_uint(epoch, 64)
+    .end_cell();
+    return cell_hash(payload);
+}
+
+;; Hash governance action according to TL-B schema
+;; governance_action#474f5645 action_type:uint32 nonce:uint64 epoch:uint64 payload:^Cell = GovernanceAction;
+int hash_governance_action(int action_type, int nonce, int epoch, cell payload_ref) inline {
+    cell action = begin_cell()
+        .store_uint(0x474f5645, 32)         ;; governance_action tag
+        .store_uint(action_type, 32)
+        .store_uint(nonce, 64)
+        .store_uint(epoch, 64)
+        .store_ref(payload_ref)
+    .end_cell();
+    return cell_hash(action);
+}
+
+;; Hash TON withdrawal action according to TL-B schema
+;; withdraw_ton_funds#574452415720 destination:MsgAddressInt amount:uint128 reference:uint64 = WithdrawTonFundsAction;
+int hash_withdraw_ton_funds_action(slice destination, int amount, int reference) inline {
+    cell action = begin_cell()
+        .store_uint(0x574452415720, 48)     ;; withdraw_ton_funds_payload tag
+        .store_slice(destination)
+        .store_uint(amount, 128)
+        .store_uint(reference, 64)
+    .end_cell();
+    return cell_hash(action);
+}
+
+;; ============================================================================
+;; SIGNATURE VERIFICATION
+;; ============================================================================
+
+;; Verify Ed25519 signature and check signer is in authorized set
+;; Returns the signer's index in the set
+int verify_signature_in_set(int hash, int pubkey, int signature_hi, int signature_lo, cell authorized_set, int set_size) inline {
+    ;; Verify Ed25519 signature
+    ;; check_signature(hash, signature, pubkey) returns -1 if valid, 0 if invalid
+    int valid = check_signature(hash, begin_cell().store_uint(signature_hi, 256).store_uint(signature_lo, 256).end_cell().begin_parse(), pubkey);
+    throw_unless(ERR_INVALID_SIGNATURE, valid);
+
+    ;; Find this pubkey in the authorized set
+    int found = 0;
+    int index = 0;
+
+    while (index < set_size) {
+        (slice stored_key_slice, int exists) = authorized_set.udict_get?(8, index);
+        if (exists) {
+            int stored_key = stored_key_slice~load_uint(256);
+            if (stored_key == pubkey) {
+                found = 1;
+                return index;
+            }
+        }
+        index += 1;
+    }
+
+    throw_unless(ERR_UNAUTHORIZED, found);
+    return -1;  ;; Unreachable but satisfies compiler
+}
+
+;; Validate watcher signatures (3-of-5 threshold)
+;; Signatures are stored in a reference chain to avoid cell overflow
+() validate_watcher_signatures(int hash, cell signatures_cell) impure inline {
+    slice signatures = signatures_cell.begin_parse();
+
+    ;; Track which watchers have signed (bitmap)
+    int seen_bitmap = 0;
+    int signature_count = 0;
+
+    ;; Parse signatures: each signature is (pubkey:bits256, sig_hi:bits256, sig_lo:bits256)
+    ;; Signatures may span multiple cells in a reference chain
+    int continue_parsing = -1;
+
+    while (continue_parsing) {
+        ;; Load signature from current cell
+        int pubkey = signatures~load_uint(256);
+        int sig_hi = signatures~load_uint(256);
+        int sig_lo = signatures~load_uint(256);
+
+        ;; Verify signature and get signer index
+        int signer_index = verify_signature_in_set(hash, pubkey, sig_hi, sig_lo, watchers, WATCHER_COUNT);
+
+        ;; Check for duplicate signer
+        int signer_mask = 1 << signer_index;
+        throw_if(ERR_DUPLICATE_SIGNER, seen_bitmap & signer_mask);
+
+        ;; Mark this signer as seen
+        seen_bitmap = seen_bitmap | signer_mask;
+        signature_count += 1;
+
+        ;; Check if there are more signatures in the reference chain
+        if (~ signatures.slice_refs_empty?()) {
+            ;; Load next cell in chain
+            cell next_cell = signatures~load_ref();
+            signatures = next_cell.begin_parse();
+        } else {
+            ;; No more references, stop parsing
+            continue_parsing = 0;
+        }
+    }
+
+    ;; Verify threshold met
+    throw_unless(ERR_THRESHOLD_NOT_MET, signature_count >= WATCHER_THRESHOLD);
+}
+
+;; Validate governance signatures (3-of-5 threshold)
+;; Signatures are stored in a reference chain to avoid cell overflow
+() validate_governance_signatures(int hash, cell signatures_cell) impure inline {
+    slice signatures = signatures_cell.begin_parse();
+
+    ;; Track which governance members have signed (bitmap)
+    int seen_bitmap = 0;
+    int signature_count = 0;
+
+    ;; Parse signatures: each signature is (pubkey:bits256, sig_hi:bits256, sig_lo:bits256)
+    ;; Signatures may span multiple cells in a reference chain
+    int continue_parsing = -1;
+
+    while (continue_parsing) {
+        ;; Load signature from current cell
+        int pubkey = signatures~load_uint(256);
+        int sig_hi = signatures~load_uint(256);
+        int sig_lo = signatures~load_uint(256);
+
+        ;; Verify signature and get signer index
+        int signer_index = verify_signature_in_set(hash, pubkey, sig_hi, sig_lo, governance, GOVERNANCE_COUNT);
+
+        ;; Check for duplicate signer
+        int signer_mask = 1 << signer_index;
+        throw_if(ERR_DUPLICATE_SIGNER, seen_bitmap & signer_mask);
+
+        ;; Mark this signer as seen
+        seen_bitmap = seen_bitmap | signer_mask;
+        signature_count += 1;
+
+        ;; Check if there are more signatures in the reference chain
+        if (~ signatures.slice_refs_empty?()) {
+            ;; Load next cell in chain
+            cell next_cell = signatures~load_ref();
+            signatures = next_cell.begin_parse();
+        } else {
+            ;; No more references, stop parsing
+            continue_parsing = 0;
+        }
+    }
+
+    ;; Verify threshold met
+    throw_unless(ERR_THRESHOLD_NOT_MET, signature_count >= GOVERNANCE_THRESHOLD);
+}
+
+;; ============================================================================
+;; MINT EXECUTION
+;; ============================================================================
+
+() execute_mint(int origin_chain_id, int token, slice ton_recipient, int amount, int nonce, int epoch, cell signatures) impure {
+    ;; Load state
+    load_data();
+
+    ;; Verify epoch matches current epoch (prevents replay of old signatures after rotation)
+    throw_unless(ERR_INVALID_NONCE, epoch == governance_epoch);
+
+    ;; Hash the mint payload
+    int payload_hash = hash_mint_payload(origin_chain_id, token, ton_recipient, amount, nonce, epoch);
+
+    ;; Check if already consumed
+    throw_if(ERR_PAYLOAD_CONSUMED, is_hash_consumed(payload_hash));
+
+    ;; Lookup TON jetton root from token mapping
+    (slice jetton_root, int found) = get_token_mapping(token);
+    throw_unless(ERR_TOKEN_NOT_ALLOWED, found);
+
+    ;; Verify jetton is allowed in whitelist
+    throw_unless(ERR_TOKEN_NOT_ALLOWED, is_jetton_allowed(jetton_root));
+
+    ;; Validate watcher signatures
+    validate_watcher_signatures(payload_hash, signatures);
+
+    ;; Update state
+    mint_nonce = nonce;
+    mark_hash_consumed(payload_hash);
+    save_data();
+
+    ;; Build jetton mint message (nested structure from @ton-community/assets-sdk)
+    ;; Internal transfer body (will be stored in ref)
+    cell internal_transfer = begin_cell()
+        .store_uint(OP_INTERNAL_TRANSFER, 32)  ;; op = 0x178d4519
+        .store_uint(0, 64)                      ;; query_id
+        .store_coins(amount)                    ;; amount
+        .store_slice(my_address())              ;; from (multisig)
+        .store_slice(my_address())              ;; responseAddress (bounce back to multisig)
+        .store_coins(OWNER_FORWARD_TON)         ;; forwardTonAmount (0.05 TON)
+        .store_uint(1, 1)                       ;; forwardPayload (Either: 1 = in ref)
+        .store_ref(begin_cell().end_cell())    ;; empty cell as forward payload
+    .end_cell();
+
+    ;; Mint message body
+    cell mint_body = begin_cell()
+        .store_uint(OP_MINT_JETTON, 32)         ;; op = 0x15 (mint)
+        .store_uint(0, 64)                      ;; query_id
+        .store_slice(ton_recipient)             ;; to (receiver)
+        .store_coins(JW_FORWARD_VALUE)          ;; walletForwardValue (0.05 TON)
+        .store_ref(internal_transfer)           ;; internal transfer in ref
+    .end_cell();
+
+    send_raw_message(begin_cell()
+        .store_uint(0x18, 6)                 ;; bounceable message
+        .store_slice(jetton_root)
+        .store_coins(GAS_FOR_JETTON_MINT)
+        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1)  ;; extra_currencies, ihr_fee, fwd_fee, created_lt, created_at, init
+        .store_uint(1, 1)                    ;; body in ref (not inline)
+        .store_ref(mint_body)
+    .end_cell(), 1);
+
+    ;; Emit mint executed log
+    ;; Store ton_recipient in ref to avoid cell overflow (MsgAddressInt can be ~267 bits)
+    cell recipient_ref = begin_cell()
+        .store_slice(ton_recipient)
+    .end_cell();
+
+    cell log = begin_cell()
+        .store_uint(0x4d494e54, 32)         ;; mint_executed_log tag
+        .store_uint(payload_hash, 256)
+        .store_uint(origin_chain_id, 32)
+        .store_uint(token, 256)
+        .store_uint(amount, 128)
+        .store_uint(nonce, 64)
+        .store_uint(now(), 64)
+        .store_ref(recipient_ref)           ;; ton_recipient in ref
+    .end_cell();
+
+    ;; Send log as internal message to self (for indexing)
+    send_raw_message(begin_cell()
+        .store_uint(0x10, 6)                ;; nobounce
+        .store_slice(my_address())
+        .store_coins(GAS_FOR_LOG)
+        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+        .store_ref(log)
+    .end_cell(), 1);
+}
+
+;; ============================================================================
+;; GOVERNANCE EXECUTION
+;; ============================================================================
+
+() update_watchers(slice payload) impure {
+    ;; Parse update_watchers_payload#57415443 watcher_1:bits256 ... watcher_5:bits256
+    throw_unless(ERR_INVALID_ACTION, payload~load_uint(32) == 0x57415443);
+
+    int w1 = payload~load_uint(256);
+    int w2 = payload~load_uint(256);
+    int w3 = payload~load_uint(256);
+    int w4 = payload~load_uint(256);
+    int w5 = payload~load_uint(256);
+
+    ;; Create new watcher dictionary
+    cell new_watchers = new_dict();
+    new_watchers = set_pubkey(new_watchers, 0, w1);
+    new_watchers = set_pubkey(new_watchers, 1, w2);
+    new_watchers = set_pubkey(new_watchers, 2, w3);
+    new_watchers = set_pubkey(new_watchers, 3, w4);
+    new_watchers = set_pubkey(new_watchers, 4, w5);
+
+    watchers = new_watchers;
+
+    ;; Emit log
+    cell log = begin_cell()
+        .store_uint(0x57415443, 32)         ;; watcher_set_updated_log tag
+        .store_uint(w1, 256)
+        .store_uint(w2, 256)
+        .store_uint(w3, 256)
+        .store_uint(w4, 256)
+        .store_uint(w5, 256)
+        .store_uint(governance_nonce, 64)
+        .store_uint(now(), 64)
+    .end_cell();
+
+    send_raw_message(begin_cell()
+        .store_uint(0x10, 6)
+        .store_slice(my_address())
+        .store_coins(GAS_FOR_LOG)
+        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+        .store_ref(log)
+    .end_cell(), 1);
+}
+
+() update_governance(slice payload) impure {
+    ;; Parse update_governance_payload#474f5653
+    throw_unless(ERR_INVALID_ACTION, payload~load_uint(32) == 0x474f5653);
+
+    int g1 = payload~load_uint(256);
+    int g2 = payload~load_uint(256);
+    int g3 = payload~load_uint(256);
+    int g4 = payload~load_uint(256);
+    int g5 = payload~load_uint(256);
+
+    ;; Create new governance dictionary
+    cell new_governance = new_dict();
+    new_governance = set_pubkey(new_governance, 0, g1);
+    new_governance = set_pubkey(new_governance, 1, g2);
+    new_governance = set_pubkey(new_governance, 2, g3);
+    new_governance = set_pubkey(new_governance, 3, g4);
+    new_governance = set_pubkey(new_governance, 4, g5);
+
+    governance = new_governance;
+
+    ;; Emit log
+    cell log = begin_cell()
+        .store_uint(0x474f5653, 32)         ;; governance_set_updated_log tag
+        .store_uint(g1, 256)
+        .store_uint(g2, 256)
+        .store_uint(g3, 256)
+        .store_uint(g4, 256)
+        .store_uint(g5, 256)
+        .store_uint(governance_nonce, 64)
+        .store_uint(now(), 64)
+    .end_cell();
+
+    send_raw_message(begin_cell()
+        .store_uint(0x10, 6)
+        .store_slice(my_address())
+        .store_coins(GAS_FOR_LOG)
+        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+        .store_ref(log)
+    .end_cell(), 1);
+}
+
+() set_token_status(slice payload) impure {
+    ;; Parse set_token_status_payload#544f4b53 jetton_root:MsgAddressInt status:uint1
+    throw_unless(ERR_INVALID_ACTION, payload~load_uint(32) == 0x544f4b53);
+
+    slice jetton_root = payload~load_msg_addr();
+    int status = payload~load_uint(1);
+
+    ;; Skip if no change
+    int current_status = is_jetton_allowed(jetton_root);
+    if (current_status == status) {
+        return ();
+    }
+
+    set_jetton_allowed(jetton_root, status);
+
+    ;; Emit log (includes old status for SCB-11)
+    cell log = begin_cell()
+        .store_uint(0x544f4b53, 32)         ;; token_status_updated_log tag
+        .store_slice(jetton_root)
+        .store_uint(current_status, 1)      ;; old status
+        .store_uint(status, 1)              ;; new status
+        .store_uint(governance_nonce, 64)
+        .store_uint(now(), 64)
+    .end_cell();
+
+    send_raw_message(begin_cell()
+        .store_uint(0x10, 6)
+        .store_slice(my_address())
+        .store_coins(GAS_FOR_LOG)
+        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+        .store_ref(log)
+    .end_cell(), 1);
+}
+
+() transfer_token_ownership(slice payload) impure {
+    ;; Parse transfer_token_owner_payload#5452414e jetton_root:MsgAddressInt new_owner:MsgAddressInt
+    throw_unless(ERR_INVALID_ACTION, payload~load_uint(32) == 0x5452414e);
+
+    slice jetton_root = payload~load_msg_addr();
+    slice new_owner = payload~load_msg_addr();
+
+    ;; Send transfer_ownership message to jetton root
+    ;; Op code for jetton ownership transfer (TEP-74 standard)
+    ;; Body is small enough to store inline (op:32 + query_id:64 + address:~267 = ~363 bits)
+    send_raw_message(begin_cell()
+        .store_uint(0x18, 6)                ;; bounceable
+        .store_slice(jetton_root)
+        .store_coins(GAS_FOR_JETTON_MINT)
+        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1) ;; no init, no extra currencies
+        .store_uint(0, 1)                   ;; body inline (not in ref)
+        .store_uint(OP_TRANSFER_OWNERSHIP, 32)
+        .store_uint(0, 64)                  ;; query_id
+        .store_slice(new_owner)
+    .end_cell(), 1);
+
+    ;; Emit log
+    cell log = begin_cell()
+        .store_uint(0x5452414e, 32)         ;; token_ownership_transferred_log tag
+        .store_slice(jetton_root)
+        .store_slice(new_owner)
+        .store_uint(governance_nonce, 64)
+        .store_uint(now(), 64)
+    .end_cell();
+
+    send_raw_message(begin_cell()
+        .store_uint(0x10, 6)
+        .store_slice(my_address())
+        .store_coins(GAS_FOR_LOG)
+        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+        .store_ref(log)
+    .end_cell(), 1);
+}
+
+() map_token(slice payload) impure {
+    ;; Parse map_token_payload#4d415054 evm_token:bits256 ton_jetton_root:MsgAddressInt
+    throw_unless(ERR_INVALID_ACTION, payload~load_uint(32) == 0x4d415054);
+
+    int evm_token = payload~load_uint(256);
+    slice ton_jetton_root = payload~load_msg_addr();
+
+    ;; Check if mapping already exists and is the same
+    (slice existing_mapping, int found) = get_token_mapping(evm_token);
+    if (found) {
+        if (equal_slices(existing_mapping, ton_jetton_root)) {
+            return ();  ;; Skip if no change
+        }
+    }
+
+    ;; Set the mapping
+    set_token_mapping(evm_token, ton_jetton_root);
+
+    ;; Emit log
+    cell log = begin_cell()
+        .store_uint(0x4d415054, 32)         ;; token_mapped_log tag
+        .store_uint(evm_token, 256)
+        .store_slice(ton_jetton_root)
+        .store_uint(governance_nonce, 64)
+        .store_uint(now(), 64)
+    .end_cell();
+
+    send_raw_message(begin_cell()
+        .store_uint(0x10, 6)
+        .store_slice(my_address())
+        .store_coins(GAS_FOR_LOG)
+        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+        .store_ref(log)
+    .end_cell(), 1);
+}
+
+() set_mint_nonce(slice payload) impure {
+    ;; Parse set_mint_nonce_payload#534d4e43 new_mint_nonce:uint64
+    throw_unless(ERR_INVALID_ACTION, payload~load_uint(32) == 0x534d4e43);
+
+    int new_mint_nonce = payload~load_uint(64);
+
+    ;; Skip if no change
+    int old_mint_nonce = mint_nonce;
+    if (old_mint_nonce == new_mint_nonce) {
+        return ();
+    }
+
+    ;; Update mint_nonce
+    mint_nonce = new_mint_nonce;
+
+    ;; Emit log (includes old value for SCB-11)
+    cell log = begin_cell()
+        .store_uint(0x534d4e43, 32)         ;; mint_nonce_set_log tag
+        .store_uint(old_mint_nonce, 64)     ;; old mint nonce
+        .store_uint(new_mint_nonce, 64)     ;; new mint nonce
+        .store_uint(governance_nonce, 64)
+        .store_uint(now(), 64)
+    .end_cell();
+
+    send_raw_message(begin_cell()
+        .store_uint(0x10, 6)
+        .store_slice(my_address())
+        .store_coins(GAS_FOR_LOG)
+        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+        .store_ref(log)
+    .end_cell(), 1);
+}
+
+() set_vault_fee_recipient(slice payload) impure {
+    ;; Parse set_vault_fee_recipient_payload#56465257 vault_address:MsgAddressInt new_fee_recipient:MsgAddressInt
+    throw_unless(ERR_INVALID_ACTION, payload~load_uint(32) == 0x56465257);
+
+    slice vault_address = payload~load_msg_addr();
+    slice new_fee_recipient = payload~load_msg_addr();
+
+    ;; Build message body for vault: OP_VAULT_SET_FEE_WALLET new_fee_recipient:MsgAddressInt
+    cell vault_msg_body = begin_cell()
+        .store_uint(OP_VAULT_SET_FEE_WALLET, 32)
+        .store_slice(new_fee_recipient)
+    .end_cell();
+
+    ;; Send message to vault contract
+    send_raw_message(begin_cell()
+        .store_uint(0x18, 6)                ;; bounceable
+        .store_slice(vault_address)
+        .store_coins(GAS_FOR_VAULT_OP)
+        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1)  ;; no extras
+        .store_uint(1, 1)                   ;; body in ref
+        .store_ref(vault_msg_body)
+    .end_cell(), 1);
+
+    ;; Emit log
+    cell log = begin_cell()
+        .store_uint(0x56465257, 32)         ;; vault_fee_recipient_set_log tag ("VFRW")
+        .store_slice(vault_address)
+        .store_slice(new_fee_recipient)
+        .store_uint(governance_nonce, 64)
+        .store_uint(now(), 64)
+    .end_cell();
+
+    send_raw_message(begin_cell()
+        .store_uint(0x10, 6)
+        .store_slice(my_address())
+        .store_coins(GAS_FOR_LOG)
+        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+        .store_ref(log)
+    .end_cell(), 1);
+}
+
+() set_vault_fee_basis_points(slice payload) impure {
+    ;; Parse set_vault_fee_basis_points_payload#56464250 vault_address:MsgAddressInt new_fee_basis_points:uint16
+    throw_unless(ERR_INVALID_ACTION, payload~load_uint(32) == 0x56464250);
+
+    slice vault_address = payload~load_msg_addr();
+    int new_fee_basis_points = payload~load_uint(16);
+
+    ;; Build message body for vault: OP_VAULT_SET_FEE_BASIS_POINTS new_fee_basis_points:uint16
+    cell vault_msg_body = begin_cell()
+        .store_uint(OP_VAULT_SET_FEE_BASIS_POINTS, 32)
+        .store_uint(new_fee_basis_points, 16)
+    .end_cell();
+
+    ;; Send message to vault contract
+    send_raw_message(begin_cell()
+        .store_uint(0x18, 6)                ;; bounceable
+        .store_slice(vault_address)
+        .store_coins(GAS_FOR_VAULT_OP)
+        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1)  ;; no extras
+        .store_uint(1, 1)                   ;; body in ref
+        .store_ref(vault_msg_body)
+    .end_cell(), 1);
+
+    ;; Emit log
+    cell log = begin_cell()
+        .store_uint(0x56464250, 32)         ;; vault_fee_basis_points_set_log tag ("VFBP")
+        .store_slice(vault_address)
+        .store_uint(new_fee_basis_points, 16)
+        .store_uint(governance_nonce, 64)
+        .store_uint(now(), 64)
+    .end_cell();
+
+    send_raw_message(begin_cell()
+        .store_uint(0x10, 6)
+        .store_slice(my_address())
+        .store_coins(GAS_FOR_LOG)
+        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+        .store_ref(log)
+    .end_cell(), 1);
+}
+
+() execute_governance_action(int action_type, int nonce, int epoch, cell payload_ref, cell signatures) impure {
+    ;; Load state
+    load_data();
+
+    ;; Verify epoch matches current epoch (prevents replay of old signatures after rotation)
+    throw_unless(ERR_INVALID_NONCE, epoch == governance_epoch);
+
+    ;; Verify nonce (strictly incremental)
+    throw_unless(ERR_INVALID_NONCE, nonce == governance_nonce + 1);
+
+    ;; Hash the governance action (includes epoch)
+    int action_hash = hash_governance_action(action_type, nonce, epoch, payload_ref);
+
+    ;; Validate governance signatures
+    validate_governance_signatures(action_hash, signatures);
+
+    ;; Update governance nonce
+    governance_nonce = nonce;
+
+    ;; Execute action based on type
+    slice payload = payload_ref.begin_parse();
+
+    if (action_type == ACTION_UPDATE_WATCHERS) {
+        update_watchers(payload);
+        governance_epoch += 1;  ;; Increment epoch on watcher rotation
+    }
+    elseif (action_type == ACTION_UPDATE_GOVERNANCE) {
+        update_governance(payload);
+        governance_epoch += 1;  ;; Increment epoch on governance rotation
+    }
+    elseif (action_type == ACTION_SET_TOKEN_STATUS) {
+        set_token_status(payload);
+    }
+    elseif (action_type == ACTION_TRANSFER_TOKEN_OWNER) {
+        transfer_token_ownership(payload);
+    }
+    elseif (action_type == ACTION_MAP_TOKEN) {
+        map_token(payload);
+    }
+    elseif (action_type == ACTION_SET_MINT_NONCE) {
+        set_mint_nonce(payload);
+    }
+    elseif (action_type == ACTION_SET_VAULT_FEE_RECIPIENT) {
+        set_vault_fee_recipient(payload);
+    }
+    elseif (action_type == ACTION_SET_VAULT_FEE_BASIS_POINTS) {
+        set_vault_fee_basis_points(payload);
+    }
+    else {
+        throw(ERR_INVALID_ACTION);
+    }
+
+    ;; Save state
+    save_data();
+}
+
+;; ============================================================================
+;; WITHDRAW TON FUNDS (Emergency withdrawal with 3-of-5 governance quorum)
+;; ============================================================================
+
+() execute_withdraw_ton_funds(slice destination, int amount, int reference, cell signatures) impure {
+    ;; Load state
+    load_data();
+
+    ;; Validate destination address format
+    validate_destination_address(destination);
+
+    ;; Check reference hasn't been used (replay protection)
+    throw_if(ERR_PAYLOAD_CONSUMED, is_reference_consumed(reference));
+
+    ;; Hash the withdrawal payload
+    int withdraw_hash = hash_withdraw_ton_funds_action(destination, amount, reference);
+
+    ;; Validate governance signatures (3-of-5 threshold)
+    validate_governance_signatures(withdraw_hash, signatures);
+
+    ;; Get current contract balance
+    [int balance, _] = get_balance();
+
+    ;; Ensure contract has enough balance
+    throw_unless(ERR_INSUFFICIENT_BALANCE, balance >= amount);
+
+    ;; Mark reference as consumed
+    mark_reference_consumed(reference);
+
+    ;; Save state before sending (to prevent reentrancy issues)
+    save_data();
+
+    ;; Send TON to destination address
+    ;; Using mode 1 (pay transfer fees separately) to ensure exact amount is sent
+    cell msg_body = begin_cell()
+        .store_uint(0, 32)  ;; Simple transfer, no op code
+        .store_slice("TON withdrawal via multisig governance")  ;; Optional comment
+    .end_cell();
+
+    send_raw_message(begin_cell()
+        .store_uint(0x18, 6)                ;; bounceable flag
+        .store_slice(destination)
+        .store_coins(amount)
+        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+        .store_ref(msg_body)
+    .end_cell(), 1);
+
+    ;; Emit withdrawal log
+    cell log = begin_cell()
+        .store_uint(0x574452415720, 48)     ;; ton_funds_withdrawn_log tag
+        .store_slice(destination)
+        .store_uint(amount, 128)
+        .store_uint(reference, 64)
+        .store_uint(now(), 64)
+    .end_cell();
+
+    send_raw_message(begin_cell()
+        .store_uint(0x10, 6)                ;; nobounce
+        .store_slice(my_address())
+        .store_coins(GAS_FOR_LOG)
+        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+        .store_ref(log)
+    .end_cell(), 1);
+}
+
+;; ============================================================================
+;; MESSAGE RECEIVERS
+;; ============================================================================
+
+() recv_internal(int msg_value, cell in_msg_full, slice in_msg_body) impure {
+    ;; Parse message
+    if (in_msg_body.slice_empty?()) {
+        return ();  ;; Ignore empty messages (simple transfers)
+    }
+
+    ;; For WITHDRAW_TON_FUNDS, op is 48 bits instead of 32
+    ;; We need to peek first to determine which op code format to use
+    int first_bits = in_msg_body.preload_uint(48);
+
+    if (first_bits == OP_EXECUTE_WITHDRAW_TON) {
+        ;; Parse withdraw message: op:uint48 destination:MsgAddressInt amount:uint128 reference:uint64 signatures:^Cell
+        in_msg_body~load_uint(48);  ;; consume op
+        slice destination = in_msg_body~load_msg_addr();
+        int amount = in_msg_body~load_uint(128);
+        int reference = in_msg_body~load_uint(64);
+        cell signatures = in_msg_body~load_ref();
+
+        execute_withdraw_ton_funds(destination, amount, reference, signatures);
+        return ();
+    }
+
+    ;; For other operations, use standard 32-bit op code
+    int op = in_msg_body~load_uint(32);
+
+    if (op == OP_EXECUTE_MINT) {
+        ;; Parse mint message: origin_chain_id:uint32 token:bits256 ton_recipient:MsgAddressInt amount:uint128 nonce:uint64 epoch:uint64 signatures:^Cell
+        int origin_chain_id = in_msg_body~load_uint(32);
+        int token = in_msg_body~load_uint(256);
+        slice ton_recipient = in_msg_body~load_msg_addr();
+        int amount = in_msg_body~load_uint(128);
+        int nonce = in_msg_body~load_uint(64);
+        int epoch = in_msg_body~load_uint(64);
+        cell signatures = in_msg_body~load_ref();
+
+        execute_mint(origin_chain_id, token, ton_recipient, amount, nonce, epoch, signatures);
+        return ();
+    }
+
+    if (op == OP_EXECUTE_GOVERNANCE) {
+        ;; Parse governance message: action_type:uint32 nonce:uint64 epoch:uint64 payload:^Cell signatures:^Cell
+        int action_type = in_msg_body~load_uint(32);
+        int nonce = in_msg_body~load_uint(64);
+        int epoch = in_msg_body~load_uint(64);
+        cell payload_ref = in_msg_body~load_ref();
+        cell signatures = in_msg_body~load_ref();
+
+        execute_governance_action(action_type, nonce, epoch, payload_ref, signatures);
+        return ();
+    }
+
+    ;; Unknown operation - ignore
+    return ();
+}
+
+;; ============================================================================
+;; GET METHODS (for off-chain queries)
+;; ============================================================================
+
+;; Get current mint nonce
+int get_mint_nonce() method_id {
+    load_data();
+    return mint_nonce;
+}
+
+;; Get current governance nonce
+int get_governance_nonce() method_id {
+    load_data();
+    return governance_nonce;
+}
+
+;; Get current governance epoch (increments on watcher/governance rotation)
+int get_governance_epoch() method_id {
+    load_data();
+    return governance_epoch;
+}
+
+;; Get watcher public key by index (0-4)
+int get_watcher(int index) method_id {
+    load_data();
+    return get_pubkey(watchers, index);
+}
+
+;; Get governance public key by index (0-4)
+int get_governance_member(int index) method_id {
+    load_data();
+    return get_pubkey(governance, index);
+}
+
+;; Check if jetton is allowed (pass jetton address as slice)
+int is_jetton_allowed_query(slice jetton_addr) method_id {
+    load_data();
+    return is_jetton_allowed(jetton_addr);
+}
+
+;; Check if payload hash has been consumed
+int is_payload_consumed(int hash) method_id {
+    load_data();
+    return is_hash_consumed(hash);
+}
+
+;; Get the hash of a mint payload (for off-chain verification)
+int get_mint_payload_hash(int origin_chain_id, int token, slice ton_recipient, int amount, int nonce, int epoch) method_id {
+    return hash_mint_payload(origin_chain_id, token, ton_recipient, amount, nonce, epoch);
+}
+
+;; Get the hash of a governance action (for off-chain verification)
+int get_governance_action_hash(int action_type, int nonce, int epoch, cell payload_ref) method_id {
+    return hash_governance_action(action_type, nonce, epoch, payload_ref);
+}
+
+;; Get the hash of a withdraw TON funds action (for off-chain verification)
+int get_withdraw_ton_funds_hash(slice destination, int amount, int reference) method_id {
+    return hash_withdraw_ton_funds_action(destination, amount, reference);
+}
+
+;; Check if withdrawal reference has been consumed (for off-chain verification)
+int is_reference_consumed_query(int reference) method_id {
+    load_data();
+    return is_reference_consumed(reference);
+}

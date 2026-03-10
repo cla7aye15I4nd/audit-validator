@@ -1,0 +1,31 @@
+# Latex generates many files when building the *.tex file
+
+out/
+
+# LaTeX auxiliary files
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
+*.bbl
+*.bcf
+*.blg
+*.run.xml
+*.lot
+*.lof
+*.idx
+*.ilg
+*.ind
+*.glo
+*.gls
+*.ist
+*.thm
+*.xdv
+
+# Intermediate typesetting artifacts
+*.nav
+*.snm
+*.vrb

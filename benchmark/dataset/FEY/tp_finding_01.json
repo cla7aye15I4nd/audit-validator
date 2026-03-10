@@ -1,0 +1,18 @@
+{
+  "id": "ecefe950-a048-11ef-badd-73246e4a2372_1732633677547",
+  "title": "`closeGhostStake()` Cannot Close Users Stakes",
+  "location": {
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/ecefe950-a048-11ef-badd-73246e4a2372/source?file=$/github/FEYToken/Feyorra-FEY-/a3fd8f96d8002f7ef619ad01810426568a59c1bf/contracts/FEYToken.sol",
+    "local_file_path": "./source_code/github/FEYToken/Feyorra-FEY-/a3fd8f96d8002f7ef619ad01810426568a59c1bf/contracts/FEYToken.sol",
+    "start_line": 154,
+    "end_line": 154
+  },
+  "description": "`closeGhostStake()` is intended to be able to close the users stake that corresponds to the input `_stakingId` after all seconds of the users last day have passed. However, it does this by calling `closeStake(_stakingId)`, which makes the following check:\n\n```solidity\n  require(\n            _stakeElement.userAddress == msg.sender,\n            'FEYToken: wrong stake owner'\n        );\n```\n\n`closeGhostStake()` can only be called if the `msg.sender` is the owner and `closeStake()` can only be called if the `_stakeElement.userAddress == msg.sender`, so that `closeGhostStake()` can only be called on the owners stakes and cannot be used to close other users stakes.",
+  "related_pid": "ecefe950-a048-11ef-badd-73246e4a2372",
+  "triage_verdict": "valid",
+  "related_function_code": "            yearFullAmount,\n            31556952,\n            0\n        );\n\n        durationInterestAmt = dailyInterestAmt\n            .mul(_seconds)\n            .div(100);\n    }\n\n   /**\n        * @notice admin function to close a matured stake OBO the staker\n        * @param _stakingId ID of the stake, used as the Key from the stakeList mapping\n        * @dev can only close after all of the seconds of the last day have passed\n     */\n    function closeGhostStake(\n        uint256 _stakingId\n    )\n        external\n        onlyOwner\n    {\n        (uint256 daysOld, uint256 secondsOld) = getStakeAge(_stakingId);\n\n        require(\n            daysOld == MAX_STAKE_DAYS &&\n            secondsOld == SECONDS_IN_DAY,\n            'FEYToken: not old enough'\n        );\n\n        closeStake(_stakingId);\n\n        emit ClosedGhostStake(\n            daysOld,\n            secondsOld,\n            _stakingId\n        );\n    }\n\n    /**\n        * @notice calculates number of days and remaining seconds on current day that a stake is open\n        * @param _stakingId ID of the stake, used as the Key from the stakeList mapping\n        * @return daysTotal -- number of complete days that the stake has been open\n        * @return secondsToday -- number of seconds the stake has been open on the current day\n     */\n    function getStakeAge(\n        uint256 _stakingId\n    )\n        public\n        view\n        returns (\n            uint256 daysTotal,\n            uint256 secondsToday\n        )\n    {\n        StakeElement memory _stakeElement = stakeList[_stakingId];\n\n        uint256 secondsTotal = getNow()\n            .sub(_stakeElement.stakedAt);\n\n        daysTotal = secondsTotal",
+  "severity": "major",
+  "recommendation": "We recommend refactoring the code to ensure that `closeGhostStake()` can successfully close a users stake after all seconds of the users last day have passed.",
+  "related_commit_id": "a3fd8f96d8002f7ef619ad01810426568a59c1bf",
+  "triage_severity": null
+}

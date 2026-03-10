@@ -1,0 +1,18 @@
+{
+  "id": "7c846b50-3220-11ef-89f8-c16e900c7ea1_1724430928319",
+  "title": "Underconstrained Circuit `BitsToBytes` Allows Arbitrary SHA256 Hash",
+  "location": {
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/7c846b50-3220-11ef-89f8-c16e900c7ea1/source?file=$/github/Portkey-Wallet/zkLogin-circuit/ee1a9ee620dae6e1d68d95f7d0d626fd5930cfdb/circuits/helpers/utils.circom",
+    "local_file_path": "./source_code/github/Portkey-Wallet/zkLogin-circuit/ee1a9ee620dae6e1d68d95f7d0d626fd5930cfdb/circuits/helpers/utils.circom",
+    "start_line": 232,
+    "end_line": 232
+  },
+  "description": "The circuit `BitsToBytes` is meant to turn an array of bits into an array of bytes. However, there are no constraints involved, allowing the output to have elements greater than 8 bits, or even elements that have no connection with the original input array.\n\n```circom\ntemplate BitsToBytes(bits){\n  signal input in[bits];\n  signal output out[bits/8];\n  for (var i=0; i<bits/8; i++) {\n    var bytevalue = 0;\n    for (var j=0; j<8; j++) {\n      bytevalue |= in[i * 8 + j] ? (1 << (7-j)) : 0;\n    }\n    out[i] <-- bytevalue;\n  }\n```\n\nThis means that regardless of the input array, the output array can hold any values. This circuit is used in the main circuits `ZkLoginSha256` and `IdHashMapping`, which do not have further checks on the output. \n\nThis is dangerous as the output is meant to be a specific SHA256 hash, but an attacker would be able to choose an arbitrary hash to use. ",
+  "related_pid": "7c846b50-3220-11ef-89f8-c16e900c7ea1",
+  "triage_verdict": "valid",
+  "related_function_code": "    blinder_matches <== intermediate_is_message_id_from[blinder_len];\n    anon_salt <== hasher.outs[0];\n}\n\n\ntemplate CombineBytes(first_bytes, second_bytes) {\n  // inputs\n  signal input first[first_bytes];\n  signal input second[second_bytes];\n\n  signal output out[first_bytes + second_bytes];\n\n  for (var i = 0; i < first_bytes; i++) {\n      out[i] <== first[i];\n  }\n\n  for (var i = 0; i < second_bytes; i++) {\n      out[i + first_bytes] <== second[i];\n  }\n}\n\ntemplate BitsToBytes(bits){\n  signal input in[bits];\n  signal output out[bits/8];\n  for (var i=0; i<bits/8; i++) {\n    var bytevalue = 0;\n    for (var j=0; j<8; j++) {\n      bytevalue |= in[i * 8 + j] ? (1 << (7-j)) : 0;\n    }\n    out[i] <-- bytevalue;\n  }\n}",
+  "severity": "critical",
+  "recommendation": "It is recommended to constrain the output properly. A possible solution is to use the `Bits2Num(8)` circuit in circomlib to turn each 8 bits of `in` to a byte.",
+  "related_commit_id": "ee1a9ee620dae6e1d68d95f7d0d626fd5930cfdb",
+  "triage_severity": null
+}

@@ -1,0 +1,18 @@
+{
+  "id": "9779da50-371d-11f0-b142-2bda881cf922_1752511717470",
+  "title": "Incorrect Bond Accounting Leads to Potential Vault Insolvency",
+  "location": {
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/9779da50-371d-11f0-b142-2bda881cf922/source?file=$/bsc/mainnet/0x31569a2d8333554bb0d8bd6deeb425682bb3d082/YoExBond.sol",
+    "local_file_path": "./source_code/bsc/mainnet/0x31569a2d8333554bb0d8bd6deeb425682bb3d082/YoExBond.sol",
+    "start_line": 83,
+    "end_line": 83
+  },
+  "description": "The `bond()` function swaps `USDT` for a fee-on-transfer YOEX token that burns 1% on each transfer. It uses `router.getAmountsOut(amount, path)` to estimate the YOEX output, then performs the swap. Because YOEX burns 1% on transfer, the actual tokens received (`yoexReceived`) are only 99% of the estimated amount. The contract then calculates `burnedTokens = estimatedYoex - yoexReceived` and **adds this difference back into the user’s bond (`totalBondAmount`)**. \n\nHowever, these burned YOEX tokens never reached the contract. As a consequence, users are credited for tokens that never reach the contract, leading to vault insolvency, failed withdrawals, and potential loss of funds for other users.",
+  "related_pid": "9779da50-371d-11f0-b142-2bda881cf922",
+  "triage_verdict": "valid",
+  "related_function_code": "        address indexed user,\n        uint256 indexed index,\n        uint256 indexed usdtAmount,\n        uint256 yoexAmount,\n        uint256 bonusAmount,\n        uint256 lockDays,\n        uint256 unlockTime\n    );\n\n    event BondUnstaked(\n        address indexed user,\n        uint256 indexed index,\n        uint256 indexed totalWithdrawn,\n        uint256 principal,\n        uint256 bonus\n    );\n\n    event VaultUpdated(address oldVault, address newVault);\n    event RouterUpdated(address oldRouter, address newRouter);\n    event SlippageUpdated(uint256 oldSlippage, uint256 newSlippage);\n\n    constructor(address _usdt, address _yoex, address _router, address _vault) {\n        owner = msg.sender;\n        usdt = IERC20(_usdt);\n        yoex = IERC20(_yoex);\n        router = IPancakeRouter(_router);\n        vault = IYoexVault(_vault);\n    }\n\n    function bond(uint256 amount, uint256 lockDays) external {\n        require(amount >= minBond, \"Minimum bond is 1 USDT\");\n        require(lockDays != 0, \"0 days lock not allowed\");\n\n        uint256 bonusPercent = getBonusPercent(lockDays);\n        require(bonusPercent > 0, \"Invalid bond duration\");\n\n        require(usdt.transferFrom(msg.sender, address(this), amount), \"USDT transfer failed\");\n        require(usdt.approve(address(router), amount), \"USDT approve failed\");\n\n        path[0] = address(usdt);\n        path[1] = address(yoex);\n\n        uint256 estimatedYoex = router.getAmountsOut(amount, path)[1];\n        uint256 minYoex = (estimatedYoex * (10000 - slippageBPS)) / 10000;\n\n        uint256 yoexReceived = router.swapExactTokensForTokens(\n            amount,\n            minYoex,\n            path,\n            address(this),\n            block.timestamp + 600\n        )[1];\n        require(yoexReceived > 0, \"Swap failed\");\n\n        uint256 burnedTokens = 0;\n        if (estimatedYoex > yoexReceived) {\n            burnedTokens = estimatedYoex - yoexReceived;\n        }\n\n        uint256 totalBondAmount = yoexReceived + burnedTokens;",
+  "severity": "major",
+  "recommendation": "We recommend accounting in the user`s bond only the actual tokens received by the vault contract (taking into account the burn fee) or clarify the intended behavior.",
+  "related_commit_id": "0x26c98b27ab51af12c616d2d2eb99909b6bde6dde",
+  "triage_severity": null
+}

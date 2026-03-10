@@ -1,0 +1,31 @@
+{
+  "title": "Missing LTV reduction on BNOME unstake enables collateral‐free borrowing",
+  "location": {
+    "local_file_path": "./source_code/github/CertiKProject/certik-audit-projects/2a2826fcbafb5bed23f57406cc61e71a3ccffcf2/projects/anome 2/shop/stake/BnomeStakeInternal.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/e3c45370-51aa-11f0-bdd0-cbef849456d3/source?file=$/github/CertiKProject/certik-audit-projects/2a2826fcbafb5bed23f57406cc61e71a3ccffcf2/projects/anome 2/shop/stake/BnomeStakeInternal.sol",
+    "start_line": 60,
+    "end_line": 80
+  },
+  "all_locations": null,
+  "category": null,
+  "severity": null,
+  "confidence": null,
+  "description": "Vulnerability:\nThe `_unstakeBnome` function returns the user’s staked BNOME tokens but never decreases the `highBorrowLTVLimit` (or the mirror `bnomeAccountTotalHighBorrowLTVLimit`) that was granted when those tokens were staked. As a result, after calling `unstakeBnome`, a user recovers their BNOME but still retains the full LTV allowance.\n\nExploit Demonstration:\n1. Attacker approves and calls `stakeBnome(X)` with X BNOME. This transfers X BNOME into the contract and increases `highBorrowLTVLimit[msg.sender]` by a value V (derived from X).\n2. Immediately call `unstakeBnome(0)` (the index of the newly created stake order). The contract transfers X BNOME back to the attacker, but leaves `highBorrowLTVLimit[msg.sender] == V` unchanged.\n3. With zero BNOME locked, call the borrowing function (e.g. `borrowUsda`) to draw up to V worth of assets. The system sees a non‐zero LTV limit and permits borrowing despite the attacker having no collateral.\n\nResult:\nThe attacker can repeatedly borrow against the residual LTV allowance without posting any collateral, draining the protocol’s available borrowable assets.",
+  "scenario": null,
+  "proof_of_concept": null,
+  "recommendation": null,
+  "id": "2fff",
+  "duplicates": null,
+  "source": "scanner.smart_audit",
+  "status": "verified_as_valid",
+  "scan_model_name": "o4-mini",
+  "related_function_code": "function _unstakeBnome(uint256 index) internal commonCheck noContractCall {\n        ShopStorage.Layout storage l = ShopStorage.layout();\n        IConfig config = IConfig(l.config);\n        address account = msg.sender;\n        ShopTypes.BnomeStakeOrder storage order = l.bnomeStakeOrders[account][index];\n\n        if (order.unstakedAmount >= order.bnomeAmount) {\n            revert AlreadyUnstaked();\n        }\n\n        uint256 unlockedBnome = _getUnlockedBnome(index);\n        if ((unlockedBnome + order.unstakedAmount) > order.bnomeAmount) {\n            unlockedBnome = order.bnomeAmount - order.unstakedAmount;\n        }\n\n        IERC20(config.bnome()).safeTransfer(account, unlockedBnome);\n\n        order.unstakedAmount += unlockedBnome;\n        l.bnomeTotalUnstaked += unlockedBnome;\n        l.bnomeAccountTotalUnstaked[account] += unlockedBnome;\n    }",
+  "related_context": "layout -> function layout() internal pure returns (Layout storage l) {\n        bytes32 slot = STORAGE_SLOT;\n        assembly {\n            l.slot := slot\n        }\n    }\n\nbnome -> None\n\n_getUnlockedBnome ->     function _getUnlockedBnome(uint256 index) internal view returns (uint256) {\n        ShopStorage.Layout storage l = ShopStorage.layout();\n        ShopTypes.BnomeStakeOrder storage order = l.bnomeStakeOrders[msg.sender][index];\n        (uint256 supply, , uint256 destruction, ) = _circulationInfoOf(order.anchorCard);\n        uint256 orderDestruction = destruction - order.anchorCardInitialDestruction;\n        uint256 totalUnlocked = (order.bnomeAmount * orderDestruction) / supply;\n        return totalUnlocked - order.unstakedAmount;\n    }",
+  "related_checklist": null,
+  "related_pid": "e3c45370-51aa-11f0-bdd0-cbef849456d3",
+  "related_commit_id": "2a2826fcbafb5bed23f57406cc61e71a3ccffcf2",
+  "triage_verdict": "valid",
+  "triage_severity": "",
+  "triage_reason": "Valid finding",
+  "is_main_finding": true
+}

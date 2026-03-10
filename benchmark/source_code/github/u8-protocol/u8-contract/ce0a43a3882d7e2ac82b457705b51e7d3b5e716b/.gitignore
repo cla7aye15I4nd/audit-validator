@@ -1,0 +1,32 @@
+node_modules
+.env
+coverage
+coverage.json
+typechain
+typechain-types
+
+# Hardhat files
+cache
+artifacts
+
+# IDE files
+.idea
+.vscode
+.DS_Store
+
+# OpenZeppelin
+.openzeppelin
+
+# Foundry
+forge_cache
+forge_out
+broadcast
+lib
+
+# Yarn/NPM
+yarn.lock
+package-lock.json
+
+# Temp files
+*.tmp
+*.log

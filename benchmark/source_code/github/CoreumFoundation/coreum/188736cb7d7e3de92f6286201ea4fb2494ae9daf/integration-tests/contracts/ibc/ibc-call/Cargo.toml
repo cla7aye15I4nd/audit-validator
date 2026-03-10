@@ -1,0 +1,22 @@
+[package]
+name = "ibc-call"
+version = "0.1.0"
+authors = ["Coreum"]
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+backtraces = ["cosmwasm-std/backtraces"]
+library = []
+
+[dependencies]
+cosmwasm-std = { version = "1.5.4", features = ["ibc3"] }
+cosmwasm-schema.workspace = true
+cw-storage-plus = "1.0.1"
+cw2 = "1.0.1"
+thiserror.workspace = true
+
+[dev-dependencies]
+cw-multi-test = "0.16.2"

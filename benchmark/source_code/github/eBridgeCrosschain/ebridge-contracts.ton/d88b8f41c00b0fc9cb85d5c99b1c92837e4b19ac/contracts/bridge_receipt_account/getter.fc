@@ -1,0 +1,26 @@
+#include "../common/dic.fc";
+#include "../common/stdlib.fc";
+#include "../common/utils.fc";
+#include "op.fc";
+#include "storage.fc";
+
+;; handle onchain 'get' calls
+
+(int) handle_getter_messages(int op, int query_id, slice sender_address, slice in_msg_body) impure inline {
+    raw_reserve(0, 4);
+
+    if (op == getter_receipt) { 
+        var chain_id = in_msg_body~load_uint(32);
+        (var info,var found) = storage::receipt_info_dic.idict_get_ref?(CHAIN_ID_KEY_LENGTH,chain_id);
+        if (found) {
+            var receipt_info = info.begin_parse();
+            var total_amount = receipt_info~load_uint(256);
+            var index = receipt_info~load_uint(256);
+            var payload = begin_cell().store_slice(storage::owner).store_uint(chain_id,32).store_uint(total_amount,256).store_uint(index,256);
+            send_payload(sender_address, payload.end_cell());
+        }       
+        return (true);
+    }
+    
+    return (false); ;; wrong op
+}

@@ -1,0 +1,29 @@
+{
+  "id": "6894",
+  "title": "Upgrade sequencing leaves _seqNums inconsistent, allowing seqNum reuse after an upgrade and overwriting the upgrade’s ReqAck/CallRes",
+  "source": "aiflow_scanner_codex",
+  "status": "enhanced",
+  "category": null,
+  "location": {
+    "end_line": 1,
+    "start_line": 1,
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/7b519e30-d10a-11f0-a5a1-c38d49d0912c/source?file=$/github/GigaStarIo-public/vault-audit/0b8edde27935e70ed3decbb30508bde926edf57c/bd/bc-contract/contract/v1_0/ContractUser.sol",
+    "local_file_path": "./source_code/github/GigaStarIo-public/vault-audit/0b8edde27935e70ed3decbb30508bde926edf57c/bd/bc-contract/contract/v1_0/ContractUser.sol"
+  },
+  "scenario": "",
+  "sequence": 100,
+  "severity": "info",
+  "confidence": null,
+  "description": "When seqNumEx>0, preUpgrade advances the caller’s expected sequence number via _isReqReplay (sets _seqNums[caller]=seqNumEx+1) and stages _nextUpgradeSeqNum=seqNumEx+1 for the subsequent upgrade. However, the actual upgrade path (_authorizeUpgradeImpl) records a CallRes at _nextUpgradeSeqNum but does not advance _seqNums again. As a result, the next off-chain write call from the same caller is accepted with the same seqNum as the upgrade (because nextExpected remains seqNumEx+1), and will overwrite _crBySeqNum[caller][seqNumEx+1], erasing the upgrade’s recorded result and potentially breaking later replay/diagnostics for that seqNum.\n\nRecommended fix: on successful upgrade authorization, advance the caller’s expected sequence number (e.g., _seqNums[msg.sender]=_nextUpgradeSeqNum+1 when sequencing is in use), or redesign staging so preUpgrade does not consume a seqNum while upgrade does (but ensure one consistent seqNum progression across the two-step flow).",
+  "related_pid": "7b519e30-d10a-11f0-a5a1-c38d49d0912c",
+  "triage_reason": null,
+  "recommendation": "Ensure a single, monotonic seqNum progression across preUpgrade and the upgrade path. After recording the upgrade’s ReqAck/CallRes at _nextUpgradeSeqNum, advance the caller’s expected sequence number (e.g., _seqNums[msg.sender]=_nextUpgradeSeqNum+1 when sequencing is in use). Alternatively, do not advance _seqNums in preUpgrade and only consume/advance the seqNum during the upgrade, so off-chain writes using the upgrade’s seqNum are rejected and cannot overwrite _crBySeqNum[caller][_nextUpgradeSeqNum].",
+  "triage_verdict": "valid",
+  "related_context": null,
+  "scan_model_name": null,
+  "triage_severity": null,
+  "proof_of_concept": null,
+  "related_checklist": null,
+  "related_commit_id": "0b8edde27935e70ed3decbb30508bde926edf57c",
+  "related_function_code": "function preUpgrade(uint40 seqNumEx, UUID reqId, UUID reqIdStage) external override {\n        address caller = msg.sender;\n        _requireVaultOrAdminOrCreator(caller); // Access control\n\n        // If using sequence number protocol (off-chain caller) then enforce idempotency\n        if (_isReqReplay(caller, seqNumEx, reqId)) return;\n\n        if (isEmpty(reqId)) revert EmptyReqId();\n\n        _nextUpgradeSeqNum = seqNumEx + 1;\n        _nextUpgradedReqId = reqIdStage;\n\n        _setCallRes(caller, seqNumEx, reqId, true); // For off-chain sequencing\n    }"
+}

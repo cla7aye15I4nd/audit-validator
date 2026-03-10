@@ -1,0 +1,34 @@
+{
+  "title": "Premature Weight Removal Enables Theft of Locked Extra Rewards",
+  "location": {
+    "local_file_path": "./source_code/github/CertiKProject/certik-audit-projects/2a2826fcbafb5bed23f57406cc61e71a3ccffcf2/projects/anome 2/liquidity_manager/pool/LiquidityPoolInternal.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/e3c45370-51aa-11f0-bdd0-cbef849456d3/source?file=$/github/CertiKProject/certik-audit-projects/2a2826fcbafb5bed23f57406cc61e71a3ccffcf2/projects/anome 2/liquidity_manager/pool/LiquidityPoolInternal.sol",
+    "start_line": 114,
+    "end_line": 149
+  },
+  "all_locations": null,
+  "category": null,
+  "severity": null,
+  "confidence": null,
+  "description": "_claimRewardExtra allocates an account’s total pending extra rewards across its individual stake records by multiplying the account’s storedPendingRewardExtra by record.extraRewardWeight then dividing by l.extraRewardWeight[account]. However, because total extraRewardWeight can be decreased at any time by unstaking—even unexpired records—a user can shrink the denominator to exactly the weight of a single expired record and thereby claim 100% of the pending extra rewards, including the share that belonged to other still-locked stakes.\n\nExploit Steps:\n1. Stake two positions under the same account:\n   • Record A: short duration (weight = a), expires at T1.\n   • Record B: long duration (weight = b), expires at T2 > T1.\n2. Advance time so that block.timestamp ≥ T1 but < T2 (A is expired, B is still locked).\n3. Call withdraw(recordIndex for B):\n   – In _unstake, _claimRewardExtra(account, B) returns 0 (B not expired).\n   – _unstake then subtracts B’s extraRewardWeight (b) from l.extraRewardWeight[account].\n   – You recover your B stake, no extra reward paid.\n4. Now call withdraw(recordIndex for A):\n   – In _claimRewardExtra(account, A), record.extraRewardWeight = a and l.extraRewardWeight[account] = a.\n   – pendingRewardExtra = storedPendingRewardExtra * a / a = storedPendingRewardExtra.\n   – You receive the entire pending extra reward balance, including the portion that should have remained locked for B until T2.\n\nResult: by prematurely unstaking B (forfeiting only its future extra yield) you distort the denominator in _claimRewardExtra for A and steal B’s accrued extra rewards immediately. No underflows, reentrancy, or privileged role is needed—just logical manipulation of the weight ratio.",
+  "scenario": null,
+  "proof_of_concept": null,
+  "recommendation": null,
+  "id": "1d5b",
+  "duplicates": [
+    "1d5b",
+    "9840"
+  ],
+  "source": "scanner.smart_audit",
+  "status": "verified_as_valid",
+  "scan_model_name": "o4-mini",
+  "related_function_code": "function _claimRewardExtra(\n        address account,\n        LiquidityManagerStorage.StakeRecord storage record\n    ) internal returns (uint256 pendingRewardExtra) {\n        LiquidityManagerStorage.Layout storage l = LiquidityManagerStorage.layout();\n\n        if (block.timestamp < record.expirationTimestamp || record.extraRewardWeight == 0) {\n            return 0;\n        }\n\n        // 因为额外奖励只有在满足质押期后才能领取\n        // 所以每个订单解压时, 按照此订单的权重比例领取额外奖励\n        pendingRewardExtra =\n            (l.storedPendingRewardExtra[account] * record.extraRewardWeight) /\n            l.extraRewardWeight[account];\n        if (pendingRewardExtra == 0) {\n            return 0;\n        }\n\n        uint256 sponsorReward = _rewardSponsor(account, pendingRewardExtra);\n\n        l.storedPendingRewardExtra[account] -= pendingRewardExtra;\n        l.totalReward += pendingRewardExtra - sponsorReward;\n        l.accountTotalReward[account] += pendingRewardExtra - sponsorReward;\n        l.accountClaimRecord[account].push(\n            LiquidityManagerStorage.ClaimRecord({\n                rewardType: 2,\n                amount: pendingRewardExtra,\n                timestamp: block.timestamp\n            })\n        );\n\n        l.tokenReward.safeTransfer(account, pendingRewardExtra - sponsorReward);\n\n        emit RewardPaidExtra(account, pendingRewardExtra);\n    }",
+  "related_context": "layout -> function layout() internal pure returns (Layout storage l) {\n    bytes32 slot = STORAGE_SLOT;\n    assembly {\n        l.slot := slot\n    }\n}\n\n_rewardSponsor ->     function _rewardSponsor(address account, uint256 amount) internal returns (uint256 sponsorReward) {\n        LiquidityManagerStorage.Layout storage l = LiquidityManagerStorage.layout();\n        IShop shop = IShop(l.config.shop());\n        address sponsor = shop.getSponsor(account);\n        if (sponsor == address(0)) {\n            return 0;\n        }\n\n        sponsorReward = (amount * 5) / 100;\n        l.referralReward[sponsor] += sponsorReward;\n        l.accountTotalSponsorReward[sponsor] += sponsorReward;\n        l.totalSponsorReward += sponsorReward;\n\n        emit RewardSponsor(account, sponsor, sponsorReward);\n    }",
+  "related_checklist": null,
+  "related_pid": "e3c45370-51aa-11f0-bdd0-cbef849456d3",
+  "related_commit_id": "2a2826fcbafb5bed23f57406cc61e71a3ccffcf2",
+  "triage_verdict": "valid",
+  "triage_severity": "",
+  "triage_reason": "Valid finding",
+  "is_main_finding": true
+}

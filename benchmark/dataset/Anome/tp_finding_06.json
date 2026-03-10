@@ -1,0 +1,31 @@
+{
+  "title": "Flat Pricing Calculation Underprices Bulk Card Purchases",
+  "location": {
+    "local_file_path": "./source_code/github/CertiKProject/certik-audit-projects/2a2826fcbafb5bed23f57406cc61e71a3ccffcf2/projects/anome 2/shop/card/CardShopInternal.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/e3c45370-51aa-11f0-bdd0-cbef849456d3/source?file=$/github/CertiKProject/certik-audit-projects/2a2826fcbafb5bed23f57406cc61e71a3ccffcf2/projects/anome 2/shop/card/CardShopInternal.sol",
+    "start_line": 26,
+    "end_line": 49
+  },
+  "all_locations": null,
+  "category": null,
+  "severity": null,
+  "confidence": null,
+  "description": "Vulnerability: The _buyCard function computes the total purchase cost for count cards as a single call to _priceOf(index) multiplied by count. However, _priceOf(index) is designed to return a dynamic unit price that increases with each card sold (e.g. on a bonding curve or incremental pricing scheme). By calculating totalCost = unitPrice * count using only the initial unitPrice, the contract undercharges for every card after the first. The correct logic should accumulate the price for each card as the pool’s state (pool.usdaBalance) changes with each sale.\n\nExploit Demonstration: An attacker can buy multiple cards in one transaction and pay only the initial unit price for all of them, effectively receiving a bulk discount.  \n1. Choose a card pool index where dynamic pricing is active and ensure selling is enabled (sellStartsAt[index] ≤ block.timestamp).  \n2. Call the public buyCard wrapper that invokes _buyCard(index, count, attacker) with count > 1.  \n   – The contract reads unitPrice = _priceOf(index) based on the current pool.usdaBalance.  \n   – It calculates totalCost = unitPrice * count, undercharging for cards whose price should have risen.  \n   – It transfers baseTokenAmount = convertDecimals(totalCost) from the attacker to buyCardPayee and mints totalCost USDA to the shop.  \n   – It transfers count cards to the attacker.  \n3. (Optional) If immediate selling is allowed, the attacker then calls sellCard(index, count):  \n   – The contract now has pool.usdaBalance increased by totalCost, so _priceOf(index) returns a higher unitPriceAfter > unitPrice.  \n   – sellCard computes refund = unitPriceAfter * count, deducts pool.usdaBalance by refund, and transfers 95% of refund in USDA back to the attacker.  \n4. Profit arises because the attacker paid unitPrice * count but can sell at unitPriceAfter * count * 95%. Even without selling back, the attacker has acquired cards at below-market cost and can realize the gain by selling on secondary markets.  \n\nBy batching purchases via count > 1, the attacker exploits the flat-pricing logic to significantly underpay for cards whose price should have been higher after each incremental sale.",
+  "scenario": null,
+  "proof_of_concept": null,
+  "recommendation": null,
+  "id": "7ef1",
+  "duplicates": null,
+  "source": "scanner.smart_audit",
+  "status": "verified_as_valid",
+  "scan_model_name": "o4-mini",
+  "related_function_code": "function _buyCard(uint256 index, uint256 count, address recipient) internal commonCheck {\n        ShopStorage.Layout storage data = ShopStorage.layout();\n        ShopTypes.CardPool storage pool = data.pools[index];\n\n        if (address(pool.card) == address(0)) revert InvalidCardAddress();\n        if (data.isCardMintBanned[index] && msg.sender != data.config.caller()) revert CardMintBanned();\n\n        (, uint256 stock, , ) = _circulationInfoOf(index);\n        if (count == 0) revert InvalidShopAmount();\n        if (count > stock) revert SoldOut();\n\n        uint256 usdaPrice = _priceOf(index) * count;\n        uint256 baseTokenAmount = UtilsLib.convertDecimals(usdaPrice, data.config.usda(), data.config.baseToken());\n        pool.usdaBalance += usdaPrice;\n\n        // 为了支持1:1兑换, 所以需要将baseToken转到合约\n        // IERC20(data.config.baseToken()).safeTransferFrom(msg.sender, address(this), baseTokenAmount);\n        IERC20(data.config.baseToken()).safeTransferFrom(msg.sender, data.config.buyCardPayee(), baseTokenAmount);\n        IUSDA(data.config.usda()).mint(address(this), usdaPrice);\n\n        pool.card.transfer(recipient, count * pool.card.getUnit());\n\n        emit CardBought(recipient, address(pool.card), count * pool.card.getUnit(), baseTokenAmount);\n    }",
+  "related_context": "",
+  "related_checklist": null,
+  "related_pid": "e3c45370-51aa-11f0-bdd0-cbef849456d3",
+  "related_commit_id": "2a2826fcbafb5bed23f57406cc61e71a3ccffcf2",
+  "triage_verdict": "valid",
+  "triage_severity": "",
+  "triage_reason": "Valid finding",
+  "is_main_finding": true
+}

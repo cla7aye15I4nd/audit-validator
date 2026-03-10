@@ -1,0 +1,10 @@
+;; global errors
+
+const WRONG_OP = 0xffff; ;; 65535
+const UNAUTHORIZED = 81;
+const INVALID_CALL = 80;
+
+
+const WRONG_WORKCHAIN = 94;
+const SWAP_NOT_FOUND = 95;
+const ALREADY_RECORDED = 96;

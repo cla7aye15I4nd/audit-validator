@@ -1,0 +1,11 @@
+# logs
+logs
+.env
+*.log
+
+
+# binary folders
+dist
+bin 
+
+data

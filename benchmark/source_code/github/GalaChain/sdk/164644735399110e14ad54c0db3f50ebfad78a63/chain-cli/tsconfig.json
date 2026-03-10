@@ -1,0 +1,18 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "lib",
+    "declaration": true,
+    "importHelpers": true,
+    "lib": ["es2021"],
+    "target": "es2021",
+    "composite": true,
+    "declarationMap": true,
+    "sourceMap": true
+  },
+  "include": ["src/**/*"],
+  "references": [
+    { "path":  "../chain-api"}
+  ]
+}

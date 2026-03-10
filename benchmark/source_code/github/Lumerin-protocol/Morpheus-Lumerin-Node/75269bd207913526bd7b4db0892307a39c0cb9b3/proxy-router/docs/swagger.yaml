@@ -1,0 +1,715 @@
+basePath: /
+definitions:
+  lib.BigInt:
+    type: object
+  proxyapi.ChatCompletionMessage:
+    properties:
+      content:
+        type: string
+      multiContent:
+        items:
+          $ref: '#/definitions/proxyapi.ChatMessagePart'
+        type: array
+      name:
+        description: |-
+          This property isn't in the official documentation, but it's in
+          the documentation for the official library for python:
+          - https://github.com/openai/openai-python/blob/main/chatml.md
+          - https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb
+        type: string
+      role:
+        type: string
+      tool_call_id:
+        description: For Role=tool prompts this should be set to the ID given in the
+          assistant's prior request to call a tool.
+        type: string
+    type: object
+  proxyapi.ChatCompletionResponseFormat:
+    properties:
+      type:
+        type: string
+    type: object
+  proxyapi.ChatMessageImageURL:
+    properties:
+      detail:
+        $ref: '#/definitions/proxyapi.ImageURLDetail'
+      url:
+        type: string
+    type: object
+  proxyapi.ChatMessagePart:
+    properties:
+      image_url:
+        $ref: '#/definitions/proxyapi.ChatMessageImageURL'
+      text:
+        type: string
+      type:
+        $ref: '#/definitions/proxyapi.ChatMessagePartType'
+    type: object
+  proxyapi.ChatMessagePartType:
+    enum:
+    - text
+    - image_url
+    type: string
+    x-enum-varnames:
+    - ChatMessagePartTypeText
+    - ChatMessagePartTypeImageURL
+  proxyapi.ImageURLDetail:
+    enum:
+    - high
+    - low
+    - auto
+    type: string
+    x-enum-varnames:
+    - ImageURLDetailHigh
+    - ImageURLDetailLow
+    - ImageURLDetailAuto
+  proxyapi.OpenAiCompletitionRequest:
+    properties:
+      frequency_penalty:
+        type: number
+      function_call:
+        description: 'Deprecated: use ToolChoice instead.'
+      logit_bias:
+        additionalProperties:
+          type: integer
+        description: |-
+          LogitBias is must be a token id string (specified by their token ID in the tokenizer), not a word string.
+          incorrect: `"logit_bias":{"You": 6}`, correct: `"logit_bias":{"1639": 6}`
+          refs: https://platform.openai.com/docs/api-reference/chat/create#chat/create-logit_bias
+        type: object
+      logprobs:
+        description: |-
+          LogProbs indicates whether to return log probabilities of the output tokens or not.
+          If true, returns the log probabilities of each output token returned in the content of message.
+          This option is currently not available on the gpt-4-vision-preview model.
+        type: boolean
+      max_tokens:
+        type: integer
+      messages:
+        items:
+          $ref: '#/definitions/proxyapi.ChatCompletionMessage'
+        type: array
+      model:
+        type: string
+      "n":
+        type: integer
+      presence_penalty:
+        type: number
+      response_format:
+        $ref: '#/definitions/proxyapi.ChatCompletionResponseFormat'
+      seed:
+        type: integer
+      stop:
+        items:
+          type: string
+        type: array
+      stream:
+        type: boolean
+      temperature:
+        type: number
+      tool_choice:
+        description: This can be either a string or an ToolChoice object.
+      top_logprobs:
+        description: |-
+          TopLogProbs is an integer between 0 and 5 specifying the number of most likely tokens to return at each
+          token position, each with an associated log probability.
+          logprobs must be set to true if this parameter is used.
+        type: integer
+      top_p:
+        type: number
+      user:
+        type: string
+    type: object
+  structs.OpenSessionRequest:
+    type: object
+  structs.OpenSessionWithDurationRequest:
+    properties:
+      sessionDuration:
+        $ref: '#/definitions/lib.BigInt'
+    type: object
+  structs.SendRequest:
+    type: object
+  system.ConfigResponse:
+    properties:
+      commit:
+        type: string
+      config: {}
+      derivedConfig: {}
+      version:
+        type: string
+    type: object
+  system.FD:
+    properties:
+      id:
+        type: string
+      path:
+        type: string
+    type: object
+  system.HealthCheckResponse:
+    properties:
+      status:
+        type: string
+      uptime:
+        type: string
+      version:
+        type: string
+    type: object
+  walletapi.SetupWalletReqBody:
+    properties:
+      privateKey:
+        items:
+          type: integer
+        type: array
+    required:
+    - privateKey
+    type: object
+externalDocs:
+  description: OpenAPI
+  url: https://swagger.io/resources/open-api/
+info:
+  contact: {}
+  description: This is a sample server celler server.
+  termsOfService: http://swagger.io/terms/
+  title: ApiBus Example API
+  version: "1.0"
+paths:
+  /blockchain/allowance:
+    get:
+      description: Get MOR allowance for spender
+      parameters:
+      - description: Spender address
+        in: query
+        name: spender
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      summary: Get Allowance for MOR
+      tags:
+      - wallet
+    post:
+      description: Approve MOR allowance for spender
+      parameters:
+      - description: Spender address
+        in: query
+        name: spender
+        required: true
+        type: string
+      - description: Amount
+        in: query
+        name: amount
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      summary: Approve MOR allowance
+      tags:
+      - wallet
+  /blockchain/balance:
+    get:
+      description: Get ETH and MOR balance of the user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      summary: Get ETH and MOR balance
+      tags:
+      - wallet
+  /blockchain/bids/:id/session:
+    post:
+      consumes:
+      - application/json
+      description: Full flow to open a session by bidId
+      parameters:
+      - description: Open session
+        in: body
+        name: opensession
+        required: true
+        schema:
+          $ref: '#/definitions/structs.OpenSessionWithDurationRequest'
+      - description: Bid ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      summary: Open Session by bidId in blockchain
+      tags:
+      - sessions
+  /blockchain/latestBlock:
+    get:
+      description: Get latest block number from blockchain
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      summary: Get Latest Block
+      tags:
+      - wallet
+  /blockchain/models:
+    get:
+      description: Get models list from blokchain
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: object
+            type: array
+      summary: Get models list
+      tags:
+      - wallet
+  /blockchain/models/:id/session:
+    post:
+      consumes:
+      - application/json
+      description: Full flow to open a session by modelId
+      parameters:
+      - description: Open session
+        in: body
+        name: opensession
+        required: true
+        schema:
+          $ref: '#/definitions/structs.OpenSessionWithDurationRequest'
+      - description: Model ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      summary: Open Session by ModelID in blockchain
+      tags:
+      - sessions
+  /blockchain/models/{id}/bids:
+    get:
+      description: Get bids from blockchain by model agent
+      parameters:
+      - description: ModelAgent ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: object
+            type: array
+      summary: "Get Active Bids by\tModel Agent"
+      tags:
+      - wallet
+  /blockchain/providers:
+    get:
+      description: Get providers list from blokchain
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: object
+            type: array
+      summary: Get providers list
+      tags:
+      - wallet
+  /blockchain/providers/{id}/bids:
+    get:
+      description: Get bids from blockchain by provider
+      parameters:
+      - description: Offset
+        in: query
+        name: offset
+        type: string
+      - description: Limit
+        in: query
+        name: limit
+        type: string
+      - description: Provider ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: object
+            type: array
+      summary: Get Bids by Provider
+      tags:
+      - wallet
+  /blockchain/providers/{id}/bids/active:
+    get:
+      description: Get bids from blockchain by provider
+      parameters:
+      - description: Provider ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: object
+            type: array
+      summary: Get Bids by Provider
+      tags:
+      - wallet
+  /blockchain/send/eth:
+    post:
+      description: Send Eth to address
+      parameters:
+      - description: Send Eth
+        in: body
+        name: sendeth
+        required: true
+        schema:
+          $ref: '#/definitions/structs.SendRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      summary: Send Eth
+      tags:
+      - wallet
+  /blockchain/send/mor:
+    post:
+      description: Send Mor to address
+      parameters:
+      - description: Send Mor
+        in: body
+        name: sendmor
+        required: true
+        schema:
+          $ref: '#/definitions/structs.SendRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      summary: Send Mor
+      tags:
+      - wallet
+  /blockchain/sessions:
+    get:
+      description: Get sessions from blockchain by user or provider
+      parameters:
+      - description: Offset
+        in: query
+        name: offset
+        type: string
+      - description: Limit
+        in: query
+        name: limit
+        type: string
+      - description: Provider address
+        in: query
+        name: provider
+        type: string
+      - description: User address
+        in: query
+        name: user
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: object
+            type: array
+      summary: Get Sessions
+      tags:
+      - sessions
+    post:
+      consumes:
+      - application/json
+      description: Sends transaction in blockchain to open a session
+      parameters:
+      - description: Open session
+        in: body
+        name: opensession
+        required: true
+        schema:
+          $ref: '#/definitions/structs.OpenSessionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      summary: Open Session with Provider in blockchain
+      tags:
+      - sessions
+  /blockchain/sessions/{id}/close:
+    post:
+      description: Sends transaction in blockchain to close a session
+      parameters:
+      - description: Session ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      summary: Close Session with Provider
+      tags:
+      - sessions
+  /blockchain/sessions/budget:
+    get:
+      description: Get todays budget from blockchain
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      summary: Get Todays Budget
+      tags:
+      - wallet
+  /blockchain/token/supply:
+    get:
+      description: Get MOR token supply from blockchain
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      summary: Get Token Supply
+      tags:
+      - wallet
+  /blockchain/transactions:
+    get:
+      description: Get MOR and ETH transactions
+      parameters:
+      - description: Page
+        in: query
+        name: page
+        type: string
+      - description: Limit
+        in: query
+        name: limit
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: object
+            type: array
+      summary: Get Transactions
+      tags:
+      - wallet
+  /config:
+    get:
+      description: Return the current config of proxy router
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/system.ConfigResponse'
+      summary: Get Config
+      tags:
+      - healthcheck
+  /files:
+    get:
+      description: Returns opened files
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/system.FD'
+            type: array
+      summary: Get files
+      tags:
+      - healthcheck
+  /healthcheck:
+    get:
+      description: do ping
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/system.HealthCheckResponse'
+      summary: Healthcheck example
+      tags:
+      - healthcheck
+  /proxy/sessions/${id}/providerClaim:
+    post:
+      description: Claim provider balance from session
+      parameters:
+      - description: Claim
+        in: body
+        name: claim
+        required: true
+        schema:
+          $ref: '#/definitions/structs.SendRequest'
+      - description: Session ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      summary: Claim Provider Balance
+      tags:
+      - sessions
+  /proxy/sessions/${id}/providerClaimableBalance:
+    get:
+      description: Get provider claimable balance from session
+      parameters:
+      - description: Session ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      summary: Get Provider Claimable Balance
+      tags:
+      - sessions
+  /proxy/sessions/initiate:
+    post:
+      description: sends a handshake to the provider
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      summary: Initiate Session with Provider
+      tags:
+      - sessions
+  /v1/chat/completions:
+    post:
+      description: Send prompt to a local or remote model based on session id in header
+      parameters:
+      - description: Prompt
+        in: body
+        name: prompt
+        required: true
+        schema:
+          $ref: '#/definitions/proxyapi.OpenAiCompletitionRequest'
+      - description: Session ID
+        in: header
+        name: session_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      summary: Send Local Or Remote Prompt
+      tags:
+      - wallet
+  /wallet:
+    get:
+      description: Get wallet address
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      summary: Get Wallet
+      tags:
+      - wallet
+    post:
+      description: Set wallet private key
+      parameters:
+      - description: Private key
+        in: body
+        name: privatekey
+        required: true
+        schema:
+          $ref: '#/definitions/walletapi.SetupWalletReqBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      summary: Set Wallet
+      tags:
+      - wallet
+swagger: "2.0"

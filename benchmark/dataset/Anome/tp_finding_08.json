@@ -1,0 +1,34 @@
+{
+  "title": "Unbounded accountRecruits Array Growth",
+  "location": {
+    "local_file_path": "./source_code/github/CertiKProject/certik-audit-projects/2a2826fcbafb5bed23f57406cc61e71a3ccffcf2/projects/anome 2/shop/referral/ShopReferralInternal.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/e3c45370-51aa-11f0-bdd0-cbef849456d3/source?file=$/github/CertiKProject/certik-audit-projects/2a2826fcbafb5bed23f57406cc61e71a3ccffcf2/projects/anome 2/shop/referral/ShopReferralInternal.sol",
+    "start_line": 108,
+    "end_line": 126
+  },
+  "all_locations": null,
+  "category": null,
+  "severity": null,
+  "confidence": null,
+  "description": "The internal _removeRecruit uses delete to clear matching entries but never shrinks the storage array, and it unconditionally calls _removeSponsor. As a result, each time a user’s sponsor relationship is reset and recreated (even to the same sponsor), a new entry is appended while the old slot becomes a permanent zeroed ‘hole’. Over repeated cycles the sponsor’s recruits list grows without bound, accumulating holes that still count toward recruits.length.\n\nExploit Demonstration:\n1. Ensure your account is already bound to Sponsor A (either by bindSponsor(0) or a prior bindSponsor(code) call).\n2. Call the external changeSponsor function (which calls _changeSponsor(msg.sender, newSponsor)) with newSponsor = address of Sponsor A. Internally:\n   • _changeSponsor reads oldSponsor = A and invokes _removeRecruit(A, yourAddress). This loops through accountRecruits[A], deletes your old Recruit entry (sets it to (0,0)) but leaves the slot, then calls _removeSponsor(yourAddress). \n   • _changeSponsor then calls _rebindSponsor(yourAddress, A), pushing a fresh Recruit struct onto accountRecruits[A]. Now recruits.length for A has grown by one, with a hole at the old index.\n3. Repeat step 2 N times. After N cycles, accountRecruits[A].length = initial+N, with N holes and N active entries.\n4. When Sponsor A later calls any function iterating over accountRecruits[A] (e.g., an external removeAllRecruit(A) or other referral-processing loop), the operation must loop over all slots (including holes), burning O(N) gas. For large N this can exceed block gas limits and block Sponsor A from managing or clearing their recruits list—resulting in a denial-of-service against Sponsor A’s referral management.",
+  "scenario": null,
+  "proof_of_concept": null,
+  "recommendation": null,
+  "id": "2974",
+  "duplicates": [
+    "2974",
+    "d0ea"
+  ],
+  "source": "scanner.smart_audit",
+  "status": "verified_as_valid",
+  "scan_model_name": "o4-mini",
+  "related_function_code": "function _removeRecruit(address account, address recruit) internal {\n    if (account == address(0)) {\n        return;\n    }\n\n    if (recruit == address(0)) {\n        return;\n    }\n\n    ShopStorage.Layout storage data = ShopStorage.layout();\n    ShopTypes.Recruit[] storage recruits = data.accountRecruits[account];\n    for (uint i = 0; i < recruits.length; i++) {\n        if (recruits[i].account == recruit) {\n            delete recruits[i];\n        }\n    }\n\n    _removeSponsor(recruit);\n}",
+  "related_context": "layout ->     function layout() internal pure returns (Layout storage l) {\n        bytes32 slot = STORAGE_SLOT;\n        assembly {\n            l.slot := slot\n        }\n    }",
+  "related_checklist": null,
+  "related_pid": "e3c45370-51aa-11f0-bdd0-cbef849456d3",
+  "related_commit_id": "2a2826fcbafb5bed23f57406cc61e71a3ccffcf2",
+  "triage_verdict": "valid",
+  "triage_severity": "",
+  "triage_reason": "Valid finding",
+  "is_main_finding": true
+}

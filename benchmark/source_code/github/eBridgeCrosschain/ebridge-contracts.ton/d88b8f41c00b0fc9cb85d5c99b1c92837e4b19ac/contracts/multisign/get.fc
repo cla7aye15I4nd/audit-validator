@@ -1,0 +1,25 @@
+#include "errors.fc";
+#include "helper.fc";
+#include "storage.fc";
+#include "order/fee.fc";
+
+(int, int, cell, cell) get_multisig_data() method_id {
+    load_storage();
+    throw_unless(error::inconsistent_data, storage::signers_num == validate_dictionary_sequence(storage::signers_info));
+    validate_dictionary_sequence(storage::proposers);
+    throw_unless(error::invalid_signers, storage::signers_num >= 1);
+    throw_unless(error::invalid_threshold, storage::threshold > 0);
+    throw_unless(error::invalid_threshold, storage::threshold <= storage::signers_num);
+    return (storage::next_order_seqno, storage::threshold, storage::signers_info, storage::proposers);
+}
+
+int get_order_estimate(cell order, int expiration_date) method_id {
+    load_storage();
+    return calculate_order_processing_cost(order, storage::signers_info, expiration_date - now());
+}
+
+slice get_order_address(int order_seqno) method_id {
+    load_storage();
+    cell state_init = calculate_order_state_init(my_address(), order_seqno, storage::order_code);
+    return calculate_address_by_state_init(BASECHAIN, state_init);
+}

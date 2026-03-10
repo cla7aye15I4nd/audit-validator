@@ -1,0 +1,31 @@
+{
+  "title": "Banned Users Can Receive Battle and Referral Rewards",
+  "location": {
+    "local_file_path": "./source_code/github/CertiKProject/certik-audit-projects/2a2826fcbafb5bed23f57406cc61e71a3ccffcf2/projects/anome 2/shop/battle/BattleServiceInternal.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/e3c45370-51aa-11f0-bdd0-cbef849456d3/source?file=$/github/CertiKProject/certik-audit-projects/2a2826fcbafb5bed23f57406cc61e71a3ccffcf2/projects/anome 2/shop/battle/BattleServiceInternal.sol",
+    "start_line": 89,
+    "end_line": 102
+  },
+  "all_locations": null,
+  "category": null,
+  "severity": null,
+  "confidence": null,
+  "description": "The `_sendVnome` function is responsible for minting vNome reward tokens to a specified account. The function contains a check to prevent minting to the zero address but lacks a crucial check to verify if the recipient account has been banned. The contract's storage includes a mapping `isAccountBanned` to track banned users, but this status is ignored within the `_sendVnome` function. This oversight allows an account marked as banned to continue receiving vNome tokens from battle participation (as a winner or loser) or from referral activities (as a sponsor). This flaw undermines the banning mechanism, as banned users can still passively accumulate rewards from the ecosystem.\n\n**Exploit Demonstration:**\n1. A user, `BannedUser`, is banned by the project owner, setting `isAccountBanned[BannedUser]` to `true`.\n2. Another active user, `Player`, participates in a battle and wins. `Player` had previously set `BannedUser` as their sponsor, so `accountSponsor[Player]` equals `BannedUser`'s address.\n3. The `_onBattled` function is triggered, which calls `_processVnomeDistribution` to calculate rewards.\n4. `_processVnomeDistribution` allocates a 10% sponsor reward to `BannedUser` and calls `_sendVnome` with `BannedUser`'s address as the recipient.\n5. The `_sendVnome` function executes. It verifies that `BannedUser`'s address is not the zero address but fails to check the `isAccountBanned` status.\n6. Consequently, the function calls `IVnome(...).mint(BannedUser, rewardAmount)`, and `BannedUser` successfully receives the vNome referral rewards despite being banned.",
+  "scenario": null,
+  "proof_of_concept": null,
+  "recommendation": null,
+  "id": "8310",
+  "duplicates": null,
+  "source": "scanner.smart_audit",
+  "status": "verified_as_valid",
+  "scan_model_name": "gemini-2.5-pro",
+  "related_function_code": "    function _sendVnome(address account, uint256 amount, bool isReferral) internal {\n        if (account == address(0)) {\n            return;\n        }\n\n        ShopStorage.Layout storage data = ShopStorage.layout();\n        IVnome(data.config.vnome()).mint(account, amount);\n\n        if (isReferral) {\n            emit OnReferralRewawrd(account, amount);\n        } else {\n            emit OnBattleRewawrd(account, amount);\n        }\n    }",
+  "related_context": "layout ->     function layout() internal pure returns (Layout storage l) {\n        bytes32 slot = STORAGE_SLOT;\n        assembly {\n            l.slot := slot\n        }\n    }\n\nvnome -> None\n\nmint ->     function mint(address account, uint256 amount) external;",
+  "related_checklist": null,
+  "related_pid": "e3c45370-51aa-11f0-bdd0-cbef849456d3",
+  "related_commit_id": "2a2826fcbafb5bed23f57406cc61e71a3ccffcf2",
+  "triage_verdict": "invalid",
+  "triage_severity": "",
+  "triage_reason": "Banned Users Can not join the game",
+  "is_main_finding": true
+}

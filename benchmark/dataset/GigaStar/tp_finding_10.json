@@ -1,0 +1,29 @@
+{
+  "id": "4407",
+  "title": "ApprovalUpdated event emits boxName and tokSym in the wrong order",
+  "source": "aiflow_scanner_codex",
+  "status": "enhanced",
+  "category": null,
+  "location": {
+    "end_line": 1,
+    "start_line": 1,
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/7b519e30-d10a-11f0-a5a1-c38d49d0912c/source?file=$/github/GigaStarIo-public/vault-audit/0b8edde27935e70ed3decbb30508bde926edf57c/bd/bc-contract/contract/v1_0/Box.sol",
+    "local_file_path": "./source_code/github/GigaStarIo-public/vault-audit/0b8edde27935e70ed3decbb30508bde926edf57c/bd/bc-contract/contract/v1_0/Box.sol"
+  },
+  "scenario": "",
+  "sequence": 300,
+  "severity": "info",
+  "confidence": null,
+  "description": "In `_approve`, the `ApprovalUpdated` event is emitted as `emit ApprovalUpdated(_name, ti.tokSym, _name, ...)`, but the event signature is `(boxNameHash, boxName, tokSym, token, spender, oldAllowance, newAllowance)`. This swaps `boxName` and `tokSym` in emitted logs, breaking off-chain indexing/monitoring of approval changes and potentially causing missed/incorrect alerting or accounting around approvals.",
+  "related_pid": "7b519e30-d10a-11f0-a5a1-c38d49d0912c",
+  "triage_reason": null,
+  "recommendation": "- Update the emit in _approve so the arguments match the ApprovalUpdated signature: (boxNameHash, boxName, tokSym, token, spender, oldAllowance, newAllowance). The current call emits as “emit ApprovalUpdated(_name, ti.tokSym, _name, …)”, which swaps boxName and tokSym; ensure the second argument is the actual boxName and the third is tokSym.\n- If the boxName value is not available at the call site, pass it through or persist it so both boxNameHash and boxName are emitted correctly and distinctly.\n- Add tests that decode the event log and assert each parameter’s position and value (including indexed vs. non-indexed fields) to prevent regressions.\n- Document the change and notify indexers/integrators that historical logs have incorrect ordering; consider a version bump or a new event name if backward compatibility is required.",
+  "triage_verdict": "valid",
+  "related_context": null,
+  "scan_model_name": null,
+  "triage_severity": null,
+  "proof_of_concept": null,
+  "related_checklist": null,
+  "related_commit_id": "0b8edde27935e70ed3decbb30508bde926edf57c",
+  "related_function_code": "/// @notice Set requested token to max approval for transfer by `spender`\n/// @dev Allows `spender` to call transfer on a token directly\n/// @param spender Address to approve for transfers\n/// @param newAllowance Qty to approve; =0 to unapprove\n/// @param info Token to grant approval\n/// @return rc Return code indicating if call was successful or error context\n/// @custom:api private\nfunction approve(address spender, TI.TokenInfo calldata info, uint newAllowance) external override\n    returns(ApproveRc rc)\n{\n    _requireOwner(msg.sender); // Access control\n    rc = _approve(spender, info, newAllowance);\n}"
+}

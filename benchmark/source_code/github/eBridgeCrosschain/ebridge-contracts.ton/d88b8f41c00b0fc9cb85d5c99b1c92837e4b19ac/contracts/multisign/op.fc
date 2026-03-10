@@ -1,0 +1,10 @@
+const int new_order = "new_order"c;
+const int execute = "execute"c;
+const int execute_internal = "execute_internal"c;
+const int init = "init"c;
+const int approve = "approve"c;
+const int approve_accepted = "approve_accepted"c;
+const int approve_rejected = "approve_rejected"c;
+
+const int actions::send_message = "actions::send_message"c;
+const int actions::update_multisig_params = "actions::update_multisig_params"c;

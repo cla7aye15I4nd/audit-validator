@@ -1,0 +1,31 @@
+{
+  "title": "Max Balance Limit Can Be Bypassed for the Tax Recipient Address",
+  "location": {
+    "local_file_path": "./source_code/github/GLBank/Web3/54b12f25ff139912cbddcc316c940624a64687cf/GLDB Pulse Contracts/PLT/GLDBToken.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/b619bc20-116e-11f0-85f2-afceaa02a7b6/source?file=$/github/GLBank/Web3/54b12f25ff139912cbddcc316c940624a64687cf/GLDB Pulse Contracts/PLT/GLDBToken.sol",
+    "start_line": 1,
+    "end_line": 1
+  },
+  "all_locations": null,
+  "category": null,
+  "severity": null,
+  "confidence": null,
+  "description": "The function `_checkMaxAmountPerAddress` is intended to enforce a maximum token balance per address. This check is applied to the recipient of a transfer (`to`) but is not applied to the `taxAddress` when it receives funds from transfer fees. The `_payFeeWhenTransfer` function, called by `transfer`, first checks the main recipient's potential new balance, and only then does it proceed to transfer the tax fee. This creates a logical flaw where the tax fee transfer itself can cause the `taxAddress` to exceed its `maxTokenAmountPerAddress` without any validation, thus breaking a core tokenomics rule. The `batchTransfer` function can be used to repeatedly trigger this vulnerability in a single transaction, making it easier to accumulate a large amount in the `taxAddress`.\n\n**Exploit Demonstration:**\n\n1. **Prerequisites:**\n   - The contract is initialized with `isMaxAmountPerAddressSet` as `true` and `maxTokenAmountPerAddress` set to a specific limit (e.g., 1,000 tokens).\n   - The contract is initialized with `isTaxable` as `true`, a valid `taxAddress`, and a non-zero `taxBPS` (e.g., 1000, representing a 10% tax).\n   - The `taxAddress` holds a balance close to the limit, for instance, 950 tokens. An attacker can achieve this state by performing legitimate transfers that generate tax fees.\n   - The attacker is a regular token holder with a sufficient balance to perform the transfer (e.g., more than 600 tokens).\n\n2. **Exploitation Step:**\n   - The attacker calls the `batchTransfer` function to send tokens to any valid address other than the `taxAddress`. A single-recipient transfer is sufficient to demonstrate the flaw.\n   - `batchTransfer(toList=[0xRecipient...], amountList=[600])`\n\n3. **Execution Analysis:**\n   - The `batchTransfer` function calls `transfer(0xRecipient..., 600)`.\n   - The `transfer` function calls `_payFeeWhenTransfer`. A tax of 60 tokens (10% of 600) is calculated.\n   - `_checkMaxAmountPerAddress` is called for the recipient `0xRecipient...` with the net transfer amount of 540 tokens. Assuming the recipient's balance is low, this check passes.\n   - The `_payFeeWhenTransfer` function then proceeds to execute `super._transfer(from, taxAddress, 60)`, transferring the 60 tax tokens. No balance check is performed for the `taxAddress`.\n   - The `taxAddress` balance, which was 950, is now incremented by 60, resulting in a new balance of 1,010 tokens.\n   - The transaction completes successfully.\n\n4. **Result:**\n   - The `taxAddress` now holds 1,010 tokens, exceeding the configured `maxTokenAmountPerAddress` of 1,000. This demonstrates that the control mechanism to limit holdings per address has been successfully bypassed for the `taxAddress`.",
+  "scenario": null,
+  "proof_of_concept": null,
+  "recommendation": null,
+  "id": "a4bd",
+  "duplicates": null,
+  "source": "scanner.smart_audit",
+  "status": "verified_as_valid",
+  "scan_model_name": "gemini-2.5-pro",
+  "related_function_code": "function batchTransfer(address[] memory toList, uint256[] memory amountList) external whenNotPaused {\n        uint256 len = toList.length;\n        if (len != amountList.length) {\n            revert InvalidRecipientAndAmount();\n        }\n        for (uint256 i = 0; i < len;) {\n            transfer(toList[i], amountList[i]);\n            unchecked {\n                i++;\n            }\n        }\n    }",
+  "related_context": "",
+  "related_checklist": null,
+  "related_pid": "b619bc20-116e-11f0-85f2-afceaa02a7b6",
+  "related_commit_id": "54b12f25ff139912cbddcc316c940624a64687cf",
+  "triage_verdict": "invalid",
+  "triage_severity": "",
+  "triage_reason": "Intended design",
+  "is_main_finding": true
+}

@@ -1,0 +1,188 @@
+syntax = "proto3";
+package coreum.dex.v1;
+
+import "cosmos/base/v1beta1/coin.proto";
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/CoreumFoundation/coreum/v5/x/dex/types";
+option (gogoproto.goproto_getters_all) = false;
+
+// Side is order side.
+enum Side {
+  option (gogoproto.goproto_enum_prefix) = false;
+  // SIDE_UNSPECIFIED reserves the default value, to protect against unexpected settings.
+  SIDE_UNSPECIFIED = 0;
+  // SIDE_BUY means that the order is to buy base_denom quantity with the price.
+  SIDE_BUY = 1;
+  // SIDE_SELL means that the order is to sell base_denom quantity with the price.
+  SIDE_SELL = 2;
+}
+
+// Type is order type.
+enum OrderType {
+  option (gogoproto.goproto_enum_prefix) = false;
+  // order_type_unspecified reserves the default value, to protect against unexpected settings.
+  ORDER_TYPE_UNSPECIFIED = 0;
+  // order_type_limit means that the order is limit order.
+  ORDER_TYPE_LIMIT = 1;
+  // limit order_type_market that the order is market order.
+  ORDER_TYPE_MARKET = 2;
+}
+
+// GoodTil is a good til order settings.
+message GoodTil {
+  // good_til_block_height means that order remains active until a specific blockchain block height is reached.
+  uint64 good_til_block_height = 1;
+  // good_til_block_time means that order remains active until a specific blockchain block time is reached.
+  google.protobuf.Timestamp good_til_block_time = 2 [(gogoproto.stdtime) = true];
+}
+
+// CancelGoodTil is a cancel good til message for the delay router.
+message CancelGoodTil {
+  // creator is order creator address.
+  string creator = 1;
+  // order_sequence is order sequence.
+  uint64 order_sequence = 2;
+}
+
+// TimeInForce is order time in force.
+enum TimeInForce {
+  option (gogoproto.goproto_enum_prefix) = false;
+  // time_in_force_unspecified reserves the default value, to protect against unexpected settings.
+  TIME_IN_FORCE_UNSPECIFIED = 0;
+  // time_in_force_gtc means that the order remains active until it is fully executed or manually canceled.
+  TIME_IN_FORCE_GTC = 1;
+  // time_in_force_ioc  means that order must be executed immediately, either in full or partially. Any portion of the
+  //  order that cannot be filled immediately is canceled.
+  TIME_IN_FORCE_IOC = 2;
+  // time_in_force_fok means that order must be fully executed or canceled.
+  TIME_IN_FORCE_FOK = 3;
+}
+
+// Order represents a DEX order, encapsulating both limit and market orders. It contains comprehensive information about
+// the order's state.
+message Order {
+  // creator is order creator address.
+  string creator = 1;
+  // type is order type.
+  OrderType type = 2;
+  // id is unique order ID.
+  string id = 3 [(gogoproto.customname) = "ID"];
+  // sequence is unique order sequence generated at the time of the order placement.
+  uint64 sequence = 4;
+  // base_denom is base order denom.
+  string base_denom = 5;
+  // quote_denom is quote order denom
+  string quote_denom = 6;
+  // price is value of one unit of the base_denom expressed in terms of the quote_denom.
+  string price = 7 [(gogoproto.customtype) = "Price"];
+  // quantity is amount of the base base_denom being traded.
+  string quantity = 8 [
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+  // side is order side.
+  Side side = 9;
+  // remaining_base_quantity - is remaining quantity of base denom which user wants to sell or buy.
+  string remaining_base_quantity = 10 [
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+  // remaining_spendable_balance - is balance up to which user wants to spend to execute the order.
+  string remaining_spendable_balance = 11 [
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+  // good_til is order good til
+  GoodTil good_til = 12;
+  // time_in_force is order time in force
+  TimeInForce time_in_force = 13;
+  // reserve is the reserve required to save the order in the order book
+  cosmos.base.v1beta1.Coin reserve = 14 [
+    (gogoproto.nullable) = false,
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin"
+  ];
+}
+
+// OrderData represents the order information for the store missing in the order book record.
+message OrderData {
+  // order ID provided by the creator.
+  string order_id = 1 [(gogoproto.customname) = "OrderID"];
+  // order_book_id is order book ID.
+  uint32 order_book_id = 2 [(gogoproto.customname) = "OrderBookID"];
+  // price is value of one unit of the base_denom expressed in terms of the quote_denom.
+  string price = 3 [
+    (gogoproto.customtype) = "Price",
+    (gogoproto.nullable) = false
+  ];
+  // quantity is amount of the base base_denom being traded.
+  string quantity = 4 [
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+  // side is order side.
+  Side side = 5;
+  // good_til is order good til
+  GoodTil good_til = 6;
+  // reserve is the reserve required to save the order in the order book
+  cosmos.base.v1beta1.Coin reserve = 7 [
+    (gogoproto.nullable) = false,
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin"
+  ];
+}
+
+// OrderBookData is a order book data used by order for the store.
+message OrderBookData {
+  // base_denom is base order book denom.
+  string base_denom = 1;
+  // quote_denom is quote order book denom
+  string quote_denom = 2;
+}
+
+// OrderBookRecord is a single order book record, it combines both key and value from the store.
+message OrderBookRecord {
+  // order_book_id is order book ID.
+  uint32 order_book_id = 1 [(gogoproto.customname) = "OrderBookID"];
+  // side is order side.
+  Side side = 2;
+  // price is order book record price.
+  string price = 3 [
+    (gogoproto.customtype) = "Price",
+    (gogoproto.nullable) = false
+  ];
+  // order_sequence is order sequence.
+  uint64 order_sequence = 4;
+  // order ID provided by the creator.
+  string order_id = 5 [(gogoproto.customname) = "OrderID"];
+  // account_number is account number which corresponds the order creator.
+  uint64 account_number = 6;
+  // remaining_base_quantity - is remaining quantity of base denom which user wants to sell or buy.
+  string remaining_base_quantity = 7 [
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+  // remaining_spendable_balance - is balance up to which user wants to spend to execute the order.
+  string remaining_spendable_balance = 8 [
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// OrderBookRecordData is a single order book record used for the store.
+message OrderBookRecordData {
+  // order ID provided by the creator.
+  string order_id = 1 [(gogoproto.customname) = "OrderID"];
+  // account_number is account number which corresponds the order creator.
+  uint64 account_number = 2;
+  // remaining_base_quantity - is remaining quantity of base denom which user wants to sell or buy.
+  string remaining_base_quantity = 3 [
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+  // remaining_spendable_balance - is balance up to which user wants to spend to execute the order.
+  string remaining_spendable_balance = 4 [
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+}

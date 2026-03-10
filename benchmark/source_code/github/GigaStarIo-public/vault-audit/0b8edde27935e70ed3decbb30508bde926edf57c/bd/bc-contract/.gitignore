@@ -1,0 +1,61 @@
+# Patterns used by git to ignore dirs/files
+
+# -----------------------------------------------------------------------------
+# Project specific
+# -----------------------------------------------------------------------------
+
+# Forge:
+lib/
+doc/gen-sol
+
+# -----------------------------------------------------------------------------
+# General
+# -----------------------------------------------------------------------------
+
+# Node dependencies
+node_modules
+.npm
+
+# Temporary files
+*.swp
+bin
+__debug_bin*
+.DS_Store
+
+# Logs
+*.log
+log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Generated artifacts
+artifacts/
+abi/**/test/
+abi/**/*Test*.sol
+abi/**/*Mock*.sol
+abi/**/*console*.sol
+abi/**/Std*.sol
+abi/**/build-info/
+abi/**/*.t.sol/
+abi/build-info/
+cache/
+typechain*
+dist/
+build/
+coverage*
+out/
+
+# Developer specific files
+.env
+.vscode
+.idea/
+.turbo
+go.work
+go.work.sum
+
+# Production settings
+*prod*.yaml*
+*prod*.env*
+*prod*.cfg*

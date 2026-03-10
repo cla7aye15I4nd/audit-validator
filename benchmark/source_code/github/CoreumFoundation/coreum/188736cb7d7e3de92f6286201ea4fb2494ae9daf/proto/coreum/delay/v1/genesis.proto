@@ -1,0 +1,31 @@
+syntax = "proto3";
+package coreum.delay.v1;
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/CoreumFoundation/coreum/v5/x/delay/types";
+
+// GenesisState defines the module genesis state.
+message GenesisState {
+  // delayed_items is a list of delayed items.
+  repeated DelayedItem delayed_items = 1 [(gogoproto.nullable) = false];
+  // block_items is a list of block items.
+  repeated BlockItem block_items = 2 [(gogoproto.nullable) = false];
+}
+
+message DelayedItem {
+  string id = 1 [(gogoproto.customname) = "ID"];
+  google.protobuf.Timestamp execution_time = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdtime) = true
+  ];
+  google.protobuf.Any data = 3;
+}
+
+message BlockItem {
+  string id = 1 [(gogoproto.customname) = "ID"];
+  uint64 height = 2;
+  google.protobuf.Any data = 3;
+}

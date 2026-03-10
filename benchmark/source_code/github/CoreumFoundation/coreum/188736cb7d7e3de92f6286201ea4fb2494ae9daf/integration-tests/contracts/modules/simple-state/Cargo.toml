@@ -1,0 +1,23 @@
+[package]
+name = "simple-state"
+version = "0.1.0"
+authors = ["Coreum"]
+edition = "2021"
+
+exclude = [
+  "simple_state.wasm",
+  "checksums.txt",
+]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+library = []
+
+[dependencies]
+cosmwasm-std.workspace = true
+cw2.workspace = true
+thiserror.workspace = true
+cosmwasm-schema.workspace = true
+cw-storage-plus.workspace = true

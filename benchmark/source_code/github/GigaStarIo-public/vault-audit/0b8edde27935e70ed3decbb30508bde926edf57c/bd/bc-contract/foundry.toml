@@ -1,0 +1,81 @@
+# This is the Foundry config file for Solidity contract unit tests
+# This file format is documented at: https://toml.io/en/
+#
+# Example commands:
+# FOUNDRY_PROFILE=test forge test --via-ir
+# FOUNDRY_PROFILE=test forge test --via-ir -vvvv --match-test test_Crt_setUri
+# FOUNDRY_PROFILE=test forge test --via-ir -vvvv ut/Vault.t.sol
+
+# ────────────────────────────────────────────────────────────────────────
+# Profiles
+# ────────────────────────────────────────────────────────────────────────
+
+# ───────────────────────────────────────
+[profile.default]
+# ───────────────────────────────────────
+src = "./contract/"         # Files to be compiled, except standard exclusions (libs, out, cache, scripts, test)
+libs = [                    # A list of external dependencies
+    "./lib/"                # Default 'forge install' location
+]
+out = "./abi/V1_0/"         # Compiled artifacts
+cache = true                # Whether to enable caching
+cache_path = "./cache/"     # Cache file location
+gas_reports = [             # A list of contracts to gen gas reports
+    "*"                     # All contracts
+]
+via_ir = true               # true allows ~256 stack slots in many cases (vs ~16 default) and optimies instruction
+                            # that can save ~4 KB size. However, the IR-pipeline prevents slither static analysis
+optimizer = true            # true reduces contract size (eg 33 KB -> 11), helps excludes code comments
+optimizer-runs = 200        # an optimizer parameter for tuning vs a use case, 200 is common
+solc = "0.8.30"             # Solidity compiler version
+
+# ───────────────────────────────────────
+[profile.release]
+# ───────────────────────────────────────
+via_ir = true               # true allows ~256 stack slots in many cases (vs ~16 default) and optimies instruction
+                            # that can save ~4 KB size. However, the IR-pipeline prevents slither static analysis
+optimizer = true            # true reduces contract size (eg 33 KB -> 11), helps excludes code comments
+optimizer-runs = 200        # an optimizer parameter for tuning vs a use case, 200 is common
+extra_output = [
+    "abi",
+    "metadata"
+]
+
+# ───────────────────────────────────────
+[profile.test]
+# ───────────────────────────────────────
+src = "./ut/"               # Files to be compiled
+out = "./abi/V1_0/test/"    # Compiled artifacts
+via_ir = false              # May fail due to test specific issues
+ir_minimum = true           # A minimal version of via_ir to get more stack slots
+optimizer = false           # false during 'coverage' for accuracy and only a default profile, use true for profiling
+
+# ───────────────────────────────────────
+[profile.coverage]
+# ───────────────────────────────────────
+via_ir = false              # May fail due to test specific issues
+ir_minimum = true           # A minimal version of via_ir to get more stack slots
+optimizer = true            # May lead to inaccuracies but required with IR
+
+# ───────────────────────────────────────
+[profile.slither]
+# ───────────────────────────────────────
+via_ir = false              # Slither does not allow an IR-pipeline, contracts may not have stack too deep errors
+ir_minimum = false          # See via_ir comment
+optimizer = true            # true reduces contract size (eg 33 KB -> 11), helps excludes code comments
+
+# ────────────────────────────────────────────────────────────────────────
+# Misc sections
+# ────────────────────────────────────────────────────────────────────────
+
+# ───────────────────────────────────────
+[lint]
+# ───────────────────────────────────────
+lint_on_build = false
+exclude_lints = [
+    "unaliased-plain-import",
+    "screaming-snake-case-const",
+    "screaming-snake-case-immutable",
+    "mixed-case-function",
+    "asm-keccak256"
+]

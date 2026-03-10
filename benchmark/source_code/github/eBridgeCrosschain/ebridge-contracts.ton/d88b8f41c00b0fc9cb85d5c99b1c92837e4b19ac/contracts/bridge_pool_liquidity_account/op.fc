@@ -1,0 +1,14 @@
+const transfer = 0xf8a7ea5;
+const transfer_notification = 0x7362d09c;
+
+;;bridge pool
+const provider_liquidity = "provider_liquidity"c;
+const remove_native_token_liquidity = "remove_native_token_liquidity"c;
+const remove_liquidity = "remove_liquidity"c;
+
+;; user
+const account_remove_liquidity = "account_remove_liquidity"c;
+
+
+;; async "get" calls
+const getter_lp_account_data = "getter_lp_account_data"c;

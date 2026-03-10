@@ -1,0 +1,32 @@
+{
+  "diamond": {
+    "name": "SilksHorse",
+    "address": ""
+  },
+  "facets": [
+    {
+      "name": "DiamondInit",
+      "upgradeable": false,
+      "skip": false,
+      "address": ""
+    },
+    {
+      "name": "AdminFacet",
+      "upgradeable": true,
+      "skip": false,
+      "address": ""
+    },
+    {
+      "name": "HorseFacet",
+      "upgradeable": true,
+      "skip": false,
+      "address": ""
+    },
+    {
+      "name": "LookupFacet",
+      "upgradeable": true,
+      "skip": false,
+      "address": ""
+    }
+  ]
+}

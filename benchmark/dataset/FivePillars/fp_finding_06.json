@@ -1,0 +1,33 @@
+{
+  "title": "Denial-of-Service in `deposit` and `claimReward` due to Reverting Treasury Address",
+  "location": {
+    "local_file_path": "./source_code/github/fivepillarstoken/InvestmentManager/9af8be2c4e53218770015a10ea269caa904fde19/InvestmentManager.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/a41cefe0-4159-11f0-a06b-992008d4f8aa/source?file=$/github/fivepillarstoken/InvestmentManager/9af8be2c4e53218770015a10ea269caa904fde19/InvestmentManager.sol",
+    "start_line": 1,
+    "end_line": 1
+  },
+  "all_locations": null,
+  "category": "",
+  "severity": "high",
+  "confidence": null,
+  "description": "The `_trySendFees` function, called by both `deposit` and `claimReward`, sends ETH to `treasury` and `treasury2` addresses. If either of these addresses is a contract designed to reject incoming ETH payments (e.g., by reverting in its receive/fallback function), the ETH transfer will fail. The contract code handles this failure by reverting the entire transaction via `revert SendEtherFailed(...)`. This creates a scenario where a misconfigured or malicious treasury address can permanently block all deposits and reward claims for every user of the contract.Instead of reverting the entire transaction, implement a mechanism that handles failed ETH transfers gracefully. For example, the contract could store the failed transfer amount in a state variable and allow the owner to withdraw it later via a separate, dedicated function. This isolates the fee distribution process from the core user-facing functions, ensuring the contract remains operational even if a treasury address becomes problematic.1. The owner deploys the `InvestmentManager` contract. During deployment, the `treasury` address is set to the address of a malicious contract `MaliciousReceiver`.\n2. The `MaliciousReceiver` contract is designed with a `receive()` or `fallback()` function that always reverts.\n`contract MaliciousReceiver { receive() external payable { revert(\"I reject ETH\"); } }`\n3. A user, Alice, attempts to call `deposit(1000 * 10**18, some_referer_address)`.\n4. The `deposit` function executes, calculates fees, and transfers tokens.\n5. At the end of the `deposit` function, `_trySendFees()` is called.\n6. `_trySendFees()` successfully swaps fee tokens for ETH.\n7. The function then attempts to send ETH to the `treasury` address (`MaliciousReceiver`).\n8. The `payable(treasury).call{...}` fails because `MaliciousReceiver` reverts.\n9. The `if (!success) revert SendEtherFailed(treasury);` line is triggered, causing the entire `deposit` transaction to revert.\n10. No user can successfully deposit or claim rewards as long as the `treasury` address is set to `MaliciousReceiver`, effectively causing a permanent Denial of Service.",
+  "scenario": null,
+  "proof_of_concept": "1. The owner deploys the `InvestmentManager` contract. During deployment, the `treasury` address is set to the address of a malicious contract `MaliciousReceiver`.\n2. The `MaliciousReceiver` contract is designed with a `receive()` or `fallback()` function that always reverts.\n`contract MaliciousReceiver { receive() external payable { revert(\"I reject ETH\"); } }`\n3. A user, Alice, attempts to call `deposit(1000 * 10**18, some_referer_address)`.\n4. The `deposit` function executes, calculates fees, and transfers tokens.\n5. At the end of the `deposit` function, `_trySendFees()` is called.\n6. `_trySendFees()` successfully swaps fee tokens for ETH.\n7. The function then attempts to send ETH to the `treasury` address (`MaliciousReceiver`).\n8. The `payable(treasury).call{...}` fails because `MaliciousReceiver` reverts.\n9. The `if (!success) revert SendEtherFailed(treasury);` line is triggered, causing the entire `deposit` transaction to revert.\n10. No user can successfully deposit or claim rewards as long as the `treasury` address is set to `MaliciousReceiver`, effectively causing a permanent Denial of Service.",
+  "recommendation": "Instead of reverting the entire transaction, implement a mechanism that handles failed ETH transfers gracefully. For example, the contract could store the failed transfer amount in a state variable and allow the owner to withdraw it later via a separate, dedicated function. This isolates the fee distribution process from the core user-facing functions, ensuring the contract remains operational even if a treasury address becomes problematic.",
+  "id": "c121",
+  "duplicates": null,
+  "source": "scanner.token_scanner",
+  "status": "verified_as_valid",
+  "scan_model_name": "o4-mini, gemini-2.5-pro",
+  "related_function_code": "function _trySendFees() internal {\n    // ... swap logic ...\n    if (!success) {\n        // ... swap failed handling ...\n        return;\n    }\n\n    uint256 firstTreasuryAmount = address(this).balance * 70 / 100;\n    (success,) = payable(treasury).call{value: firstTreasuryAmount}(\"\");\n    if (!success) revert SendEtherFailed(treasury);\n\n    (success,) = payable(treasury2).call{value: address(this).balance}(\"\");\n    if (!success) revert SendEtherFailed(treasury2);\n}\n\nfunction deposit(uint256 amount, address referer) external NotInPoolCriteriaUpdate {\n    // ... logic ...\n    _trySendFees();\n}\n\nfunction claimReward() external NotInPoolCriteriaUpdate {\n    // ... logic ...\n    _trySendFees();\n}",
+  "related_context": "",
+  "related_checklist": {
+    "checklist": "Ensure that the distribution of rewards is fair and consistent, independent of the timing of a user's reward claims. Specifically, confirm that rewards are not influenced or manipulated by delays, intentionally timed claims, or caps imposed on reward distributions."
+  },
+  "related_pid": "a41cefe0-4159-11f0-a06b-992008d4f8aa",
+  "related_commit_id": "9af8be2c4e53218770015a10ea269caa904fde19",
+  "triage_verdict": "invalid",
+  "triage_severity": "Minor",
+  "triage_reason": null,
+  "is_main_finding": true
+}

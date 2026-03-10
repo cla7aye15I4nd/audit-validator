@@ -1,0 +1,31 @@
+{
+  "title": "Referral Rewards Accumulable and Claimable Without Personal Investment",
+  "location": {
+    "local_file_path": "./source_code/github/fivepillarstoken/InvestmentManager/9af8be2c4e53218770015a10ea269caa904fde19/InvestmentManager.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/a41cefe0-4159-11f0-a06b-992008d4f8aa/source?file=$/github/fivepillarstoken/InvestmentManager/9af8be2c4e53218770015a10ea269caa904fde19/InvestmentManager.sol",
+    "start_line": 1,
+    "end_line": 1
+  },
+  "all_locations": null,
+  "category": null,
+  "severity": null,
+  "confidence": null,
+  "description": "The _updateReferers function allows updating referral statistics (directRefsDeposit, directRefsCount) and accumulating referral rewards (via _updateInvestorRefReward) for an address that has not made any personal deposit. This occurs because there is no check ensuring the referer is an existing investor with positive totalDeposit before performing updates. As a result, referral rewards are calculated and added to accumulatedReward for non-investors based on deposits from accounts referring to them. These accumulated rewards can then be claimed without the recipient ever making a personal investment, bypassing the intended requirement of personal participation in the investment program.\n\nExploit Demonstration:\n1. The attacker selects their address M as the intended reward recipient. M does not make any deposit.\n2. The attacker controls another address Bot1 and calls deposit(amount1, M), where amount1 >= 10^18. This invokes _updateReferers(M, toInvestor1, true), which calls _updateInvestorRefReward(M), potentially adding rewards to M's accumulatedReward, and increases M's directRefsDeposit by toInvestor1 and directRefsCount by 1.\n3. The attacker waits for at least one reward round (24 hours) to pass, allowing endedRounds > 0 for future updates.\n4. The attacker uses another address Bot2 to call deposit(amount2, M), where amount2 >= 10^18. This again invokes _updateReferers(M, toInvestor2, true), calling _updateInvestorRefReward(M) which now calculates rewards using the updated directRefsDeposit from step 2, multiplies by endedRounds >=1, adds to M's accumulatedReward, then increases directRefsDeposit by toInvestor2 and directRefsCount by 1.\n5. Optionally, repeat steps 3-4 with additional bot addresses to further accumulate rewards in M's accumulatedReward.\n6. Once M's accumulatedReward >= 10^18, the attacker calls claimReward() from M. This invokes _updateInvestorRewards(M), adding any final rewards, then mints the net claim amount to M without M having made a personal deposit beforehand.",
+  "scenario": null,
+  "proof_of_concept": null,
+  "recommendation": null,
+  "id": "306c",
+  "duplicates": null,
+  "source": "scanner.smart_audit",
+  "status": "verified_as_valid",
+  "scan_model_name": "grok-4",
+  "related_function_code": "function _updateReferers(address referer, uint256 amount, bool isFirstDeposit) internal {\n        _updateInvestorRefReward(referer);\n\n        accountToInvestorInfo[referer].directRefsDeposit += amount;\n        if (isFirstDeposit) accountToInvestorInfo[referer].directRefsCount += 1;\n\n        for (uint i = 0; i < 9; i++) {\n            referer = accountToInvestorInfo[referer].referer;\n            if (referer == address(0)) break;\n            _updateDownlineReferer(referer, amount, isFirstDeposit);\n        }\n    }",
+  "related_context": "_updateInvestorRefReward ->     function _updateInvestorRefReward(address investor) internal {\n        InvestorInfo memory investorInfo = accountToInvestorInfo[investor];\n        uint256 endedRounds = _calcCountOfRoundsSinceLastUpdate(investorInfo.updateRefRewardTimestamp);\n\n        if (endedRounds > 0) {\n            (uint256 totalRefRewards, uint256 lastRefReward) = _calcInvestorRefRewards(investorInfo, investor);\n            accountToInvestorInfo[investor].lastRefReward = lastRefReward;\n            accountToInvestorInfo[investor].accumulatedReward += totalRefRewards;\n        }\n\n        accountToInvestorInfo[investor].updateRefRewardTimestamp = uint32(block.timestamp);\n    }\n\n_updateDownlineReferer ->     function _updateDownlineReferer(address referer, uint256 amount, bool isFirstDeposit) internal {\n        _updateInvestorRefReward(referer);\n\n        accountToInvestorInfo[referer].downlineRefsDeposit += amount;\n        if (isFirstDeposit) accountToInvestorInfo[referer].downlineRefsCount += 1;\n    }",
+  "related_checklist": null,
+  "related_pid": "a41cefe0-4159-11f0-a06b-992008d4f8aa",
+  "related_commit_id": "9af8be2c4e53218770015a10ea269caa904fde19",
+  "triage_verdict": "valid",
+  "triage_severity": "Minor",
+  "triage_reason": null,
+  "is_main_finding": true
+}

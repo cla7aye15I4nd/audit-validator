@@ -1,0 +1,33 @@
+{
+  "title": "Unchecked return value of transferFrom in deposit",
+  "location": {
+    "local_file_path": "./source_code/github/fivepillarstoken/InvestmentManager/9af8be2c4e53218770015a10ea269caa904fde19/InvestmentManager.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/a41cefe0-4159-11f0-a06b-992008d4f8aa/source?file=$/github/fivepillarstoken/InvestmentManager/9af8be2c4e53218770015a10ea269caa904fde19/InvestmentManager.sol",
+    "start_line": 1,
+    "end_line": 1
+  },
+  "all_locations": null,
+  "category": "",
+  "severity": "high",
+  "confidence": null,
+  "description": "The contract calls IFivePillarsToken.transferFrom without checking the returned boolean value, violating the ERC-20 standard that transferFrom should return a boolean.Use OpenZeppelin SafeERC20 or explicitly check the return value of transferFrom and revert if false.Deploy a malicious token where transferFrom(address,address,uint256) returns false (instead of reverting). Call deposit() with amount=1e18. The call to transferFrom returns false but is ignored, so no tokens are transferred, yet the contract proceeds to burn tokens, credit depositor, and update state, allowing the depositor to bypass fee payment.",
+  "scenario": null,
+  "proof_of_concept": "Deploy a malicious token where transferFrom(address,address,uint256) returns false (instead of reverting). Call deposit() with amount=1e18. The call to transferFrom returns false but is ignored, so no tokens are transferred, yet the contract proceeds to burn tokens, credit depositor, and update state, allowing the depositor to bypass fee payment.",
+  "recommendation": "Use OpenZeppelin SafeERC20 or explicitly check the return value of transferFrom and revert if false.",
+  "id": "0886",
+  "duplicates": null,
+  "source": "scanner.token_scanner",
+  "status": "verified_as_valid",
+  "scan_model_name": "o4-mini, gemini-2.5-pro",
+  "related_function_code": "function deposit(uint256 amount, address referer) external NotInPoolCriteriaUpdate {\n    ...\n    (uint256 toInvestor, uint256 fee) = _calcFee(amount, depositFeeInBp);\n    fivePillarsToken.transferFrom(investorAddress, address(this), fee);\n    ...\n}",
+  "related_context": "",
+  "related_checklist": {
+    "checklist": "### Verify Standards Compliance\nCompare interfaces and behaviors against the relevant ERC specification (ERC-20, ERC-721, etc.).\n\n```solidity\n// ERC-20 `transfer` should return a boolean value\nfunction transfer(address to, uint256 amount) public {\n    _balances[msg.sender] -= amount;\n    _balances[to] += amount;\n    // missing: return true;\n}\n```\n\n**Invariant:** Return the expected value and emit the standard `Transfer` event."
+  },
+  "related_pid": "a41cefe0-4159-11f0-a06b-992008d4f8aa",
+  "related_commit_id": "9af8be2c4e53218770015a10ea269caa904fde19",
+  "triage_verdict": "valid",
+  "triage_severity": "Minor",
+  "triage_reason": null,
+  "is_main_finding": true
+}

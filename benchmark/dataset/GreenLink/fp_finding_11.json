@@ -1,0 +1,31 @@
+{
+  "title": "maxTokenAmountPerAddress Bypass for taxAddress",
+  "location": {
+    "local_file_path": "./source_code/github/GLBank/Web3/54b12f25ff139912cbddcc316c940624a64687cf/GLDB Pulse Contracts/PLT/GLDBToken.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/b619bc20-116e-11f0-85f2-afceaa02a7b6/source?file=$/github/GLBank/Web3/54b12f25ff139912cbddcc316c940624a64687cf/GLDB Pulse Contracts/PLT/GLDBToken.sol",
+    "start_line": 1,
+    "end_line": 1
+  },
+  "all_locations": null,
+  "category": null,
+  "severity": null,
+  "confidence": null,
+  "description": "The `transfer` function checks the max‐per‐address limit only against the net amount to be delivered (`amount - fee`), but still sends the fee on top of that. If you specify the `taxAddress` as the recipient, it will receive both the net and fee portions, allowing its balance to exceed the configured `maxTokenAmountPerAddress`.\n\nExploit Demonstration:\n1. Ensure the token is initialized with:\n   • `isMaxAmountPerAddressSet == true`\n   • `maxTokenAmountPerAddress == 100`\n   • `taxBPS == 1000` (10% fee)\n   • `taxAddress == 0xFEE…` (any address)\n   Assume `balanceOf(0xFEE…) == 0`.\n\n2. Compute an `amount` such that the net delivery (amount - fee) ≤ remaining capacity, but the total (amount) > limit. For example:\n   • amount = 101\n   • fee = (101 * 1000) / 10000 = 10\n   • net = 101 - 10 = 91\n   Check: 0 + 91 ≤ 100 passes.\n\n3. From any funded account, call:\n   transfer(0xFEE…, 101)\n\n4. Inside `_payFeeWhenTransfer`, `_checkMaxAmountPerAddress(0xFEE…, 91)` passes.\n   Then the contract:\n   • calls `super._transfer(from, 0xFEE…, 10)` (the fee)\n   • calls `super._burn(from, 0)` (no deflation)\n   returns 91\n\n5. Finally `super.transfer(0xFEE…, 91)` executes, giving `0xFEE…` an additional 91.\n\nResult: `0xFEE…` ends up with 10 + 91 = 101 tokens—exceeding the `maxTokenAmountPerAddress` of 100. This bypasses the per‐address holding limit for the fee recipient.",
+  "scenario": null,
+  "proof_of_concept": null,
+  "recommendation": null,
+  "id": "9e1f",
+  "duplicates": null,
+  "source": "scanner.smart_audit",
+  "status": "verified_as_valid",
+  "scan_model_name": "o4-mini",
+  "related_function_code": "function transfer(address to, uint256 amount)\n        public\n        virtual\n        override\n        whenNotPaused\n        checkTransfer(_msgSender(), to)\n        returns (bool)\n    {\n        uint256 amountToTransfer = _payFeeWhenTransfer(_msgSender(), to, amount);\n        return super.transfer(to, amountToTransfer);\n    }",
+  "related_context": "_payFeeWhenTransfer ->     function _payFeeWhenTransfer(address from, address to, uint256 amount) internal returns (uint256) {\n        address spender = _msgSender();\n        // transfer fee\n        TaxStorage memory taxStorage = _getTaxStorage();\n        uint256 taxAmount = _taxAmount(taxStorage, from, amount);\n        uint256 deflationAmount = _deflationAmount(taxStorage, amount);\n        uint256 totalFee = taxAmount + deflationAmount;\n        uint256 amountToTransfer = amount - totalFee;\n\n        // check max amount per address\n        _checkMaxAmountPerAddress(to, amountToTransfer);\n\n        // consume allowance\n        if (spender != from && totalFee > 0) {\n            if (spender == owner() && isForceTransferAllowed()) {\n                // the owner can transfer without consuming allowance\n            } else {\n                // consume allowance\n                super._spendAllowance(from, spender, totalFee);\n            }\n        }\n        if (taxAmount > 0) {\n            super._transfer(from, taxStorage.taxAddress, taxAmount);\n        }\n        if (deflationAmount > 0) {\n            super._burn(from, deflationAmount);\n        }\n\n        return amountToTransfer;\n    }",
+  "related_checklist": null,
+  "related_pid": "b619bc20-116e-11f0-85f2-afceaa02a7b6",
+  "related_commit_id": "54b12f25ff139912cbddcc316c940624a64687cf",
+  "triage_verdict": "invalid",
+  "triage_severity": "",
+  "triage_reason": "Intended design.",
+  "is_main_finding": true
+}
