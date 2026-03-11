@@ -3,6 +3,7 @@ import argparse
 import json
 import os
 import sys
+from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
 # Unset CLAUDECODE so spawned claude-code subprocesses don't refuse to run
@@ -109,21 +110,32 @@ async def verify_finding(
             )
 
         got_output = False
-        async for message in query(prompt=prompt, options=options):
-            if isinstance(message, AssistantMessage):
-                for block in message.content:
-                    if isinstance(block, TextBlock):
-                        print(f"  [Assistant] {block.text}")
-                    elif isinstance(block, ToolUseBlock):
-                        print(f"  [Tool] {block.name}: {block.input}")
-            elif isinstance(message, ResultMessage) and message.structured_output:
-                got_output = True
-                return BugVerdict.model_validate(message.structured_output)
+        result = None
+        gen = query(prompt=prompt, options=options)
+        try:
+            async for message in gen:
+                if isinstance(message, AssistantMessage):
+                    for block in message.content:
+                        if isinstance(block, TextBlock):
+                            print(f"  [Assistant] {block.text}")
+                        elif isinstance(block, ToolUseBlock):
+                            print(f"  [Tool] {block.name}: {block.input}")
+                elif isinstance(message, ResultMessage) and message.structured_output:
+                    got_output = True
+                    result = BugVerdict.model_validate(message.structured_output)
+                    break
+        finally:
+            await gen.aclose()
 
-        if got_output:
-            break
+        if got_output and result is not None:
+            return result
 
     raise RuntimeError(f"No structured output returned after {max_retries} attempts")
+
+
+def _process_finding_worker(args: tuple) -> None:
+    finding_path_str, plugin_path = args
+    asyncio.run(process_finding_file(Path(finding_path_str), plugin_path))
 
 
 async def process_finding_file(finding_path: Path, plugin_path: str) -> None:
@@ -172,6 +184,12 @@ async def main_async():
         default="./dataset",
         help="Root directory to scan for findings in batch mode (default: ./dataset)",
     )
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=4,
+        help="Number of parallel worker processes in batch mode (default: 4)",
+    )
     args = parser.parse_args()
 
     if args.finding:
@@ -190,9 +208,10 @@ async def main_async():
             print(f"No finding JSON files found in {dataset_dir}")
             sys.exit(1)
 
-        print(f"Batch mode: found {len(finding_paths)} finding(s) to process")
-        for finding_path in finding_paths:
-            await process_finding_file(finding_path, args.plugin_path)
+        print(f"Batch mode: found {len(finding_paths)} finding(s) to process (workers={args.workers})")
+        worker_args = [(str(p), args.plugin_path) for p in finding_paths]
+        with ProcessPoolExecutor(max_workers=args.workers) as executor:
+            list(executor.map(_process_finding_worker, worker_args))
 
 
 if __name__ == "__main__":
