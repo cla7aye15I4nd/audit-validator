@@ -1,46 +1,161 @@
 import asyncio
-import os
+import argparse
+import json
+import sys
+from pathlib import Path
 
-from dotenv import load_dotenv
+from pydantic import BaseModel
+from claude_agent_sdk import (
+    query,
+    ClaudeAgentOptions,
+    AssistantMessage,
+    ResultMessage,
+    TextBlock,
+    ToolUseBlock,
+)
 
-from agents import Agent, Runner, set_default_openai_api
-from agents.mcp import MCPServerStdio
 
-load_dotenv(override=True)
-set_default_openai_api(os.getenv("OPENAI_API_KEY"))
+class BugVerdict(BaseModel):
+    is_valid: bool  # true = real vulnerability, false = false positive
+    explanation: str  # brief explanation with key evidence
 
 
-async def main() -> None:
-    async with MCPServerStdio(
-        name="Codex CLI",
-        params={
-            "command": "npx",
-            "args": ["-y", "codex", "mcp-server"],
+def finding_to_prompt(finding: dict) -> str:
+    """Convert a finding JSON object into a structured prompt string."""
+    loc = finding.get("location", {})
+    lines = [
+        f"Title: {finding.get('title', 'N/A')}",
+        f"Severity: {finding.get('severity', 'N/A')}",
+        f"File: {loc.get('local_file_path', 'N/A')} (lines {loc.get('start_line', '?')}-{loc.get('end_line', '?')})",
+        "",
+        "Description:",
+        finding.get("description", "").strip(),
+    ]
+    if finding.get("related_function_code"):
+        lines += [
+            "",
+            "Related Function Code:",
+            "```",
+            finding["related_function_code"].strip(),
+            "```",
+        ]
+    if finding.get("recommendation"):
+        lines += ["", f"Recommendation: {finding['recommendation']}"]
+    return "\n".join(lines)
+
+
+async def verify_finding(
+    finding: dict,
+    project_dir: str,
+    plugin_path: str,
+    model: str | None = None,
+    verbose: bool = False,
+) -> BugVerdict:
+    prompt = (
+        "Verify the following suspected security bug. "
+        "Use the fp-check skill to perform systematic false positive verification. "
+        "Complete all phases and gate reviews before producing the final verdict.\n\n"
+        + finding_to_prompt(finding)
+    )
+
+    options = ClaudeAgentOptions(
+        plugins=[{"type": "local", "path": str(Path(plugin_path).resolve())}],
+        cwd=str(Path(project_dir).resolve()),
+        allowed_tools=[
+            "Skill",
+            "Read",
+            "Grep",
+            "Glob",
+            "Bash",
+            "Write",
+            "Edit",
+            "Task",
+            "TodoRead",
+            "TodoWrite",
+        ],
+        permission_mode="acceptEdits",
+        system_prompt={
+            "type": "preset",
+            "preset": "claude_code",
+            "append": (
+                "You have the fp-check plugin loaded. "
+                "Use it for systematic verification. "
+                "Complete all phases and gate reviews. "
+                "is_valid = true means real vulnerability, false means false positive."
+            ),
         },
-        client_session_timeout_seconds=360000,
-    ) as codex_mcp_server:
-        developer_agent = Agent(
-            name="Game Developer",
-            instructions=(
-                "You are an expert in building simple games using basic html + css + javascript with no dependencies. "
-                "Save your work in a file called index.html in the current directory. "
-                "Always call codex with \"approval-policy\": \"never\" and \"sandbox\": \"workspace-write\"."
-            ),
-            mcp_servers=[codex_mcp_server],
-        )
+        setting_sources=["project"],
+        output_format={
+            "type": "json_schema",
+            "schema": BugVerdict.model_json_schema(),
+        },
+    )
 
-        designer_agent = Agent(
-            name="Game Designer",
-            instructions=(
-                "You are an indie game connoisseur. Come up with an idea for a single page html + css + javascript game that a developer could build in about 50 lines of code. "
-                "Format your request as a 3 sentence design brief for a game developer and call the Game Developer coder with your idea."
-            ),
-            model="gpt-5.4",
-            handoffs=[developer_agent],
-        )
+    if model:
+        options.model = model
 
-        await Runner.run(designer_agent, "Implement a fun new game!")
+    async for message in query(prompt=prompt, options=options):
+        if isinstance(message, AssistantMessage) and verbose:
+            for block in message.content:
+                if isinstance(block, TextBlock):
+                    print(block.text)
+                elif isinstance(block, ToolUseBlock):
+                    print(f"  [Tool] {block.name}")
+        elif isinstance(message, ResultMessage) and message.structured_output:
+            return BugVerdict.model_validate(message.structured_output)
+
+    raise RuntimeError("No structured output returned")
+
+
+async def main_async():
+    parser = argparse.ArgumentParser(
+        description="Validate security findings using fp-check."
+    )
+    parser.add_argument(
+        "finding",
+        nargs="?",
+        help="Path to a single finding JSON file (e.g. dataset/ABConnect/tp_finding_01.json)",
+    )
+    parser.add_argument(
+        "--plugin-path",
+        type=str,
+        default="./skills/plugins/fp-check",
+        help="Path to the fp-check plugin directory",
+    )
+    parser.add_argument("--model", type=str, default=None)
+    parser.add_argument("--verbose", action="store_true")
+    parser.add_argument("--output", type=str, default=None)
+    args = parser.parse_args()
+
+    if not args.finding:
+        parser.print_help()
+        sys.exit(1)
+
+    finding_path = Path(args.finding)
+    finding = json.loads(finding_path.read_text())
+    project_dir = str(finding_path.parent)
+
+    finding_id = finding.get("id", finding_path.stem)
+    print(f"Verifying: {finding.get('title', finding_id)}")
+    print(f"Project dir: {project_dir}")
+
+    verdict = await verify_finding(
+        finding,
+        project_dir,
+        args.plugin_path,
+        args.model,
+        args.verbose,
+    )
+    icon = "TRUE POSITIVE" if verdict.is_valid else "FALSE POSITIVE"
+    print(f"\n[{icon}]")
+    print(f"Explanation: {verdict.explanation}")
+
+    out_path = args.output or str(finding_path.with_suffix(".result.json"))
+    Path(out_path).write_text(
+        json.dumps({"finding_id": finding_id, **verdict.model_dump()}, indent=2)
+    )
+    print(f"Saved to: {out_path}")
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(main_async())
