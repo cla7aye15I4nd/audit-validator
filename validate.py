@@ -48,8 +48,6 @@ async def verify_finding(
     finding: dict,
     project_dir: str,
     plugin_path: str,
-    model: str | None = None,
-    verbose: bool = False,
 ) -> BugVerdict:
     prompt = (
         "Verify the following suspected security bug. "
@@ -91,16 +89,13 @@ async def verify_finding(
         },
     )
 
-    if model:
-        options.model = model
-
     async for message in query(prompt=prompt, options=options):
-        if isinstance(message, AssistantMessage) and verbose:
+        if isinstance(message, AssistantMessage):
             for block in message.content:
                 if isinstance(block, TextBlock):
-                    print(block.text)
+                    print(f"  [Assistant] {block.text}")
                 elif isinstance(block, ToolUseBlock):
-                    print(f"  [Tool] {block.name}")
+                    print(f"  [Tool] {block.name}: {block.input}")
         elif isinstance(message, ResultMessage) and message.structured_output:
             return BugVerdict.model_validate(message.structured_output)
 
@@ -122,9 +117,6 @@ async def main_async():
         default="./skills/plugins/fp-check",
         help="Path to the fp-check plugin directory",
     )
-    parser.add_argument("--model", type=str, default=None)
-    parser.add_argument("--verbose", action="store_true")
-    parser.add_argument("--output", type=str, default=None)
     args = parser.parse_args()
 
     if not args.finding:
@@ -143,14 +135,12 @@ async def main_async():
         finding,
         project_dir,
         args.plugin_path,
-        args.model,
-        args.verbose,
     )
     icon = "TRUE POSITIVE" if verdict.is_valid else "FALSE POSITIVE"
     print(f"\n[{icon}]")
     print(f"Explanation: {verdict.explanation}")
 
-    out_path = args.output or str(finding_path.with_suffix(".result.json"))
+    out_path = str(finding_path.with_suffix(".result.json"))
     Path(out_path).write_text(
         json.dumps({"finding_id": finding_id, **verdict.model_dump()}, indent=2)
     )
