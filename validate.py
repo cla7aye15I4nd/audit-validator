@@ -1,8 +1,12 @@
 import asyncio
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
+
+# Unset CLAUDECODE so spawned claude-code subprocesses don't refuse to run
+os.environ.pop("CLAUDECODE", None)
 
 from pydantic import BaseModel
 from claude_agent_sdk import (
@@ -48,8 +52,9 @@ async def verify_finding(
     finding: dict,
     project_dir: str,
     plugin_path: str,
+    max_retries: int = 3,
 ) -> BugVerdict:
-    prompt = (
+    base_prompt = (
         "Verify the following suspected security bug. "
         "Use the fp-check skill to perform systematic false positive verification. "
         "Complete all phases and gate reviews before producing the final verdict.\n\n"
@@ -79,7 +84,11 @@ async def verify_finding(
                 "You have the fp-check plugin loaded. "
                 "Use it for systematic verification. "
                 "Complete all phases and gate reviews. "
-                "is_valid = true means real vulnerability, false means false positive."
+                "is_valid = true means real vulnerability, false means false positive. "
+                "IMPORTANT: Base your verdict solely on code analysis. "
+                "Do NOT use file names, directory names, or any naming conventions "
+                "(such as 'tp_' or 'fp_' prefixes) as evidence — these are internal "
+                "dataset labels and must be ignored entirely."
             ),
         },
         setting_sources=["project"],
@@ -89,17 +98,57 @@ async def verify_finding(
         },
     )
 
-    async for message in query(prompt=prompt, options=options):
-        if isinstance(message, AssistantMessage):
-            for block in message.content:
-                if isinstance(block, TextBlock):
-                    print(f"  [Assistant] {block.text}")
-                elif isinstance(block, ToolUseBlock):
-                    print(f"  [Tool] {block.name}: {block.input}")
-        elif isinstance(message, ResultMessage) and message.structured_output:
-            return BugVerdict.model_validate(message.structured_output)
+    for attempt in range(1, max_retries + 1):
+        if attempt > 1:
+            print(f"  [Retry {attempt}/{max_retries}] No structured output on previous attempt, retrying...")
+        prompt = base_prompt
+        if attempt > 1:
+            prompt += (
+                "\n\nIMPORTANT: You MUST produce a structured JSON verdict with "
+                "'is_valid' (bool) and 'explanation' (str) fields to complete this task."
+            )
 
-    raise RuntimeError("No structured output returned")
+        got_output = False
+        async for message in query(prompt=prompt, options=options):
+            if isinstance(message, AssistantMessage):
+                for block in message.content:
+                    if isinstance(block, TextBlock):
+                        print(f"  [Assistant] {block.text}")
+                    elif isinstance(block, ToolUseBlock):
+                        print(f"  [Tool] {block.name}: {block.input}")
+            elif isinstance(message, ResultMessage) and message.structured_output:
+                got_output = True
+                return BugVerdict.model_validate(message.structured_output)
+
+        if got_output:
+            break
+
+    raise RuntimeError(f"No structured output returned after {max_retries} attempts")
+
+
+async def process_finding_file(finding_path: Path, plugin_path: str) -> None:
+    finding = json.loads(finding_path.read_text())
+    project_dir = str(finding_path.parent)
+    finding_id = finding.get("id", finding_path.stem)
+
+    print(f"\n{'='*60}")
+    print(f"Verifying: {finding.get('title', finding_id)}")
+    print(f"File: {finding_path}")
+    print(f"Project dir: {project_dir}")
+
+    try:
+        verdict = await verify_finding(finding, project_dir, plugin_path)
+        icon = "TRUE POSITIVE" if verdict.is_valid else "FALSE POSITIVE"
+        print(f"\n[{icon}]")
+        print(f"Explanation: {verdict.explanation}")
+
+        out_path = finding_path.with_suffix(".result.json")
+        out_path.write_text(
+            json.dumps({"finding_id": finding_id, **verdict.model_dump()}, indent=2)
+        )
+        print(f"Saved to: {out_path}")
+    except RuntimeError as e:
+        print(f"  [ERROR] {e}")
 
 
 async def main_async():
@@ -109,7 +158,7 @@ async def main_async():
     parser.add_argument(
         "finding",
         nargs="?",
-        help="Path to a single finding JSON file (e.g. dataset/ABConnect/tp_finding_01.json)",
+        help="Path to a single finding JSON file. If omitted, all findings in ./dataset are processed.",
     )
     parser.add_argument(
         "--plugin-path",
@@ -117,34 +166,33 @@ async def main_async():
         default="./skills/plugins/fp-check",
         help="Path to the fp-check plugin directory",
     )
+    parser.add_argument(
+        "--dataset-dir",
+        type=str,
+        default="./dataset",
+        help="Root directory to scan for findings in batch mode (default: ./dataset)",
+    )
     args = parser.parse_args()
 
-    if not args.finding:
-        parser.print_help()
-        sys.exit(1)
+    if args.finding:
+        await process_finding_file(Path(args.finding), args.plugin_path)
+    else:
+        dataset_dir = Path(args.dataset_dir)
+        finding_paths = sorted(
+            p for p in dataset_dir.rglob("*.json")
+            if "finding" in p.name
+            and not p.name.endswith(".result.json")
+            and "src" not in p.parts
+            and not p.with_suffix(".result.json").exists()
+        )
 
-    finding_path = Path(args.finding)
-    finding = json.loads(finding_path.read_text())
-    project_dir = str(finding_path.parent)
+        if not finding_paths:
+            print(f"No finding JSON files found in {dataset_dir}")
+            sys.exit(1)
 
-    finding_id = finding.get("id", finding_path.stem)
-    print(f"Verifying: {finding.get('title', finding_id)}")
-    print(f"Project dir: {project_dir}")
-
-    verdict = await verify_finding(
-        finding,
-        project_dir,
-        args.plugin_path,
-    )
-    icon = "TRUE POSITIVE" if verdict.is_valid else "FALSE POSITIVE"
-    print(f"\n[{icon}]")
-    print(f"Explanation: {verdict.explanation}")
-
-    out_path = str(finding_path.with_suffix(".result.json"))
-    Path(out_path).write_text(
-        json.dumps({"finding_id": finding_id, **verdict.model_dump()}, indent=2)
-    )
-    print(f"Saved to: {out_path}")
+        print(f"Batch mode: found {len(finding_paths)} finding(s) to process")
+        for finding_path in finding_paths:
+            await process_finding_file(finding_path, args.plugin_path)
 
 
 if __name__ == "__main__":
