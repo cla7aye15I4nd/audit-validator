@@ -1,0 +1,5 @@
+{
+  "finding_id": "61c50ac0-0012-11f0-a6c7-dd487ba7c9c0_1747319004285",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The getHash() function (lines 73-88) provably omits vdata.method from the keccak256 hash. Since vdata is calldata (fully attacker-controlled), an attacker holding a valid signature for method A can change vdata.method to method B's selector before calling method B. The vdata.method == method check in verify() passes because the attacker set vdata.method to match the target function, and the signature remains valid because the hash doesn't cover the method field. Multiple method pairs have byte-for-byte identical params layouts (setFeeReceiver/setRewardReceiver both decode (uint256,uint256,address); revokeFeeReceiver/revokeRewardReceiver both decode (uint256,uint256)), making cross-method replay immediately practical. No compensating control exists to bind a signature to a specific method."
+}

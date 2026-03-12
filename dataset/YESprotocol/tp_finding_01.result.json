@@ -1,0 +1,5 @@
+{
+  "finding_id": "9dcb6170-9768-11f0-942e-3b2f23c44445_1759335882778",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The `getTokenDelta()` function computes token deltas as `balanceOf(pair) - reserves`, which is manipulable by directly transferring tokens to the pair contract before executing a swap. During UniswapV2's `swap()` execution, the U8 token's `_update()` hook calls `getTokenDelta(USDT)` to determine `usdtAmount`, which is then passed to `Pool.processBuy()`. An attacker can inflate this value by donating USDT to the pair in the same transaction. The inflated `usdtAmount` controls: (1) game round routing via `roundAmount % 10`, letting attackers enter higher-value bet rounds; (2) prize pool allocation via `betPoolInfos[lastDigit].allocatePoint += roundAmount`, granting disproportionate prize shares relative to actual tokens locked; and (3) the `openFreeTrade` bypass check. No validation exists between the manipulable source and the economic sink in `processBuy()`. The donated USDT is lost to LPs, but the prize pool manipulation can exceed this cost, making the attack profitable."
+}

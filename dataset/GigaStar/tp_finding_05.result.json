@@ -1,0 +1,5 @@
+{
+  "finding_id": "b3f3",
+  "is_valid": true,
+  "explanation": "The vulnerability is a TRUE POSITIVE. BoxMgr.renameBox delegates to BI.renameBox which checks newNameKey uniqueness only within the single Emap passed to it. BoxMgr.renameBox does not verify that newNameKey is absent from the other map before renaming. This allows duplicate nameKey across _boxes and _inactive. Subsequent rotateBox calls use BI.addBoxNoCheck which unconditionally overwrites idxByName in the destination, orphaning the previously renamed box. The orphaned box is unreachable by name, and since BoxMgr.push (the only push path) resolves boxes by nameKey, any assets held by the orphaned box are permanently stranded. The addBox function correctly checks both maps for uniqueness, confirming this asymmetry is an unintended omission. The exploit requires a 5-step sequence (addBox x2, rotateBox, renameBox to collision name, rotateBox again) executable by an authorized agent, after which affected box assets cannot be recovered without a contract upgrade."
+}

@@ -1,0 +1,5 @@
+{
+  "finding_id": "b4af2580-e772-11ef-b757-b39dfeac56e5_1740176983429",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. Two confirmed bugs in the interest accrual logic:\n\n1. **Order-of-operations in borrow()**: At lines 305-309, `userBorrows` is updated before `_updateInterest()` is called. This causes `compoundInterestForUser()` (line 193) to read the already-inflated balance and charge interest on the new borrow for the period before it was taken. The `repay()` function (line 336) correctly calls `_updateInterest()` first, confirming the intended pattern.\n\n2. **lastInterestIndex initialization**: At lines 188-189 of InterestRateModelFacet, a first-time borrower's `lastInterestIndex` is set to `SCALE` (1e18) instead of the current `globalInterestIndex`. Since `globalInterestIndex` grows from `SCALE` over time (line 74, 104), this charges the user all accumulated interest since protocol deployment \u2014 a severe overcharge for any user who borrows after the protocol has been running.\n\nBoth bugs trigger on normal protocol usage with no special attacker setup required. The financial impact is systematic overcharging of all borrowers."
+}

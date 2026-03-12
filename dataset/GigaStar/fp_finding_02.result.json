@@ -1,0 +1,5 @@
+{
+  "finding_id": "162c",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The CEI violation in execXferProp is real: xferMgr.propExecute(pid) is called before any state is committed to lock the proposal. _isReqReplay explicitly returns false for on-chain callers (seqNumEx=0), providing zero reentrancy protection. XferMgr's execution cursor (ph.iXfer) is read into a local memory variable and only written back to storage AFTER the transfer loop completes, so a reentrant inner propExecute call reads the stale ph.iXfer=0 and re-executes all transfers from the beginning. Real reentrancy vectors exist: native coin transfers use payable(to).call{value}('') (Vault.sol:956) and ERC-1155 uses safeTransferFrom which mandatorily invokes onERC1155Received. The exploit requires a contract-based Agent that is also a transfer recipient \u2014 nothing in the code prevents this combination. No ReentrancyGuard, nonReentrant modifier, or per-pid mutex exists anywhere in the call chain."
+}

@@ -1,0 +1,5 @@
+{
+  "finding_id": "2fff",
+  "is_valid": true,
+  "explanation": "The vulnerability is a confirmed true positive. _stakeBnome at line 35 increments l.highBorrowLTVLimit[account] by a value V derived from the staked BNOME amount. _unstakeBnome (lines 60-80) returns the unlocked BNOME tokens to the user but contains zero decrements to highBorrowLTVLimit \u2014 the missing state update is directly observable in the source. _borrow in BorrowShopInternal.sol reads highBorrowLTVLimit directly (line 34) with no verification that BNOME is currently staked. Over time, as card destruction events unlock staked BNOME via the _getUnlockedBnome mechanism, a user can recover all their BNOME tokens while retaining the full high-LTV allowance. This allows repeat cycling: stake BNOME to obtain V limit, wait for gradual unlock, unstake all BNOME, then borrow against card NFT collateral at the highBorrowLTV rate rather than the standard borrowLtv rate. The exploit description overstates the immediacy (unlock is gradual, not instant) and mislabels it as collateral-free (card NFT collateral is still required), but the core accounting error is real and exploitable."
+}

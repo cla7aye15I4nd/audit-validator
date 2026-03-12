@@ -1,0 +1,5 @@
+{
+  "finding_id": "125b80a0-673c-11ef-a5cd-fb3ecf7b1c26_1725507681464",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The mintXFAN() function at line 307 has no access control on msg.sender \u2014 only a notBlacklisted(miner) check on the parameter address, not the caller. Any non-blacklisted external user can call mintXFAN(attacker_address, large_amount, DIRECT) and the contract will use its own USDT balance to fund a DEX swap (swapUsdtXFAN), minting XFAN tokens to the attacker without the caller depositing any USDT. The _contractMintROI address is declared but never used as a guard. A complete exploit chains mintXFAN (to receive XFAN) then unstakeXFAN (to convert XFAN to ETH), draining the contract's ETH."
+}

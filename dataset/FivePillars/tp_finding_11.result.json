@@ -1,0 +1,5 @@
+{
+  "finding_id": "c989",
+  "is_valid": false,
+  "explanation": "FALSE POSITIVE. The contract uses `pragma solidity ^0.8.28`. Since Solidity 0.8.0, all fixed-size array accesses are bounds-checked by the compiler at the EVM level. Accessing `uint256[9] poolRewardPerInvestorPaid` with any poolId >= 9 causes an immediate Panic(0x32) revert \u2014 the transaction is fully rolled back, no storage slot is read, and no data is returned to the caller. The claim that \"the contract does not revert and returns a value from the storage slot beside the array\" is factually incorrect for Solidity 0.8.x. This would have been a valid vulnerability in Solidity \u2264 0.7.x, but the language runtime eliminates it entirely in \u2265 0.8.0."
+}

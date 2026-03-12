@@ -1,0 +1,5 @@
+{
+  "finding_id": "c30ae600-5a45-11f0-9989-739d017e346c_1753683625536",
+  "is_valid": true,
+  "explanation": "The wallets map (line 327) is never written to. Calls to x.getWallet() at lines 379 and 387 store returned wallets in local variables w and feeWallet, but neither is ever assigned back into the wallets map. Grep confirms zero write-assignments to wallets[...] anywhere in the function. The deferred cleanup (lines 328\u2013334) therefore iterates over an empty map and never invokes privateKey.Zero() on any wallet. Meanwhile, getWallet's internal defer only zeros the raw ecdsa.PrivateKey (pkey), not the btcec.PrivateKey it copies key material into and returns. As a result, every private key loaded during execDogecoinTaskBatch remains live in memory with no guaranteed clearing, constituting a real sensitive-data-exposure bug."
+}

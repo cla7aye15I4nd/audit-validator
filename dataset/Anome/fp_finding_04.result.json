@@ -1,0 +1,5 @@
+{
+  "finding_id": "9b00",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The _claimProfit function (GameGuildInternal.sol:89) reverts when _balanceOf(account) > 1, but OG NFTs use standard ERC-721 transfers with no restrictions (confirmed via OgNFT diamond proxy exposing transferFrom/safeTransferFrom). Any attacker can transfer an extra OG NFT to a victim, pushing their balance to 2, which blocks all claimProfit() calls. The victim can recover by transferring the extra NFT away, but the attacker can repeatedly re-grief at low cost. The design flaw is gating functionality on a balance value that external parties can manipulate. The fix is straightforward: the ownership check at line 93 (_tokenOfOwnerByIndex(account, 0) != ogId) already validates ownership\u2014the balance > 1 check should be removed or replaced with a non-manipulable condition."
+}

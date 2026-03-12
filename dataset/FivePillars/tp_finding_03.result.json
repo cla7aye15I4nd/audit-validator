@@ -1,0 +1,5 @@
+{
+  "finding_id": "d37c",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The claim is factually confirmed: setPoolCriteria writes new pool criteria to storage and sets isUpdateCriteriaActive = true (lines 505\u2013507, 521\u2013523) with no event emitted in the activation branch. The only event in the function (PoolsCriteriaUpdated, line 558) fires only after all investors are processed \u2014 potentially many transactions later due to the checkCountLimit batching mechanism. Off-chain monitoring systems receive no signal when criteria are changed or when the update process begins. The criteria changes are immediately live on-chain from the first call, making the absence of an activation event a genuine transparency gap for this admin state-changing function."
+}

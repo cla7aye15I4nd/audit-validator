@@ -1,0 +1,5 @@
+{
+  "finding_id": "9e1f",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The `_payFeeWhenTransfer` function checks `_checkMaxAmountPerAddress(to, amountToTransfer)` using only the net amount (after fee deduction), but then immediately sends `taxAmount` via `super._transfer(from, taxStorage.taxAddress, taxAmount)` before returning. When `to == taxAddress`, the recipient accumulates both the fee (taxAmount) and the net transfer (amountToTransfer), but only the net amount was checked against `maxTokenAmountPerAddress`. The `_update` override does not enforce the cap. With maxTokenAmountPerAddress=100, taxBPS=1000, and balanceOf(taxAddress)=0: transferring 101 tokens to taxAddress produces taxAmount=10 and amountToTransfer=91; the check 0+91=91\u2264100 passes, then taxAddress receives 10 (fee) + 91 (net) = 101 tokens, exceeding the limit. No privileged caller required \u2014 any funded EOA can trigger this."
+}

@@ -1,0 +1,5 @@
+{
+  "finding_id": "e87cbcc0-50e0-11ef-be7f-a520f1665dc4_1724052413760",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The _recalculatePoolReward function (line 127) always advances lastRewardTime but only updates accRewardPerShareScaled when totalShares != 0. Reward tokens accruing during any zero-staker period (gap before first staker, periods between all unstaking, or no stakers ever) are silently skipped \u2014 neither distributed to users nor recoverable by the owner. The stopPool function only recovers future rewards ((oldEndTime - block.timestamp) * rewardPerSecondScaled / PRECISION) and cannot address past skipped periods; furthermore, Solidity 0.8 overflow protection causes stopPool to revert with an underflow if called after the pool naturally expires (block.timestamp > oldEndTime). No other owner-accessible recovery function exists in the contract. This results in permanent, unrecoverable loss of deposited reward tokens under realistic, commonly occurring conditions."
+}

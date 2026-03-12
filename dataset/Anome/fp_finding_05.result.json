@@ -1,0 +1,5 @@
+{
+  "finding_id": "bd5f",
+  "is_valid": false,
+  "explanation": "FALSE POSITIVE. The finding describes a denial-of-service where an attacker airdrops an NFT to a victim, increasing their balance above 1 and blocking profit claims via the `_balanceOf(account) > 1` check. While the attack vector is technically real \u2014 an attacker can transfer an NFT to increase the victim's balance \u2014 this is NOT a genuine vulnerability because the victim has a trivial, immediate, and cost-free mitigation: they can simply transfer the unwanted airdropped NFT out of their wallet (to any address, including a burn address) to restore their balance to 1, and then claim their profits. The griefing is purely temporary and easily reversible by the victim without any loss of funds. The profits remain safely recorded in `ogClaimableProfit[ogId]` and are not at risk \u2014 they are merely temporarily uncollectable. The triage verdict of \"invalid\" with reason \"The user can transfer the NFT\" correctly identifies this as a non-issue. This is a low-impact, easily-mitigated griefing vector, not a real vulnerability."
+}

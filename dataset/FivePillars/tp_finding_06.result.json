@@ -1,0 +1,5 @@
+{
+  "finding_id": "cc4c",
+  "is_valid": true,
+  "explanation": "Confirmed true positive. In deposit() at line 601, _updatePoolRewards(amount, ...) passes the gross pre-fee amount, while investor.totalDeposit (line 609), totalDepositAmount (line 610), and referral reward updates (line 600) all correctly use toInvestor (net amount after fee). The fee portion is transferred out of the token ecosystem (swapped to ETH for treasury), yet pool rewards are credited as if that fee remained as deposited value. This is a real accounting inconsistency\u2014not a design choice\u2014evidenced by the consistent use of toInvestor everywhere else. The bug causes pool rewards to be systematically over-credited by fee * poolShare / BASIS_POINTS per deposit, resulting in excess token minting. Direct exploitation for profit is economically irrational (cost >> gain), but the protocol invariant violation and token over-issuance are real."
+}

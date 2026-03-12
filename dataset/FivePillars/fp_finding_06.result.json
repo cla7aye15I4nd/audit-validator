@@ -1,0 +1,5 @@
+{
+  "finding_id": "c121",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The _trySendFees() function (lines 880-909) explicitly reverts with SendEtherFailed if ETH transfer to treasury or treasury2 fails (lines 904, 907). Both treasury addresses are set only in the constructor (lines 272-273) with no setter functions anywhere in the contract, making them permanently immutable. Since _trySendFees() is called unconditionally at the end of both deposit() (line 614) and claimReward() (line 653), any treasury address that rejects ETH creates a complete, permanent, irrecoverable DoS of all user-facing functions. No admin mitigation path exists \u2014 the owner cannot update the treasury addresses, add a try/catch, or deploy a fallback mechanism without redeploying the entire contract."
+}

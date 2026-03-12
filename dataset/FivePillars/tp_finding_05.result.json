@@ -1,0 +1,5 @@
+{
+  "finding_id": "f094",
+  "is_valid": true,
+  "explanation": "The vulnerability is confirmed. The constructor at lines 266-270 validates that neither treasury address is zero, but performs no check that treasury_ != treasury2_. The _trySendFees() function (lines 902-907) computes firstTreasuryAmount = balance * 70 / 100, sends it to treasury, then sends the remaining balance to treasury2. If both storage variables point to the same address, 100% of the swapped ETH is sent to one address instead of the intended 70/30 split. No setter functions exist for treasury or treasury2 post-deployment, so this misconfiguration is locked in at construction time. The design clearly intends two distinct beneficiaries (a 70/30 fee split), and the absence of the uniqueness check is a real, verifiable code defect that allows one party to be silently denied their 30% share."
+}

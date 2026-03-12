@@ -1,0 +1,5 @@
+{
+  "finding_id": "998c",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The `_setCode` function overwrites the forward mapping `accountCode[account]` but never clears the reverse mapping `accountByCode[oldCode]`, leaving a stale \"ghost\" entry. Three reachable code paths can trigger this: `adminRecreateCode`, `adminSetCode`, and `callerSetCode` (the latter's comment on line 193 explicitly acknowledges repeated overwrites). The stale mapping is actively consumed by `_bindSponsor` (line 75) and `callerBindSponsor` (line 170) for sponsor resolution, meaning old codes remain fully functional. The `_removeCode` function (lines 53-65) demonstrates the developers' intended cleanup pattern by deleting both `accountCode[account]` and `accountByCode[oldCode]`, confirming the omission in `_setCode` is an oversight, not a design choice. Additionally, `codeStatus[oldCode]` is never reset to false, permanently consuming the old code slot."
+}

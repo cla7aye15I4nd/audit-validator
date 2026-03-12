@@ -1,0 +1,5 @@
+{
+  "finding_id": "43102ce0-cb15-11ef-9d05-1b0897613b78_1737050802027",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The vulnerability is real and exploitable. AccountManager.getAccountRole() returns the string \"NONE\" as a sentinel for unregistered accounts (lines 408, 416-417 of AccountManager.sol). RoleManager.addRole() has no validation preventing creation of a role with that name. If an org admin calls addNewRole(\"NONE\", orgId, 3, true, true), then isOrgAdmin in PermissionsImplementation (line 847-867) will return true for any unregistered address: checkOrgAdmin returns false (address not in orgAdminIndex), but roleManager.isAdminRole(\"NONE\", orgId, ultParent) returns true because the \"NONE\" role exists and has isAdmin=true. This grants all org-admin-gated operations (addSubOrg, updateNodeStatus, updateAccountStatus, assignAccountRole, addNode) to every unregistered Ethereum address for that org. The attack requires an existing org admin to create the \"NONE\" role, but no input sanitization exists to prevent it."
+}

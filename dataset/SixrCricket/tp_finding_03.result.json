@@ -1,0 +1,5 @@
+{
+  "finding_id": "788b",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The execute_mint function (line 465) blindly sets `mint_nonce = nonce` without any validation against the current mint_nonce, while execute_governance_action (line 845) correctly enforces `nonce == governance_nonce + 1`. This asymmetry is confirmed by direct code comparison. The consumed_hashes mechanism only prevents re-execution of identical payloads (same hash), but two payloads sharing a nonce with different amounts/recipients produce different hashes and both pass all checks. This enables double-minting during source chain reorgs: if watchers sign conflicting payloads for the same nonce before a reorg is detected, both can be executed on-chain. Additionally, mint_nonce can be rewound backwards (e.g., from 100 to 50), breaking off-chain relayer tracking via get_mint_nonce(). The contract header documents \"Replay protection via nonces\" but this protection is not enforced for mints."
+}

@@ -1,0 +1,5 @@
+{
+  "finding_id": "e7e5e820-8d8b-11f0-9082-8d49bdd37ed2_1759092150684",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The dividend system has a logic bug where eligibility and share calculation are inconsistent. `_eligibleAt()` (line 537) is a binary gate that returns true if ANY single stake has matured past MIN_DIVIDEND_LOCK (60 days), but `_computeEligibleTotalAt()` (line 556) counts the user's entire `_currentStaked` balance (all stakes regardless of maturity), and `claimFromDistribution()` (line 517) calculates shares using `stakedAtBlock()` which also returns total staked via checkpoints. This allows an attacker to: (1) maintain a tiny old matured stake, (2) front-run `startDistribution()` with a massive new deposit, (3) pass the eligibility gate via the old stake, and (4) receive dividend share proportional to their total (mostly immature) stake. The MIN_DIVIDEND_LOCK is clearly intended to prevent new stakers from gaming dividends (per NatSpec at line 513 and comment at line 68), but the implementation fails to enforce maturity filtering in the share calculation, enabling dilution of long-term stakers' rewards."
+}

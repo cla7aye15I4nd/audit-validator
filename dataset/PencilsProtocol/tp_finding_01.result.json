@@ -1,0 +1,5 @@
+{
+  "finding_id": "1fed1c20-02af-11ef-b6bc-1de73d127368_11ef-1138-b4cba360-97e4-2150ecf3a8ba",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The ERC721 refund calculation in `reverse()` at lines 373-375 divides by `_amount0` (the count of NFTs being returned) which is identical to the numerator factor `amount0OrTokenIds.getSetBitCount(pool.amountTotal0)`. These cancel out, making `amount1 = myAmountSwapped1[msg.sender][index]` \u2014 a full refund regardless of how many NFTs are returned. A user who bought N NFTs can return just 1 and receive their entire token1 payment back, keeping N-1 NFTs for free. The denominator should be `myAmountSwapped0[msg.sender][index].getSetBitCount(pool.amountTotal0)` (total NFTs the user holds) to achieve proper proportional refunding, consistent with the ERC1155 path."
+}

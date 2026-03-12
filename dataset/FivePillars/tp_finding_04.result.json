@@ -1,0 +1,5 @@
+{
+  "finding_id": "6c3b",
+  "is_valid": true,
+  "explanation": "The vulnerability is real. The `_calcInvestorRefRewards` function (line 689-696) checks `isInvestorInPool[investor][2]` at the current moment to decide whether to include the downline referral component (`downlineRefsDeposit * 675 / BASIS_POINTS`) in the per-round reward. This reward is then multiplied by `endedRounds` calculated from the stale `updateRefRewardTimestamp`. Critically, `deposit()` does NOT call `_updateInvestorRefReward()` for the depositor - it only calls it for the referer chain via `_updateReferers()`. So when an investor qualifies for pool 2 (via `_checkAndAddInvestorToPool` during a subsequent deposit), their `updateRefRewardTimestamp` remains at its previous value. When they later call `claimReward()`, `_updateInvestorRefReward` calculates referral rewards for all rounds since the last update, retroactively applying the downline bonus for rounds when the investor was NOT in pool 2. This leads to excess reward allocation proportional to the number of stale rounds and the `downlineRefsDeposit` amount."
+}

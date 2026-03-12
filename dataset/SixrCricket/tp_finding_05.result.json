@@ -1,0 +1,5 @@
+{
+  "finding_id": "f263",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The `update_governance` function (line 572) reads 1312 bits (32-bit tag + 5\u00d7256-bit keys) from a slice produced by `payload_ref.begin_parse()` (line 857), but a single TON cell can hold at most 1023 bits. The function uses only sequential `load_uint` calls with no `load_ref` to traverse into child cells. After consuming ~800 bits (tag + 3 keys), the 4th `load_uint(256)` will always trigger a `cell_underflow` exception, making governance key rotation permanently impossible. The same bug affects `update_watchers` (line 531). This is a hard constraint of the TVM \u2014 `begin_parse()` yields only the root cell's bits and there is no workaround within the current code."
+}

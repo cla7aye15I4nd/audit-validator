@@ -1,0 +1,5 @@
+{
+  "finding_id": "7f65",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The vulnerability is technically valid: `_xferLoopErc1155` will silently treat transfers as successful when `tokAddr` is an EOA or a non-ERC1155 contract with a non-reverting fallback. This is because `IERC1155.safeTransferFrom` returns void, so the EVM CALL to an EOA succeeds with empty returndata that passes ABI decoding (nothing to decode). The `try` block succeeds, `iExec` advances, and the proposal can be marked Done with `XfersProcessed` emitted \u2014 even though no tokens moved. The ERC-20 path is naturally protected because `transferFrom` returns `bool`, causing ABI decode failure on empty returndata from EOAs. Upstream validation in `createXferProp` (Vault.sol:444) only checks `tokAddr != address(0)` but does not verify `tokAddr.code.length > 0` or ERC-165 compliance. While exploitability is limited by governance controls (Agent role + quorum approval), the missing defensive check represents a real asymmetry between token paths that could lead to silent accounting corruption on misconfiguration. Severity: minor (as rated)."
+}

@@ -1,0 +1,5 @@
+{
+  "finding_id": "2004",
+  "is_valid": false,
+  "explanation": "FALSE POSITIVE. The fee_basis_points parameter in build_initial_storage is set exclusively by the contract deployer/admin \u2014 a fully trusted party who also controls the admin address, fee wallet, and allowed jetton. No external attacker can influence this value. The finding's attack scenario requires the deployer to misconfigure their own contract, which is an operational/code-quality concern, not a security vulnerability. Additionally: (1) the actual TypeScript deployment script doesn't even include fee_basis_points in the storage construction, making this misconfiguration path unreachable through provided tooling; (2) the admin can fix the value post-deployment via the governance function set_fee_basis_points, which properly validates 0 <= value <= 1000; (3) a deployer who would set an invalid fee could equally deploy a completely malicious contract. Missing input validation on admin-controlled initialization parameters is a defensive coding best practice, not an exploitable security vulnerability."
+}

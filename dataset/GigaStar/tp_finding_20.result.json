@@ -1,0 +1,5 @@
+{
+  "finding_id": "91ac",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The bug is real and exploitable. `_propFinalize` in RevMgr.sol:274-277 checks only the last element of `prop.ownSnaps.poolRefs` for `uploadedAt != 0`. A PoolRef is added to the array on the first call to `propAddOwners` for any new (instName, earnDate) pair \u2014 before the snapshot is complete. An Agent can partially upload one snapshot (creating its PoolRef with uploadedAt=0), fully upload another snapshot (which lands at the end of poolRefs with uploadedAt>0), and then call sealInstRevProp. The length equality check (instRevsLen == ownSnapsLen) passes because both PoolRefs exist, and the single-element tail check passes because the last snapshot is complete. The proposal is falsely finalized. During propExecute, the incomplete OwnSnap is processed with only its partial owner list, the remaining owners permanently receive zero revenue, and the snapshot is stamped executedAt \u2014 an irreversible outcome with no on-chain error or revert."
+}

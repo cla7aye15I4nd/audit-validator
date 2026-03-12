@@ -1,0 +1,5 @@
+{
+  "finding_id": "8725",
+  "is_valid": true,
+  "explanation": "The bindRecruit function (ShopReferral.sol:30-41) is a confirmed true positive. An attacker who is a registered sponsor can call bindRecruit(victimAddress, card, 1e17) to forcibly assign any unregistered address as their recruit. The function performs no consent check and no registration check on the recruit. _rebindSponsor only blocks if accountSponsor[recruit] != address(0), so any unregistered victim (whose sponsor is address(0)) can be pre-bound. After binding, _bindSponsor reverts with AccountAlreadyCreated when the victim tries to register, permanently preventing them from choosing their own sponsor. The attack is permissionless (any user can register via buyCode+bindSponsor), costs only 0.1 tokens (sent to the victim, not burned), and has no on-chain self-service recovery for the victim. The vulnerability enables a griefing attack that hijacks referral relationships and blocks legitimate user registration flows."
+}

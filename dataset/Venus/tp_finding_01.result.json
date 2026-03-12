@@ -1,0 +1,5 @@
+{
+  "finding_id": "8ab17f70-b8e3-11ef-a996-75baa03c0028_1734117621512",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The `_getUnderlyingAmount()` in `PendleOracle.sol` returns the raw value from Pendle's `getPtToAssetRate()` / `getPtToSyRate()`, which is always scaled by 1e18. However, the parent `CorrelatedTokenOracle.getPrice()` assumes this value is scaled by the underlying token's decimals (per the comment on line 47 and the dimensional analysis of the price formula). When the underlying token has non-18 decimals (e.g., WBTC with 8 decimals), the computed price will be inflated by 10^(18 - underlyingDecimals). For WBTC, this means a 10^10 (10 billion) price inflation, which would allow massive over-borrowing against PT collateral. Existing deployments happen to use 18-decimal underlyings (weETH, stETH) so the bug hasn't manifested, but it would trigger for any market with a non-18-decimal underlying like the pumpBTC/WBTC example provided."
+}

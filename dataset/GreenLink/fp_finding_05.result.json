@@ -1,0 +1,5 @@
+{
+  "finding_id": "769a",
+  "is_valid": true,
+  "explanation": "The vulnerability is confirmed. The contract's `setTaxConfig` only validates `taxAddress_` through `Helper.checkAddress` (a zero-address guard), which does not block non-zero burn addresses like `0x000...dEaD`. When `taxAddress` is set to such an address, the `_payFeeWhenTransfer` function sends tax tokens via `super._transfer` (line 714), leaving `totalSupply` unchanged. The contract deliberately distinguishes this from the deflation path at line 717 which uses `super._burn` (properly reducing `totalSupply`). This design gap allows cumulative, permanent inflation of the reported `totalSupply` relative to actual circulating supply \u2014 a real data integrity issue exploitable through owner misconfiguration."
+}

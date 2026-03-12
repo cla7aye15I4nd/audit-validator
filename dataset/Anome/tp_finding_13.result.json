@@ -1,0 +1,5 @@
+{
+  "finding_id": "b02a",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The if-branch (line 36) decrements `highBorrowLTVLimit` by `borrowAmount = price * highBorrowLTV / DIVIDEND` instead of by `price`. The else-branch (line 39) proves the semantic: `remaining = price - highBorrowLTVLimit` treats the limit as a price-coverage value. Because `borrowAmount < price` (since highBorrowLTV < 100%), each borrow consumes less of the limit than the card's price, allowing more cards to enter the high-LTV branch than intended. The same bug is replicated in `_calculateBorrowAmount` (line 98). Mathematical proof: with limit=100, price=50, highBorrowLTV=80%, borrowLtv=50%, an attacker borrows 111 USDA instead of the correct 105 USDA across three cards. No compensating controls exist. Fix: change line 36 to `data.highBorrowLTVLimit[account] -= price`."
+}

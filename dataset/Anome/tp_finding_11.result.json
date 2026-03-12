@@ -1,0 +1,5 @@
+{
+  "finding_id": "06e9",
+  "is_valid": false,
+  "explanation": "FALSE POSITIVE. The alleged vulnerability requires pool.usdaBalance < payout_amount in _transferPoolUsda, but this state is mathematically unreachable through unprivileged operations. The constant-price AMM (with usdaIncreaseVirtualBalance as virtual anchor and cardDecreaseVirtualBalance=1 ensuring seen_circulation = actual_circulation+1) maintains the invariant: usdaBalance = actual_circulation \u00d7 virtual_price, so usdaBalance \u2265 releasedUsda whenever actual_circulation \u2265 1 (required for card destruction). The guard at BattleServiceInternal.sol:136 further ensures total_payouts \u2264 releasedUsda \u2264 usdaBalance. The only way to break this invariant is via the owner-only adminSetPoolUsdaBalance() function \u2014 a trusted-admin action not part of the described exploit. The finding's scenario (pool.usdaBalance=10 while releasedUsda=100) provides no mechanism for reaching that state through normal user interactions; the else branch zeroing pool.usdaBalance is effectively dead code in normal operation."
+}

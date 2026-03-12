@@ -1,0 +1,5 @@
+{
+  "finding_id": "953e5590-47ad-11f0-8fe7-f5f1ab22f4b9_1753327170686",
+  "is_valid": false,
+  "explanation": "FALSE POSITIVE. While `add-liquidity` does not explicitly validate that `amountADesired` and `amountBDesired` are strictly positive, and the initial liquidity path (reserves == 0.0) bypasses the `quote()` function's `enforce (> amountA 0.0)` check, the attack is blocked by the `fungible-v2` token interface itself. The `transfer` function in `fungible-v2` specifies `(property (> amount 0.0))` and all compliant implementations (e.g., `coin.pact` line 351) enforce `(enforce (> amount 0.0) \"transfer amount must be positive\")`. Since `add-liquidity` calls `tokenA::transfer` and `tokenB::transfer` at lines 286-287 before any minting or reserve updates occur, negative or zero amounts will cause the transaction to revert at the token transfer level. The attacker cannot pass negative values through the transfer calls, so the described attack scenario (reverse transfers, fake LP minting, permanent pair lockout) is not exploitable."
+}

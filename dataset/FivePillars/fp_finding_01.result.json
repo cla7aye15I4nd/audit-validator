@@ -1,0 +1,5 @@
+{
+  "finding_id": "5285",
+  "is_valid": true,
+  "explanation": "The vulnerability is confirmed real. In `_updatePoolReward` (lines 837-842), after distributing accumulated rewards via `poolInfo.rewardPerInvestorStored += poolInfo.curReward * endedRounds / poolInfo.participantsCount`, the function never resets `poolInfo.curReward` to zero. A full-text search of the contract confirms `curReward` is only ever incremented (lines 814, 820) or initialized to 0 in the constructor \u2014 it is never reset after distribution. This causes every prior round's reward contributions to be redistributed in all subsequent rounds: if R1 was accumulated in round 1 and distributed, it remains in `curReward` and gets added to `rewardPerInvestorStored` again in round 2, round 3, and every round thereafter. Since `claimReward()` mints tokens proportional to accumulated pool rewards, pool participants can claim exponentially inflated token rewards at the protocol's expense. The exploit requires no special privileges \u2014 any sequence of deposits across two or more reward rounds (each 24 hours) triggers the compounding. No mitigations exist in the codebase."
+}

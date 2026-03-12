@@ -1,0 +1,5 @@
+{
+  "finding_id": "ccc3",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. In _settleCards, for NEWBIE rooms, result.destroyIndex is never initialized (remains uint8 default = 0) before being passed to _distributeCards. The loop at line 123 then falsely treats room.allCards[0] \u2014 always player1's first real NFT \u2014 as the destroyed card: its price is added to destroyValue, the card is skipped by continue and never transferred, and shop.destroyCard is never called. _cleanRoom deletes the allCards array without returning the NFT, leaving it permanently locked in the contract. The non-NEWBIE path is correct because _destroyCard explicitly sets result.destroyIndex from the Card's .index field before calling _distributeCards. The bug is strictly in the NEWBIE path where no such initialization occurs."
+}

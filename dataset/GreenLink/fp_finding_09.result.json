@@ -1,0 +1,5 @@
+{
+  "finding_id": "714a",
+  "is_valid": false,
+  "explanation": "The vulnerability requires a setter for `isDeflationary` that does not exist. The flag is set once during `initialize()` (L272, L298) and has no post-initialization mutator anywhere in the contract. Without the ability to set `isDeflationary = false` after deployment, the trap state (isDeflationary==false AND deflationBPS>0) is unreachable. The attack scenario itself acknowledges this by stating \"assuming a setter function for feature flags exists\" \u2014 that setter is absent. If `isDeflationary` is true (the only persistent state after init), `setDeflationConfig(0)` works freely to zero out burns. This is a false positive."
+}

@@ -1,0 +1,5 @@
+{
+  "finding_id": "791f",
+  "is_valid": false,
+  "explanation": "FALSE POSITIVE. While OI.getSnapshot does mutate prop.ownSnaps before the Exists/NotFound validation checks, the resulting empty OwnSnap has uploadedAt==0 and cannot be finalized. The code only sets book.uploadedAt = block.timestamp when all pages are fully uploaded (ctx.bookLen >= req.total), so an empty/stub OwnSnap created before validation is permanently incomplete. Gate 3 fails: the claimed impact (sealable/executable with incomplete snapshot data leading to fund misallocation) is unproven — the uploadedAt field provides the completion gate and a proposal would require all OwnSnaps to have uploadedAt>0 to be considered upload-complete. The actual harm is operational (stuck proposals for the affected instrument key), not a security exploit leading to fund extraction. The authorized callers who could trigger this are trusted actors, and the damage is limited to the individual proposal becoming unable to distribute that instrument's revenue — not an attacker-controlled fund drain."
+}

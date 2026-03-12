@@ -1,0 +1,5 @@
+{
+  "finding_id": "a977",
+  "is_valid": false,
+  "explanation": "FALSE POSITIVE. The upload-order dependency for correction proposals is technically real \u2014 calling propAddInstRev before propAddInstRevAdj causes requiredFunds to default to 0, skipping the upload-time _fundsAvail check. However, this is not a security vulnerability for three reasons: (1) The execution-time _fundsAvail check at InstRevMgr.sol:452-460 is the actual security gate and functions correctly regardless of upload order \u2014 no funds can be transferred without sufficient balance/allowance. (2) Only trusted, governance-registered Agent operators control upload ordering; there is no external attacker path. (3) The upload-time check is explicitly documented as advisory/best-effort (code comments at lines 195-197, 647-650 acknowledge funds can change between upload and execution). The worst-case impact is operational inefficiency (a proposal failing at execution requiring pruning/reproposal), affecting only the proposing Agent's own workflow \u2014 not a security boundary violation."
+}

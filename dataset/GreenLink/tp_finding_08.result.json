@@ -1,0 +1,5 @@
+{
+  "finding_id": "852b",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The vulnerability is real and fully exploitable. The _update function at line 686 checks msg.sender against the authorisedSender mapping when authorisedSenderEnabled is true. Since only tokenOwner is auto-whitelisted during initialization (lines 279-283), any regular user who receives tokens cannot call transfer, transferFrom, burn, or any operation that triggers _update. Critically, there is no function to disable authorisedSenderEnabled post-deployment \u2014 once set at initialization, the restriction is permanent and irrevocable. The only remediation path is for the owner to manually authorize each user via setAuthorisedSender, meaning the owner has unilateral and permanent power to freeze all non-authorized users' funds. This constitutes a genuine DoS / token freeze vulnerability with high severity."
+}

@@ -1,0 +1,5 @@
+{
+  "finding_id": "ad7e",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. safeBatchTransferFrom reads historyLength once from ids[0] outside the loop (line 590) and reuses a shared counter for all subsequent IDs. This means NFTs at index >0 are never checked against their own actual nftTransferHistory length \u2014 only the running counter seeded from ids[0] is tested. An attacker who places a fresh NFT (history=0) first and a history-capped NFT (history=501) second can bypass the per-ID MAX_TRANSFER_HISTORY_LENGTH=500 restriction entirely. The contrast with safeTransferFrom (line 569), which correctly reads nftTransferHistory[id].length per ID, confirms this is a coding error. The bypass enables unbounded history growth, which can cause the _triggerPay settlement loop to run out of gas, potentially locking funds."
+}

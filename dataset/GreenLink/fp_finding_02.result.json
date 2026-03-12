@@ -1,0 +1,5 @@
+{
+  "finding_id": "2d76",
+  "is_valid": true,
+  "explanation": "The vulnerability is a TRUE POSITIVE. Under a 100% fee configuration (taxBPS = 10000, explicitly permitted by the > rather than >= validation check at line 538), the `_payFeeWhenTransfer` function computes totalFee = amount and amountToTransfer = 0. It consumes the spender's full allowance via `super._spendAllowance(from, spender, totalFee)` for fees, transfers all tokens to taxAddress, then returns 0. The outer `transferFrom` calls `super.transferFrom(from, to, 0)`, which in OpenZeppelin's ERC-20 treats `_spendAllowance(..., 0)` as a no-op. The transaction succeeds: Alice loses her entire approved balance to fees, the recipient gets 0 tokens, and Bob's allowance is fully exhausted. This is mechanically verifiable in the code at lines 692-721 and 610-627, and the 100% fee prerequisite is an explicitly valid admin-configurable state."
+}

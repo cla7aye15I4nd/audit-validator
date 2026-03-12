@@ -1,0 +1,5 @@
+{
+  "finding_id": "f999",
+  "is_valid": true,
+  "explanation": "Confirmed true positive. The `isMet()` function in Types.sol uses `maximumBenefit = max(maximumBenefit, myAmount)` (taking the maximum) instead of summing all partial confirmed amounts for AND logic. When multiple partial conditions are each approved with different amounts (e.g., 40 and 60), `isMet` returns `maximumBenefit=60` (the max) instead of 100 (the sum). In `_triggerPay`, only 60 tokens are paid to the receiver, and after the trigger time, the remaining 40 tokens are refunded to the sender. This directly underpays the receiver and incorrectly returns funds to the sender. The preconditions are fully satisfiable: AND logic requires \u22652 conditions, and the contract explicitly allows sender and receiver to each be operators of one partial condition. No privilege or off-chain dependency is needed to trigger the loss."
+}

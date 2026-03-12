@@ -1,0 +1,5 @@
+{
+  "finding_id": "bc55baa0-c517-11f0-a838-53cc3f14fdf2_1763543829740",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The openBox function has a default-zero-value authorization bypass. After a legitimate openBox call, cardMap[cardId].userId is set to 0 but isBox remains true. Any unregistered caller (whose getIdByUser returns the default 0) passes the ownership check (0 != 0 is false) and the isBox check (still true), allowing unlimited calls to mining.createMachine. A second attack vector exists for unsold minted cards (userId=0 from creation) that become boxes after sellEndTime expires. Root cause: (1) missing userId != 0 guard in openBox, and (2) missing isBox = false cleanup after opening."
+}

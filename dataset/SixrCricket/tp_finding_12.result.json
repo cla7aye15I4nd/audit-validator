@@ -1,0 +1,5 @@
+{
+  "finding_id": "8aaa",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The bridge vault contract in handle_jetton_notification (lines 250-274) updates total_burned/total_fees and emits the \"BURN\" event (which triggers EVM-side minting by off-chain watchers) in the same transaction that merely QUEUES the burn message. On TON, send_raw_message is asynchronous \u2014 the actual burn executes in a separate later transaction and can fail/bounce. The bounce handler (lines 448-477) only logs a generic \"BNCE\" and does NOT revert stats or emit a corrective event. Furthermore, query_id is hardcoded to 0 (line 185), making it impossible to correlate bounces with specific deposits when multiple are in flight. This creates a direct path to unbacked EVM mints: deposit \u2192 burn queued + BURN emitted \u2192 burn bounces \u2192 watcher already minted on EVM based on BURN event \u2192 tokens exist on EVM with no corresponding TON burn. Critical severity is warranted as this undermines the core bridge security invariant."
+}

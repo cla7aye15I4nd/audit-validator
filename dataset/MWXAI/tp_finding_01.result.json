@@ -1,0 +1,5 @@
+{
+  "finding_id": "e4cfc040-765a-11f0-849a-c7ef6369e136_1757654926395",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The `_unstake` function at line 360 of MWXStaking.sol has no check for `stakeInfo.active == true` and never zeroes out `stakeInfo.amount` or `stakeInfo.effectiveAmount` after unstaking. This allows an attacker to call `unstake()` repeatedly on the same stakeId. The `_updateStake` modifier only checks `stakeInfo.stakeId == 0`, which remains non-zero after unstaking. The `_removeStakeId` function silently does nothing on subsequent calls when the ID is already removed. Solidity 0.8+ underflow protection does not prevent exploitation because the attacker can maintain other active stakes to keep tracking variables (userTotalStaked, totalFlexibleStaked, etc.) high enough to avoid underflow. Concrete attack: stake 100 tokens twice (stakeId 1 and 2), unstake stakeId 1 twice \u2014 deposits 200, withdraws 300, draining 100 tokens from the protocol."
+}

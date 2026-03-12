@@ -1,0 +1,5 @@
+{
+  "finding_id": "c08d7760-3cf7-11ef-be39-7174154c7792_1720963672724",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The settle() function's require check on line 152 uses `goalAmount.mul(proposal.price)` (multiplication), but the correct formula requires division. The `price` field represents base tokens per quote token (scaled by 10^decimals), so the required quote token amount should be `goalAmount * 10^decimals / price`, not `goalAmount * price`. Mathematical proof: for non-fixed price, substituting `price = soldAmount * 10^D / quoteBalance` into the check yields `quoteBalance^2 >= goalAmount * soldAmount * 10^D`, which for typical values (e.g., 100 tokens with 18 decimals) requires ~3.16e29 quote token units \u2014 impossibly large. For fixed price with price=1e18, it requires quoteBalance >= goalAmount * 1e18, also impossibly large. Since settle() always reverts, the IDO can never transition to \"ended\" status, and users cannot call withdraw() (which requires ended or rejected status), permanently locking their funds in the contract."
+}

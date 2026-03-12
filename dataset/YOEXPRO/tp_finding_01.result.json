@@ -1,0 +1,5 @@
+{
+  "finding_id": "9779da50-371d-11f0-b142-2bda881cf922_1752511717470",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The bond() function records totalBondAmount = yoexReceived + burnedTokens, which equals estimatedYoex (the pre-burn amount). For a fee-on-transfer token like YOEX (1% burn), the contract's actual token balance is ~99% of the recorded amount. The ~1% deficit per bond accumulates over time. At unbond(), the contract attempts to transfer bondInfo.amount + bondInfo.bonus (line 154), where both values are calculated on the inflated amount. This creates progressive insolvency: the contract's recorded obligations exceed its actual token holdings. Additionally, the bonus calculation (line 114) uses the inflated totalBondAmount, compounding the deficit. Later users will face failed withdrawals when the contract's balance is insufficient to cover the inflated bond records. The correct approach is to measure actual received tokens via balance-before/balance-after the swap, and use only that value for bond accounting."
+}

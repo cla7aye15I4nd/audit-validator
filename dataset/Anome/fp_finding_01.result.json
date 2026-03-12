@@ -1,0 +1,5 @@
+{
+  "finding_id": "8310",
+  "is_valid": true,
+  "explanation": "The vulnerability is confirmed. The `_sendVnome` function at lines 89-102 of BattleServiceInternal.sol only checks for zero address before minting vNome rewards, but never consults the `isAccountBanned` mapping from ShopStorage. The ban check in `commonCheck` (ShopCommonInternal.sol lines 10-16) only guards direct user-initiated calls via `msg.sender`/`tx.origin`. However, `_onBattled` is protected by the `onlyGame` modifier (not `commonCheck`), so the game contract calls it without any ban validation on recipients. A banned user registered as a sponsor (`accountSponsor[activePlayer] = bannedUser`) will still receive vNome referral rewards through `_processVnomeDistribution` \u2192 `_sendVnome` whenever the active player participates in battles, because no ban check exists on the recipient address in the reward distribution path. This directly undermines the banning mechanism."
+}

@@ -1,0 +1,5 @@
+{
+  "finding_id": "2974",
+  "is_valid": false,
+  "explanation": "FALSE POSITIVE. The exploit requires a public `changeSponsor` function callable by any user, but no such function exists. The only caller of `_changeSponsor` is `adminSetReferral` at ShopReferral.sol:156, which has the `onlyOwner` modifier. Regular users have no pathway to repeatedly trigger the remove-then-rebind cycle that would grow `accountRecruits[sponsor]` unboundedly. While the underlying code pattern (using `delete` instead of swap-and-pop on a storage array) is a real code quality issue, it is not exploitable by an attacker: only the contract owner could trigger it, and the owner also has `adminRemoveRelation` (which calls `delete data.accountRecruits[account]`) to fully reset the array. The attack surface described in the finding does not exist in the deployed code."
+}

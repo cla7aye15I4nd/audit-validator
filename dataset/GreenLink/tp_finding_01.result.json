@@ -1,0 +1,5 @@
+{
+  "finding_id": "b6b1",
+  "is_valid": true,
+  "explanation": "The vulnerability is real. `setTaxConfig` validates `taxBPS_ <= MAX_BPS_AMOUNT` and `setDeflationConfig` validates `deflationBPS_ <= MAX_BPS_AMOUNT`, but neither validates the combined sum. An owner (or factory deployer) can set taxBPS=8000 and deflationBPS=3000 \u2014 both pass individually \u2014 resulting in combined fees of 11000 BPS (110%). In `_payFeeWhenTransfer` (line 699), the subtraction `amount - totalFee` underflows because `totalFee > amount`, and Solidity 0.8+ reverts on arithmetic underflow (no `unchecked` block). This causes all token transfers from non-tax-address senders to revert, constituting a complete DoS. The force-transfer bypass does not help because `_payFeeWhenTransfer` is invoked before the force-transfer check. The same combined-check gap also exists in the `initialize` function. The bug requires both `isTaxable` and `isDeflationary` to be enabled, but within that scope the impact is total transfer unavailability."
+}

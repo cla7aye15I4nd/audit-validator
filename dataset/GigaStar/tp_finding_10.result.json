@@ -1,0 +1,5 @@
+{
+  "finding_id": "4407",
+  "is_valid": true,
+  "explanation": "The ApprovalUpdated emit at Box.sol:357 passes arguments in the wrong order for positions 2 and 3. The event signature (IBox.sol:33-34) expects (boxNameHash, boxName, tokSym, ...) but the emit call passes (_name, ti.tokSym, _name, ...), placing ti.tokSym where boxName is expected and _name where tokSym is expected. This is confirmed by comparing against the correct pattern used in TokenPushed and ApprovalErr emits in the same file. On-chain state is unaffected, but off-chain indexers decoding ApprovalUpdated events will receive swapped boxName/tokSym values."
+}

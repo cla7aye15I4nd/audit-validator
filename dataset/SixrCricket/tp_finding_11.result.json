@@ -1,0 +1,5 @@
+{
+  "finding_id": "b5b3",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The bridge vault contract's `recv_internal` handler for `OP_JETTON_TRANSFER_NOTIFICATION` (0x7362d09c) performs zero authentication on the message sender. Any contract on TON can send a crafted notification with arbitrary `jetton_amount` and `from_address`. The `validate_jetton` function exists (line 134) but is never called in this code path. The contract's own comment (lines 492-495) explicitly acknowledges this: \"For now we trust the sender, but in production you should verify.\"\n\nImpact is critical and two-fold: (1) Spoofed BURN logs (line 259-274) trigger off-chain watchers to mint unbacked tokens on the EVM chain \u2014 the log contains no jetton wallet identifier for watchers to filter against. (2) Each forged notification causes the vault to send 0.05 TON (`send_jetton_burn`) + 0.08 TON (`send_jetton_transfer`) = 0.13 TON to the attacker-controlled sender address, enabling TON balance drain. Stats (`total_burned`, `total_fees`) are also corrupted with fake values. No compensating controls exist on-chain or in the emitted events."
+}

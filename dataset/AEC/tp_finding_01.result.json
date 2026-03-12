@@ -1,0 +1,5 @@
+{
+  "finding_id": "5f0618f0-7cd8-11ef-88bc-cde2c27fc0ff_1728440374869",
+  "is_valid": true,
+  "explanation": "The vulnerability is confirmed. In `transferBySig()` (ADC.sol:616-626), the permit hash is computed as `keccak256(bytes(string(abi.encodePacked(DOMAIN_PERMIT_HASH, \":\", nonces[spender].toString()))))` \u2014 binding only to a fixed domain constant and a per-spender nonce. Neither the `to` recipient address nor the `value` amount are included in the signed data. Because the function is `public` and accepts `to`/`value` as caller-supplied parameters with no verification against signed intent, any party who obtains a valid signature (e.g., from the mempool or off-chain) can substitute an arbitrary recipient and amount. The `isPermitted` modifier only enforces whitelist/blacklist status and does not constrain these parameters. The nonce prevents replay but not parameter substitution within a single use. This allows complete draining of the signer's balance to an attacker-controlled address using a single valid signature."
+}

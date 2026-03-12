@@ -1,0 +1,5 @@
+{
+  "finding_id": "306c",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. _updateReferers (line 778) calls _updateInvestorRefReward unconditionally for the referer address with no check that referer.totalDeposit > 0. After one 24-hour round passes between two bot deposits both citing M as referrer, M's accumulatedReward grows via _calcInvestorRefRewards using M's directRefsDeposit * 2500/BASIS_POINTS * endedRounds. claimReward() (line 624) only requires accumulatedReward >= 1e18 and explicitly handles totalDeposit == 0 callers at line 640, confirming M can mint tokens without ever having made a personal deposit. Attack requires Bot1 to deposit \u2265 4000 tokens (to generate \u2265 1e18 reward after one round) \u2014 economically feasible and permissionless."
+}

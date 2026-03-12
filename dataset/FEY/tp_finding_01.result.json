@@ -1,0 +1,5 @@
+{
+  "finding_id": "ecefe950-a048-11ef-badd-73246e4a2372_1732633677547",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. `closeGhostStake()` calls `closeStake(_stakingId)` (line 154), which contains a hard check at lines 348-351: `require(_stakeElement.userAddress == msg.sender, 'FEYToken: wrong stake owner')`. When the owner invokes `closeGhostStake()`, `msg.sender` is the owner's address throughout the internal call \u2014 Solidity does not change `msg.sender` for internal calls. Therefore, for any stake not opened by the owner themselves, this require will revert. The function cannot fulfill its documented purpose of closing matured user stakes on behalf of those users. Additionally, even if the check were bypassed, line 383 would incorrectly credit `balances[msg.sender]` (the owner) rather than the actual staker."
+}

@@ -1,0 +1,5 @@
+{
+  "finding_id": "6889",
+  "is_valid": true,
+  "explanation": "Confirmed true positive. BorrowShopInternal.sol:36 decrements `highBorrowLTVLimit` by `borrowAmount = price \u00d7 highBorrowLTV / DIVIDEND` (debt units) instead of by `price` (collateral units). Since highBorrowLTV < DIVIDEND (LTV < 100%), the limit is under-consumed by a factor of (1 \u2212 LTV) per high-LTV borrow. This allows sequential calls via multiBorrow to exhaust more high-LTV collateral capacity than the limit was designed to permit. Concretely: with limit=150 and two $100 NFTs at 80% high LTV, the protocol issues 151 USDA instead of the correct 145 USDA. The same flaw exists in _calculateBorrowAmount. All preconditions are attacker-controllable via normal user actions (staking Bnome, owning NFT cards)."
+}

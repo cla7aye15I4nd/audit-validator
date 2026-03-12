@@ -1,0 +1,5 @@
+{
+  "finding_id": "520d",
+  "is_valid": false,
+  "explanation": "FALSE POSITIVE. The contract uses `pragma solidity ~0.8.20`, which enables checked arithmetic by default. In Solidity \u22650.8.0, integer overflow causes a transaction revert (panic), not silent wrap-around. The fee calculations in `_deflationAmount` and `_taxAmount` are not enclosed in any `unchecked` block (the only `unchecked` in the file is the loop counter `i++` in `batchTransfer` at line 642). Therefore, if `amount * deflationBps` were to overflow uint256, the transaction would revert entirely \u2014 the attacker cannot achieve a successful transfer with a near-zero fee. Additionally, `deflationBPS` is capped at `MAX_BPS_AMOUNT = 10_000` on every write path (initialization and `setDeflationConfig`), and the contract inherits `ERC20CappedUpgradeable` which enforces a hard total-supply ceiling. The described attack scenario (silent truncation of fees via multiplication overflow) is impossible under the contract's Solidity version and arithmetic rules."
+}

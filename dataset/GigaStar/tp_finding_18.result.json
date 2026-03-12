@@ -1,0 +1,5 @@
+{
+  "finding_id": "8ea5",
+  "is_valid": true,
+  "explanation": "The vulnerability is a TRUE POSITIVE. In _createProp (Vault.sol line 528), pid (uint256) is explicitly cast to uint16 when calling _setCallRes: `_setCallRes(caller, seqNumEx, reqId, uint16(pid), 0, 0)`. The CallRes.rc field is confirmed uint16 (max 65535). When _propsCreated exceeds 65535, uint16(pid) silently truncates \u2014 e.g., uint16(65536)=0, uint16(65537)=1. This is mathematically certain in Solidity ^0.8.29 where explicit casts do not revert on narrowing. The comment `/// @dev CallRes.rc >0 on success (pid)` documents that rc IS the intended return channel for the proposal ID. No bounds check or rollover guard exists before the cast (only the `// See UINT_ROLLOVER` comment shows awareness without enforcement). The PropCreated event emits the correct full pid as a secondary channel, but the primary CallTracker mechanism (the system's entire purpose for off-chain reliability) is broken. Off-chain agents relying on the documented CallRes.rc channel receive an incorrect proposal ID and may subsequently operate on the wrong proposal in the governance workflow."
+}

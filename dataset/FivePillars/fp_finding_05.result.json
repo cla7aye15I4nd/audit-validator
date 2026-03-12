@@ -1,0 +1,5 @@
+{
+  "finding_id": "51bb",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The InvestmentManager contract mints fee tokens to itself (claimReward line 636) and transfers fee tokens to itself (deposit line 584), then attempts to swap them for ETH via _trySendFees(). When the DEX swap fails (lines 896-900), the function silently returns after revoking approval, leaving the fee tokens in the contract. Critically, there is no owner withdrawal function, no emergencyWithdraw, and no ERC20 rescue mechanism anywhere in the contract. While transient failures self-recover (balanceOf is read fresh on each call, so accumulated fees are retried), a permanent DEX outage or drained liquidity pool results in irrecoverable token lock-up. The missing privileged recovery path is a confirmed design flaw consistent with a Medium severity finding."
+}

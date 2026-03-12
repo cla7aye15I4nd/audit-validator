@@ -1,0 +1,5 @@
+{
+  "finding_id": "1474",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The `_checkMaxAmountPerAddress(to, amountToTransfer)` function (line 723) is invoked at line 702 before any fee deductions occur. For self-transfers (sender == recipient), `balanceOf(to)` at check time still reflects the full pre-transfer balance, so the computed `newAmount = balanceOf(to) + amountToTransfer` overstates the actual post-transfer balance by `totalFee`. Example: Alice (balance=1000, max=1000, tax=10%) calls `transfer(alice, 100)` \u2192 check sees `1000 + 90 = 1090 > 1000` and reverts, but Alice's actual final balance would be `1000 - 10 (tax) = 990`, safely below the maximum. No mitigating controls exist: `_checkTransfer` does not block self-transfers, and there is no special case in `_payFeeWhenTransfer` for `from == to`. The logical error is real and causes legitimate self-transfer operations to be incorrectly denied."
+}

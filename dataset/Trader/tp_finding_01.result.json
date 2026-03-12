@@ -1,0 +1,5 @@
+{
+  "finding_id": "fd716360-e0af-11ef-b1db-b3bb1353eef6_1742880060127",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The constructor grants `_approve(address(this), FEE_RECEIVER, type(uint256).max)` at line 774, but `setFeeWallet()` at lines 1185-1186 only reassigns the `FEE_RECEIVER` variable without revoking the old address's allowance or granting one to the new address. The old FEE_RECEIVER retains unlimited allowance to call `transferFrom()` and drain all accumulated fee tokens from the contract's balance. The contract continuously accumulates tokens from buy/sell/transfer fees, making this a real attack surface. This is a genuine incomplete privilege transfer vulnerability."
+}

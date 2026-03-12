@@ -1,0 +1,5 @@
+{
+  "finding_id": "894a",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The bug is real: `recv_internal` calls `preload_uint(48)` (line 970) after only checking `slice_empty?()` (line 964), which passes for any body with \u22651 bit. Messages with 1-47 bit bodies (including standard 32-bit comment-style transfers) cause a TVM cell underflow exception, reverting the compute phase instead of reaching the intended \"Unknown operation - ignore\" path at line 1013. Any TON user can trigger this trivially (e.g., sending a message with `begin_cell().store_uint(0, 32).end_cell()`). However, the DoS severity is overstated: on TON, the attacker pays their own gas for each failed message, there is no cost amplification, no state corruption occurs, and failed messages do not block or delay legitimate operations. The real impact is a correctness/robustness defect where benign transfers with short bodies revert unexpectedly rather than being silently ignored."
+}

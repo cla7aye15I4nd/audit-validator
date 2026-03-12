@@ -1,0 +1,5 @@
+{
+  "finding_id": "f130",
+  "is_valid": true,
+  "explanation": "The vulnerability is confirmed. In _distributeXnome (BattleMiningInternal.sol line 29), the loop distributes totalXnome / 50 per day for 50 days, but xnomeTotalLocked is incremented by the full totalXnome (line 32). The remainder (totalXnome % 50) is permanently locked: it is never written to any xnomeDailyUnlocked entry, the only claim mechanism (_claimXnome) exclusively reads from xnomeDailyUnlocked, and no admin rescue function exists in ShopAdmin or elsewhere. Since Bnome uses 18 decimals, the maximum remainder per call is 49 wei, making the economic impact negligible (dust-level), consistent with the Severity: None rating. The arithmetic bug is real and the remainder is genuinely unrecoverable."
+}

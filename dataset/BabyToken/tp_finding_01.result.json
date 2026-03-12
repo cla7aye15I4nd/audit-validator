@@ -1,0 +1,5 @@
+{
+  "finding_id": "40f87c60-9f63-11ef-9b50-5f24ad33b80d_1731490836804",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The `swapAndSendToMarketingWallet` function at line 1185 declares `path = new address[](4)` but only initializes `path[0]` (BABY token address) and `path[1]` (WETH). Elements `path[2]` and `path[3]` remain `address(0)`. Uniswap's `swapExactTokensForETHSupportingFeeOnTransferTokens` enforces `require(path[path.length - 1] == WETH)`, which evaluates to `require(path[3] == WETH)` \u2192 `require(address(0) == WETH)` \u2014 this always reverts. The swap is triggered from `_transfer` whenever `contractTokenBalance >= swapTokensAtAmount` AND `!_isAutomatedMarketMakerPair[from]` (which is always true since the mapping is never populated). An attacker who sends ~1M BABY tokens directly to the contract address sets `canSwap=true`, after which every subsequent token transfer from any non-excluded address calls the broken swap and permanently reverts. No try/catch wraps the Uniswap call, so the revert propagates fully up the call stack, creating a permanent DoS on token transfers."
+}

@@ -1,0 +1,5 @@
+{
+  "finding_id": "234c8620-4de2-11ef-8bdf-012e5d16c648_1722879298479",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The `lastCheckedIndex` variable (line 25) is only ever incremented (line 170) and never reset or decreased anywhere in the contract. Once `userLiquidityCheck()` iterates past a user's index in `marginAccountsUsers[]`, that user will never be rechecked regardless of how their collateral ratio changes over time. This means a user who is solvent when first checked becomes permanently immune to liquidation, even if market conditions change and their position becomes severely undercollateralized. This fundamentally breaks the liquidation mechanism and puts the protocol's funds at risk. Additionally, there is an off-by-one bug: when `shouldLiquidate` returns true at line 169, `lastCheckedIndex` is incremented at line 170 before `liquidateUser` is called at line 175, causing the wrong user (the next one) to be liquidated."
+}

@@ -1,0 +1,5 @@
+{
+  "finding_id": "2e0c71e0-9311-11f0-8617-07932f2b3ecc_1760566943676",
+  "is_valid": false,
+  "explanation": "FALSE POSITIVE. The condition gap at GalaTransaction.ts:196 \u2014 not checking `dto?.signatures?.length > 0` \u2014 is real but unexploitable. All security-sensitive transactions use the `@Submit()` or `@Evaluate()` decorator shorthands, which hardcode `verifySignature: true` (GalaTransaction.ts:115, 121). This makes the `dto?.signature !== undefined` check entirely irrelevant for those methods: `authenticate()` is unconditionally called regardless of whether the DTO uses single-sig or multisig. The `authenticate()` function itself correctly handles multisig via `authenticateMultipleSignatures()` when invoked. The gap only affects raw `@GalaTransaction({ type: EVALUATE })` methods without `verifySignature` (e.g., GetPublicKey, GetContractVersion, DryRun), which are already equivalent to UnsignedEvaluate \u2014 publicly accessible without any signature. A framework guard at GalaTransaction.ts:139-142 prevents deploying SUBMIT transactions with neither verifySignature nor allowedOrgs, blocking any unprotected state-mutating path from arising."
+}

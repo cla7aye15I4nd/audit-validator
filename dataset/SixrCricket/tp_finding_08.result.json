@@ -1,0 +1,5 @@
+{
+  "finding_id": "c804",
+  "is_valid": false,
+  "explanation": "False positive. The finding describes standard TON asynchronous messaging behavior, not a security vulnerability. In TON, all inter-contract communication is via asynchronous messages \u2014 it is architecturally impossible to confirm message delivery within the sending transaction. Every function in this contract (mint, withdraw, vault fee operations) follows the identical log-after-send pattern. The log records which governance action was dispatched (with nonce and timestamp), not that the target confirmed acceptance. No state corruption, financial loss, or exploitable condition exists. The suggestion to rename the log tag from \"transferred\" to \"transfer_requested\" and add bounce handling is a reasonable documentation/best-practice improvement, but does not constitute a security vulnerability even at informational severity."
+}

@@ -1,0 +1,5 @@
+{
+  "finding_id": "57a71af0-0f0f-11ef-b522-65e6a878d0aa_1715883312095",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The `create_pool` instruction in `CreatePool` (line 773-778) uses `#[account(mut)]` on the pool account, not `#[account(init)]`, allowing it to be called on an already-initialized pool. This lets any user (no access control) reset `pool.token_supply` to an arbitrary small value by calling `create_pool` with minimal token amounts. Since `remove_liquidity` (lines 399-403) calculates withdrawal amounts as `(liquidity * pool_amount) / pool.token_supply`, setting `token_supply` to 1 allows burning 1 LP token to drain all vault reserves. The attack is: (1) call `create_pool` on an existing pool with amount_a=1001, amount_b=1001, setting token_supply=1, (2) call `remove_liquidity` with liquidity=1 to receive all tokens from the vault."
+}

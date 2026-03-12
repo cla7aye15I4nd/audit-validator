@@ -1,0 +1,5 @@
+{
+  "finding_id": "8759",
+  "is_valid": true,
+  "explanation": "safeTransferFrom (NFT.sol:553) is a confirmed true positive. The function overrides ERC1155 safeTransferFrom without calling checkWhiteBlacklist (used via checkTransfer modifier in createNFTsFromTokens). The check is private and called in exactly one other place in the contract. All six gate reviews pass: partyA (external user) directly controls the `to` parameter; the exploit is trivially reachable when the NFT is in CREATED state before executionDate.startTime; the impact is real \u2014 the blacklisted recipient receives ERC20 tokens via _settle when _triggerPay iterates nftTransferHistory; no environmental or framework protection prevents this; and no upstream validation compensates for the missing check."
+}

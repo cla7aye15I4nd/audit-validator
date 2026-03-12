@@ -1,0 +1,5 @@
+{
+  "finding_id": "7ef1",
+  "is_valid": false,
+  "explanation": "FALSE POSITIVE. The vulnerability claim incorrectly assumes _priceOf implements a bonding curve that increases with each card sold. Mathematical analysis of CardShopPriceInternal.sol proves otherwise: price = (usdaBalance + virtualBalance) / circulation. When buying 1 card, usdaBalance increases by `price` AND circulation increases by 1 (stock decreases). Substituting: new_price = (B + B/C) / (C + 1) = B*(C+1)/C / (C+1) = B/C = original price. The price is invariant under buy/sell operations \u2014 the developer explicitly documented this in the code comments. Therefore, _priceOf(index) * count is mathematically exact, not an undercharge. The exploit scenario (buy cheap, sell at higher price) is impossible: after buying N cards, the price is still P, so selling yields N*P*95% \u2014 a net loss of 5% (the treasury fee). Price only increases when cards are burned/destroyed, not when bought. This is a classic false positive from pattern-matching without completing the invariant proof."
+}

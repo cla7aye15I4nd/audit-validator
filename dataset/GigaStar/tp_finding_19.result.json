@@ -1,0 +1,5 @@
+{
+  "finding_id": "c1e2",
+  "is_valid": true,
+  "explanation": "The underflow is real and reachable. At line 811 of Vault.sol, `_accountMgr.aris.voters.length - countNay` uses a live voters.length that can be reduced by concurrent Role proposals executing inline (via AC.roleApplyRequestsFromStore at line 823), while countNay is proposal-local storage accumulating votes from since-removed voters. The _roleRangeCheck only enforces voters.length >= quorum, not voters.length >= countNay. Concrete proof: 5 voters (RoleLenMax), quorum=2; A/B/C each vote Nay (countNay=3, boundary: 5-3=2=quorum keeps it Sealed); Role proposal removes A/B/C (voters=[D,E], length=2, passes _roleRangeCheck since 2>=quorum=2); D now votes Yay on the frozen proposal \u2014 countYay=1 < quorum=2, falls into the else-branch, evaluates 2-3 which underflows with Solidity 0.8.29 Panic(0x11), reverting. Nay votes by D/E also revert identically. The proposal is completely DoS'd until expiry since no vote of any kind can succeed without reaching quorum in a single step (impossible from 0 to 2 in one vote)."
+}

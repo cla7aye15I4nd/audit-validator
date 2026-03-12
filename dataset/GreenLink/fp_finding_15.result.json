@@ -1,0 +1,5 @@
+{
+  "finding_id": "a4bd",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. In _payFeeWhenTransfer (line 692\u2013721), _checkMaxAmountPerAddress is called only for the main recipient `to` (line 702), but the subsequent tax fee transfer `super._transfer(from, taxStorage.taxAddress, taxAmount)` at line 714 has no corresponding balance check for `taxAddress`. This allows `taxAddress` to exceed `maxTokenAmountPerAddress` via accumulated tax fees. Any token holder can trigger this with a single `transfer()` call when `isMaxAmountPerAddressSet=true` and `isTaxable=true`. No mitigating guard exists anywhere in the contract for this specific transfer path."
+}

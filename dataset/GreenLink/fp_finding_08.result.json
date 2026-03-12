@@ -1,0 +1,5 @@
+{
+  "finding_id": "3e0c",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The swap() function in Swap.sol accepts any arbitrary ERC20 token address as payment (only checking token != address(0)) with no whitelist. SafeERC20.safeTransferFrom only checks that the call does not revert and that returned data is not false \u2014 it does not verify that token balances actually changed. The buyer (attacker) controls data.token by signing the SwapData struct themselves, and can specify a malicious ERC20 that implements transferFrom to return true without moving any tokens. This allows the seller's ERC-1155 NFT to be transferred to the attacker at line 134 while the payment call at line 138 silently succeeds with zero tokens moved. All 6 gate reviews pass: attacker controls the token address, the attack is mathematically trivial (deploy a lying ERC20), the impact is direct asset loss (NFT theft with no payment), and no environmental or code-level protection prevents exploitation."
+}

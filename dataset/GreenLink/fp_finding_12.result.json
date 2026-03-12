@@ -1,0 +1,5 @@
+{
+  "finding_id": "7b0b",
+  "is_valid": true,
+  "explanation": "The processCondition function never reads condition.allowedAction. This field is explicitly stored in NFTCondition (set and validated at NFT creation) but is absent from all checks inside processCondition. An operator assigned to a condition configured with allowedAction=ApproveOnly can call processCondition(approved=false, amount=0): the isPartial=true branch only checks amounts and the current action state (Action3.None), neither of which blocks a rejection. setAction(false, false) stamps the condition as Action3.Reject. _triggerPay then calls isConditionsUnreachable(), which immediately returns true under AND logic (any single rejection suffices), causing the full nft.amount to be safeTransfer'd back to nft.sender and the NFT status changed to NOT_SATISFIED_FINISH \u2014 irreversibly ending the contract. The same exploit path works for isPartial=false conditions. The allowedAction field's existence, creation-time validation, and explicit storage all confirm it was intended to be enforced in processCondition; the enforcement is simply absent, making this a genuine access-control logic bug."
+}

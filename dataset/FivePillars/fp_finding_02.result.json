@@ -1,0 +1,5 @@
+{
+  "finding_id": "d370",
+  "is_valid": true,
+  "explanation": "The integer division truncation in `_updatePoolReward` at line 839 is confirmed real: `poolInfo.rewardPerInvestorStored += poolInfo.curReward * endedRounds / poolInfo.participantsCount` truncates remainders, and no carry-forward mechanism exists anywhere in the contract. The bug is a TRUE POSITIVE \u2014 the precision loss is mathematically certain whenever `curReward * endedRounds` is not evenly divisible by `participantsCount`. However, the severity is significantly overstated: the per-round loss per pool is bounded by `participantsCount - 1` wei (not \"1 full token\" as the description claims), making the real economic impact negligible for 18-decimal ERC20 tokens (~10^-13 tokens/year in realistic scenarios). The code has no remainder carry-forward, scaled accounting, or other mitigation."
+}

@@ -1,0 +1,5 @@
+{
+  "finding_id": "1348",
+  "is_valid": false,
+  "explanation": "FALSE POSITIVE. While the uint8 loop index `i` in `isConditionsUnreachable` would mechanically overflow if `conditions.length >= 256`, this precondition is architecturally impossible. NFT creation enforces two hard constraints: (1) each condition's `operator` must be either the `sender` or the `receiver` (any other address reverts), and (2) `countSender > 1 || countReceiver > 1` causes a revert (DuplicateOperatorInConditions). Since there are only two valid operators and each may appear at most once, the maximum number of conditions per NFT is 2. The attack requires \u2265256 conditions; the protocol caps at 2. No reachable execution state can trigger the infinite loop."
+}

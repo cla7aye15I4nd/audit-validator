@@ -1,0 +1,5 @@
+{
+  "finding_id": "6b27",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The fee calculation in _taxAmount and _deflationAmount uses floor integer division: (amount * taxBPS) / MAX_BPS_AMOUNT. When amount < MAX_BPS_AMOUNT/taxBPS raw token units, the per-transfer fee rounds to zero. batchTransfer iterates calling transfer() with no pre-aggregation, allowing an attacker to split a large transfer into many sub-threshold micro-transfers \u2014 each incurring zero fee \u2014 while the recipient receives the full aggregate amount. With 0-decimal token configuration (valid: code only rejects decimals_ > 18), a single whole-token transfer already pays zero fee, and splitting 100 tokens into 100\u00d71-token batch entries reduces the fee from 1 to 0. No protective measures exist: no minimum fee, no ceiling division, no aggregation in batchTransfer, no minimum transfer amount."
+}

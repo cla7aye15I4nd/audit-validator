@@ -1,0 +1,5 @@
+{
+  "finding_id": "7c846b50-3220-11ef-89f8-c16e900c7ea1_1724430928319",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE \u2014 Critical underconstrained circuit vulnerability. The `BitsToBytes` template (utils.circom:232) uses only the unconstrained assignment operator `<--` and `var`-type bitwise operations, generating zero R1CS constraints. Additionally, `Sha256BytesOutputBytes` (sha256.circom:48) uses `out <-- B2B.out;`, another unconstrained assignment. This creates a complete break in the constraint chain between the properly-constrained SHA256 bit computation and the byte output used by both `ZkLoginSha256` and `IdHashMapping`. A malicious prover can set the 32-byte hash output to any arbitrary values while providing valid SHA256 bit inputs, allowing them to forge identity hashes and impersonate any user. The fix is to replace the `<--` with constrained assignments using `Bits2Num(8)` from circomlib and change `<--` to `<==` in `Sha256BytesOutputBytes`."
+}

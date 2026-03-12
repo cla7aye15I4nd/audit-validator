@@ -1,0 +1,5 @@
+{
+  "finding_id": "0ef7",
+  "is_valid": false,
+  "explanation": "FALSE POSITIVE. The bug report incorrectly assumes that `room.handCards` represents a smaller, rotating subset of a player's cards. In reality, during `_joinRoom` (GameRoomInternal.sol:109), ALL 5 cards are pushed into `handCards[account]` \u2014 the full deck, not a hand-of-3. The `handCards` mapping is never modified during gameplay (only deleted at game end in `_cleanRoom`). Therefore, there is no \"smaller rotating hand\" mechanic anywhere in the codebase. The `_placeCard` validation is complete and correct: it checks `originalOwner == account` (card belongs to the player's 5-card set) and `!isPlaced` (card not yet used). These two checks are sufficient and equivalent to any hand-membership check given the actual game design. A player cannot play a card \"outside their hand\" because their hand IS all 5 of their cards."
+}

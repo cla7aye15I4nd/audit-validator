@@ -1,0 +1,5 @@
+{
+  "finding_id": "03a8bcb0-4f51-11ef-8188-0505b58ed717_1723590952164",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. const::fee = 0.05 TON is mathematically insufficient to complete the full claim chain. At minimum balance (0.10 TON), airdrop_helper sends ~0.045 TON to airdrop after external message gas costs; airdrop then forwards the remainder to its jetton_wallet via mode 64. The jetton_wallet's send_tokens function requires msg_value > fwd_ton_amount(0.01) + 2\u00d7fwd_fee + 2\u00d7gas_consumption(0.015) + min_tons_for_storage(0.01) > 0.050 TON, but receives only ~0.040\u20130.045 TON. throw_unless(709) fires unconditionally at minimum balance. The resulting bounce goes from jetton_wallet to airdrop, but airdrop.fc has no bounce handler \u2014 it falls to else { throw(0xffff); }. Since bounced messages are non-bounceable in TON, no further bounce propagates to airdrop_helper. The claimed flag set before the send in recv_external is never cleared by recv_internal, permanently locking the user's airdrop entitlement."
+}

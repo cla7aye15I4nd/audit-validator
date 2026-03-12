@@ -1,0 +1,5 @@
+{
+  "finding_id": "71c5",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The self-addressed log message has a confirmed encoding bug: the body Either-tag bit is set to 0 (inline) via `store_uint(0, 1+4+4+64+32+1+1)` \u2014 the final +1 zeros the body tag \u2014 but the actual body is stored as a reference via `.store_ref(log)`. When delivered, `in_msg_body` has 0 data bits and 1 orphaned reference. `recv_internal` calls `preload_uint(48)` on this 0-bit slice, causing a guaranteed cell underflow exception. The message is sent nobounce (0x10), so the 0.01 TON (GAS_FOR_LOG) is consumed by the failed transaction with no recovery. This pattern is replicated across ALL log emissions in the contract (mints, governance actions, withdrawals), meaning every successful operation wastes 0.01 TON on a guaranteed-to-fail self-message. Over time this drains the contract's TON balance, and if it drops too low, the contract cannot pay for outbound messages like jetton mints, effectively DoS-ing bridge operations. The opcode collision (0x4d494e54) is a secondary issue that would manifest if the encoding were corrected to body-in-ref (tag=1)."
+}

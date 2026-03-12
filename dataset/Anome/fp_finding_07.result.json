@@ -1,0 +1,5 @@
+{
+  "finding_id": "c35f",
+  "is_valid": false,
+  "explanation": "FALSE POSITIVE. The exploit premise is factually wrong. After the final turn (turn == 8), the settlement branch calls _settleCards(), which internally calls _cleanRoom(). _cleanRoom() atomically sets room.state = EMPTY, room.turn = 0, and room.currentPlayer = address(0) within the same transaction. Any second call to placeCard() after settlement immediately reverts at line 29\u201331 of GameRulesInternal.sol: `if (room.state != GameTypes.States.GAMING) revert RoomStatusError(room.state)`. The bug report's assertion that \"room.turn remains 8 and room.state remains GAMING\" is incorrect \u2014 both are reset by _cleanRoom before _placeCard returns."
+}

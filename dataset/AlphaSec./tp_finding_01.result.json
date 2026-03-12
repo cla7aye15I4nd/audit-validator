@@ -1,0 +1,5 @@
+{
+  "finding_id": "af456cf0-7d25-11f0-908b-c3b3b024b0ed_1765298066563",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. CancelContext.validateBalance() (tx_input.go:572\u2013616) never checks that t.L1Owner equals the order's actual UserID. It only verifies order existence and that the order owner (args.From, derived from order.UserID) has sufficient locked balance \u2014 using the victim's balance for the check, not the requester's. ValidateDexCommand() only confirms the transaction was signed by L1Owner, not that L1Owner is entitled to cancel the target order. The dispatcher (handleCancelRequest, DispatchCancelReq) and engine (CancelOrder, cancelOrderInternal) perform no ownership check either. An attacker can trivially cancel any victim's order by crafting a CancelContext with their own L1Owner and the victim's OrderId, signing and submitting it as a valid transaction. The TPSL and stop-order code paths are even weaker, returning nil immediately without any ownership or balance check."
+}

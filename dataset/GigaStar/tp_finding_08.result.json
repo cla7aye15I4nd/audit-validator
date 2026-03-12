@@ -1,0 +1,5 @@
+{
+  "finding_id": "35f3",
+  "is_valid": true,
+  "explanation": "Both sub-bugs in _removeApproval are confirmed by direct code reading. Bug 1: when i == iLast (removed approval is last/only element), the if (i != iLast) block is skipped entirely, so oldAllowance is never read from _approvals[i].allowance and returns 0. _approve then emits ApprovalUpdated with oldAllowance=0 instead of the real prior value, masking the revocation. Bug 2: during swap-and-pop (i != iLast), lines 393\u2013395 copy tokAddr/spender/allowance from toMove into toReplace but omit updatedAt, leaving the moved entry with the deleted item's stale timestamp. Both defects are reachable through normal owner-initiated revocation calls. No upstream mitigation compensates for either omission. Severity is info-level as neither bug enables fund theft \u2014 impact is limited to event data integrity and on-chain audit trail corruption."
+}

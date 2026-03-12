@@ -1,0 +1,5 @@
+{
+  "finding_id": "f03adfd0-ab7c-11f0-96ab-8b123d6a0fc2_1762443464020",
+  "is_valid": true,
+  "explanation": "This is a confirmed true positive. In createOrder() (PairLib.sol:567), a buy taker always pays _quantity * _price / PRECISION quote tokens regardless of matching outcomes. During matching, makers are credited at their actual (lower) matched prices via fillOrder/partiallyFillOrder. The difference \u2014 matchedQuantity * (_price - matchedPrice) / PRECISION \u2014 is transferred into the contract but never attributed to the taker's traderBalances, never refunded, and never credited to fee balances. There is no compensating control: cancelOrder only handles unfilled maker orders in the book, and the taker order is consumed during matching. The mathematical proof is straightforward: if a buyer submits at 1.5 USDT/token and matches a sell at 1.0 USDT/token for 10 tokens, they pay 15 USDT while the maker receives only 10 USDT credit, leaving 5 USDT permanently locked. The vulnerability is triggered any time a taker buy order price exceeds the best ask price, which is the normal use case for market orders on this exchange."
+}

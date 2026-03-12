@@ -1,0 +1,5 @@
+{
+  "finding_id": "289b",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The vulnerability is confirmed through direct code analysis. The `claimReward()` function (line 646) increases `investor.totalDeposit` via the redistribution mechanism (`toRedistribute = toInvestor * 50 / 100`). A user who has never deposited can accumulate referral rewards (when someone else sets them as a referer), and calling `claimReward()` makes their `totalDeposit > 0`. Subsequently, when they call `deposit(amount, referer)` with a non-zero referer, line 588 (`if (investor.totalDeposit > 0) revert RefererAlreadySetted()`) triggers a revert. Since `isFirstDeposit` (line 592) also checks `totalDeposit == 0`, the first-deposit referer assignment path is also bypassed. There is no alternative mechanism to set a referer in the contract. The developers clearly contemplated claiming before depositing (lines 640-643 handle adding the investor to `_investors` array during claim), but failed to account for the referer-setting conflict this creates. This permanently blocks affected users from participating in the referral reward system."
+}

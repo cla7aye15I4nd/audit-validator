@@ -1,0 +1,5 @@
+{
+  "finding_id": "1e68",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. Line 75 of LiquidityPoolInternal.sol contains a confirmed arithmetic logic error: `l.totalRewardWeight -= (l.totalRewardWeight * record.amount) / l.stakedAmount[account]` uses the global total weight as the numerator instead of the account-specific `l.rewardWeight[account]`. Since `rewardWeight[account]` always equals `stakedAmount[account]` (both incremented identically in `_stake`), the correct formula is simply `l.totalRewardWeight -= record.amount`. When other stakers exist (G > account's stake), the formula computes `G * R/R = G` for an attacker with a single-record stake of R, removing the entire pool weight. There is no lock period enforced on `unstake()` \u2014 only extra reward claiming respects `expirationTimestamp`. An attacker can stake any amount, immediately unstake it, and zero out `totalRewardWeight`, then re-stake to capture 100% of future pool rewards."
+}

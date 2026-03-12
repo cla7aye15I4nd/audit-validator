@@ -1,0 +1,5 @@
+{
+  "finding_id": "91f2",
+  "is_valid": false,
+  "explanation": "FALSE POSITIVE. The finding assumes that \"rewards from the moment of the first _updatePoolRewards to the second call are dropped,\" but this is impossible in Solidity: both calls execute within a single transaction sharing the same block.timestamp. After _updatePoolRewards() (no-arg) sets lastUpdatePoolRewardTimestamp = block.timestamp, the subsequent _updatePoolRewards(toRedistribute, ...) call computes endedRounds = 0 \u2014 which is correct, not a bug. The two overloads serve distinct purposes: the no-arg version distributes accumulated curReward to rewardPerInvestorStored for completed rounds, while the arg version adds the redistribution amount to curReward for future rounds and evaluates pool eligibility changes. No completed rounds are skipped, and no rewards are lost \u2014 the toRedistribute amount is simply added to curReward and will be distributed at the next call when a round boundary has actually been crossed."
+}

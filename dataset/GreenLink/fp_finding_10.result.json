@@ -1,0 +1,5 @@
+{
+  "finding_id": "517e",
+  "is_valid": false,
+  "explanation": "FALSE POSITIVE. The report claims the sender's balance is \"excessively\" debited multiple times in a single transferFrom call, but this is not a real vulnerability. The critical evidence is in _payFeeWhenTransfer at lines 704-712: `super._spendAllowance(from, spender, totalFee)` is explicitly called to consume the allowance for the fee portion (150 tokens in the described scenario). Then `super.transferFrom` consumes the remaining 850 tokens of allowance. Total allowance consumed = 1000 = exactly what was approved. Total balance deducted = 100 (tax) + 50 (burn) + 850 (transfer) = 1000 = exactly what was authorized. The report itself concedes: \"Alice's balance is reduced by a total of 1,000 tokens (100 + 50 + 850), which is mathematically correct.\" There is no excess loss, no allowance bypass, and no reentrancy vector (standard OZ ERC20 _transfer has no external callbacks). The \"multi-debit\" implementation produces identical end-state to a single-debit pattern. This is a code style/design criticism, not a security vulnerability \u2014 the attacker gains nothing beyond what was authorized."
+}

@@ -1,0 +1,5 @@
+{
+  "finding_id": "617d",
+  "is_valid": true,
+  "explanation": "The setMetadata function (line 368\u2013370) provably omits event emission after updating tokenStorage.metadata. All seven other owner-controlled setter functions in the same contract emit dedicated events (DocumentUriSet, TaxConfigSet, DeflationConfigSet, MaxTokenAmountPerSet, AuthorisedSenderSet, WhitelistImplSet, BlacklistImplSet). No MetadataSet event is declared anywhere. No compensating mechanism exists. Off-chain indexers and event-driven UIs will silently miss metadata updates. The defect is real; Low severity is appropriate."
+}

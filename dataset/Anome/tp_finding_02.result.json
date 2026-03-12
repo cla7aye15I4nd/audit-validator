@@ -1,0 +1,5 @@
+{
+  "finding_id": "9be0",
+  "is_valid": false,
+  "explanation": "FALSE POSITIVE. The finding misunderstands ERC-404 token mechanics. ICard inherits from ERC404Legacy, a hybrid ERC-20/ERC-721 token where 1 NFT \u2261 1e18 fungible units. In _borrow, `pool.card.safeTransferFrom(account, address(this), cardId)` uses ERC-721 semantics \u2014 cardId is an NFT token ID validated by `_isCardIdValid` against `pool.card.minted()` (NFT count). Every borrow deposits exactly 1 NFT (= 1e18 fungible equivalent), so _repay returning `transfer(account, 1e18)` is the correct value-neutral return. The attack requires depositing 1 fungible unit, but ERC-404 interprets `safeTransferFrom(from, to, value)` where value \u2264 minted() as an NFT ID transfer (whole NFT), not a fractional ERC-20 transfer. No fractional/minimal deposit is possible."
+}

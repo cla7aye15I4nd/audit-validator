@@ -1,0 +1,5 @@
+{
+  "finding_id": "6d39eb30-786f-11ef-b8f3-35e3732ff258_1728517823099",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE confirmed. At line 147, `RedeemLock(account, assetAmount, share, lpToken.price(), block.timestamp)` is called, but the struct definition (lines 36-42) declares fields as `(account, share, assetAmount, price, createTime)`. This means `redeemLock.share` is assigned `assetAmount` and `redeemLock.assetAmount` is assigned `share`. In `_withdraw()` at line 117, `IERC20(token).safeTransfer(redeemLock.account, redeemLock.assetAmount)` transfers the LP share count instead of the USD asset amount \u2014 causing users to lose yield whenever LP price > 1.0. Additionally, `balanceMap[redeemLock.account] -= redeemLock.share` decrements by the assetAmount value instead of the share value, corrupting accounting. The Redeem event at line 145 emits `(assetAmount, share)` in the correct semantic order, independently confirming the struct initialization has them reversed."
+}

@@ -1,0 +1,5 @@
+{
+  "finding_id": "2925",
+  "is_valid": true,
+  "explanation": "The vulnerability is a true positive. Two flaws in _migrateLossBattleCostAndIncome combine to inflate lossBattleCost: (1) the migration flag is not set when battleCost <= battleIncome (line 221-223), leaving the account eligible for re-migration; (2) the formula `historyLoss = battleCost - battleIncome` (line 225) uses total net loss across all games, not just costs from losing games. A pyrrhic victory (winnerCost=100, loserCost=50, destroyValue=60 \u2192 net income=90 < cost=100) leaves the flag unset with battleCost > battleIncome. When the attacker subsequently loses a game, migration is triggered BEFORE the loss is added (line 177-178), and the 10-unit net loss from the pyrrhic victory is added to lossBattleCost as historyLoss. The actual lost game's cost (100) is then added, yielding lossBattleCost=110 instead of the correct 100. This inflated value directly feeds into _claimLossCompensation (line 259: totalLoss = lossBattleCost - _totalIncome), allowing the attacker to claim compensation for losses never actually incurred in losing games."
+}

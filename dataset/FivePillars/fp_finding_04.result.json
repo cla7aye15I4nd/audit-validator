@@ -1,0 +1,5 @@
+{
+  "finding_id": "a6f2",
+  "is_valid": false,
+  "explanation": "FALSE POSITIVE. The finding incorrectly characterizes normal reward-claiming behavior as unauthorized minting. In claimReward(), the minted amount equals the investor's accumulated rewards \u2014 computed deterministically from their own deposits (which require burning tokens) multiplied by a time-based rate. No attacker-controlled input can inflate this amount. The function is intentionally external so any investor can claim their own earned rewards; that is not a missing access control. The secondary claim \u2014 that the token contract's mint() lacks a MINTER_ROLE \u2014 concerns the FivePillarsToken contract, whose source is absent from the dataset, and in any case the attack path described uses InvestmentManager normally rather than exploiting the token directly. Severity \"info\" is also inconsistent with a genuinely exploitable unrestricted mint, further indicating this is a false positive."
+}

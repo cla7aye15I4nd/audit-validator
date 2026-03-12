@@ -1,0 +1,5 @@
+{
+  "finding_id": "0f2f",
+  "is_valid": true,
+  "explanation": "TRUE POSITIVE. The vulnerability is confirmed in code. setTaxConfig only validates non-zero address via Helper.checkAddress (confirmed: only rejects address(0)). Setting taxAddress to a contract that rejects ERC20 transfers causes _payFeeWhenTransfer to revert at line 714 (super._transfer(from, taxStorage.taxAddress, taxAmount)) for all transfers where taxBPS > 0 and sender != taxAddress. The DoS is real and exploitable by the owner. One correction to the finding: the DoS is NOT permanent \u2014 the owner can recover by calling setTaxConfig(validAddress, 0) to set taxBPS to 0, bypassing the tax transfer entirely. But the core vulnerability (no validation that taxAddress can receive tokens, causing DoS) is confirmed and the finding is valid."
+}
