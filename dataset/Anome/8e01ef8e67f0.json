@@ -1,0 +1,34 @@
+{
+  "title": "Fixed 1e18 Collateral Return Ignores Actual Deposit, Enabling Card\u2010Token Drain",
+  "location": {
+    "local_file_path": "./src/projects/anome 2/shop/borrow/BorrowShopInternal.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/e3c45370-51aa-11f0-bdd0-cbef849456d3/source?file=$/github/CertiKProject/certik-audit-projects/2a2826fcbafb5bed23f57406cc61e71a3ccffcf2/projects/anome 2/shop/borrow/BorrowShopInternal.sol",
+    "start_line": 110,
+    "end_line": 139
+  },
+  "all_locations": null,
+  "category": null,
+  "severity": null,
+  "confidence": null,
+  "description": "In the _repay function, the contract returns exactly 1e18 units of the pool\u2019s card token unconditionally:\n    pool.card.transfer(account, 1e18);\nIt never uses order.cardId (the actual amount or NFT ID the borrower posted as collateral). As a result, an attacker can deposit a minimal collateral amount when borrowing, and then\u2014after seeding the contract\u2019s card\u2010token reserves by any prior borrow/repay cycle\u2014call _repay to withdraw a full 1e18 units. This drains the contract of card tokens.\n\nExploit steps:\n1. Pre-fund the contract\u2019s card balance:\n   \u2022 Call borrow(card, cardId = 1e18). That safeTransferFroms 1e18 units of card tokens into the contract.\n   \u2022 Approve and call _repay(0) to repay the order. The contract transfers back exactly 1e18 units, restoring its balance (net zero).  \n   (After this step the contract holds 1e18 from its own reserves; see step 4.)\n2. Attack setup \u2013 seed reserves:\n   \u2022 Repeat step 1 once more. Now the contract\u2019s on-chain balance of card tokens is 1e18 (net gain of 1e18).  \n3. Minimal collateral borrow:\n   \u2022 Approve pool.card for an amount of just 1 (smallest unit).\n   \u2022 Call borrow(card, cardId = 1). The contract safeTransferFroms only 1 token into itself, but records exactly one card \"unit\" in pool.cardDecreaseVirtualBalance.\n4. Draining _repay:\n   \u2022 Approve the required USDA for _repay(1) and invoke it.\n   \u2022 _repay computes and collects your USDA, then calls pool.card.transfer(account, 1e18). Because the contract holds at least 1e18 from step 2, it sends you back 1e18 tokens despite your deposit being only 1.\n5. Net result: you recover your 1e18 seed, plus an extra  (1e18 \u2013 1) tokens from the contract\u2019s reserves.\n\nRepeatedly executing step 3\u20134 drains all of the pool.card token balance. This flaw stems from ignoring order.cardId and hard-coding a 1e18 return amount instead of returning the exact collateral posted.",
+  "scenario": null,
+  "proof_of_concept": null,
+  "recommendation": null,
+  "id": "9be0",
+  "duplicates": [
+    "9be0",
+    "af59"
+  ],
+  "source": "scanner.smart_audit",
+  "status": "verified_as_valid",
+  "scan_model_name": "o4-mini",
+  "related_function_code": "function _repay(uint256 orderIndex) internal commonCheck noContractCall updateBorrowIndex {\n        address account = msg.sender;\n        ShopStorage.Layout storage data = ShopStorage.layout();\n        ShopTypes.BorrowOrder storage order = data.borrowOrderBook[account][orderIndex];\n        ShopTypes.CardPool storage pool = data.pools[order.pool];\n        uint256 price = _priceOf(order.pool);\n\n        if (order.isRepaid) {\n            revert AlreadyRepaid();\n        }\n\n        // \u6ed1\u6263USDA, \u672c\u91d1\u7559\u5728\u5408\u7ea6\u4e2d\n        (uint256 repayAmount, uint256 interest) = _getRepayAmount(account, orderIndex);\n        IUSDA(data.config.usda()).safeTransferFrom(account, address(this), repayAmount);\n        IUSDA(data.config.usda()).safeTransfer(data.config.treasury(), interest);\n\n        // \u8f6c\u56de\u5361\u724c\n        pool.card.transfer(account, 1e18);\n        pool.cardDecreaseVirtualBalance -= 1;\n\n        // \u6e05\u7406\u6570\u636e\u72b6\u6001\n        delete data.borrowOrderIndex[account][address(order.card)][order.cardId];\n        order.isRepaid = true;\n        order.repayPrice = price;\n        order.repayIndex = data.borrowIndex;\n        order.repayAmount = repayAmount;\n        order.repayAt = block.timestamp;\n\n        emit Repaid(account, order);\n    }",
+  "related_context": "layout ->         function layout() internal pure returns (Layout storage l) {\n            bytes32 slot = STORAGE_SLOT;\n            assembly {\n                l.slot := slot\n            }\n        }\n\n_priceOf ->     function _priceOf(uint256 index) internal view returns (uint256 price) {\n        ShopStorage.Layout storage data = ShopStorage.layout();\n        ShopTypes.CardPool storage pool = data.pools[index];\n\n        uint256 usdaBalance = pool.usdaBalance + pool.usdaIncreaseVirtualBalance;\n        if (usdaBalance == 0) revert InvalidPriceUsdaBalance();\n\n        (uint256 supply, uint256 stock, uint256 destruction, uint256 circulation) = _circulationInfoOf(index);\n        if ((stock + destruction) > supply) revert InvalidPriceCardSupply();\n        if (circulation == 0) revert InvalidPriceCardCirculation();\n\n        price = usdaBalance / circulation;\n        if (price == 0) revert InvalidPrice();\n\n        return price;\n    }\n\n_getRepayAmount ->     function _getRepayAmount(\n        address account,\n        uint256 orderIndex\n    ) internal view returns (uint256 repayAmount, uint256 interest) {\n        ShopStorage.Layout storage data = ShopStorage.layout();\n        ShopTypes.BorrowOrder memory order = data.borrowOrderBook[account][orderIndex];\n        repayAmount = order.borrowAmount * 1e27;\n        repayAmount = repayAmount.rayDiv(order.borrowIndex).rayMul(data.borrowIndex);\n        repayAmount = repayAmount / 1e27;\n\n        interest = repayAmount - order.borrowAmount;\n    }",
+  "related_checklist": null,
+  "related_pid": "e3c45370-51aa-11f0-bdd0-cbef849456d3",
+  "related_commit_id": "2a2826fcbafb5bed23f57406cc61e71a3ccffcf2",
+  "triage_verdict": "valid",
+  "triage_severity": "",
+  "triage_reason": "Valid finding",
+  "is_main_finding": true
+}

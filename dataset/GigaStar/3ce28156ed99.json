@@ -1,0 +1,29 @@
+{
+  "id": "4b8f",
+  "title": "`push` does not validate TokenInfo invariants (tokType vs tokAddr/tokenId), enabling unintended asset transfers when inputs are inconsistent",
+  "source": "aiflow_scanner_codex",
+  "status": "enhanced",
+  "category": null,
+  "location": {
+    "end_line": 1,
+    "start_line": 1,
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/7b519e30-d10a-11f0-a5a1-c38d49d0912c/source?file=$/github/GigaStarIo-public/vault-audit/0b8edde27935e70ed3decbb30508bde926edf57c/bd/bc-contract/contract/v1_0/Box.sol",
+    "local_file_path": "./src/bd/bc-contract/contract/v1_0/Box.sol"
+  },
+  "scenario": "",
+  "sequence": 298,
+  "severity": "major",
+  "confidence": null,
+  "description": "`_push()` branches solely on `ti.tokType` and ignores whether `ti.tokAddr`/`ti.tokenId` are consistent with that type (e.g., `NativeCoin` ignores `tokAddr` entirely). This means a caller can provide internally inconsistent `TokenInfo` that passes higher-level checks based only on `tokAddr`/`tokenId`, yet results in transferring a different asset than expected (notably ETH when `tokType==NativeCoin`). In this codebase, `Vault.createFixDepositProp()` requires `req.ti.tokAddr != 0` but does not enforce `tokType != NativeCoin`, so a FixDeposit request can be created with `tokType=NativeCoin` and a nonzero `tokAddr`, and execution will transfer native coin from the box. Add explicit validation in `push/_push` (or return `BadToken`) such as: `NativeCoin => tokAddr==0 && tokenId==0`, `Erc20 => tokAddr!=0 && tokenId==0`, `Erc1155 => tokAddr!=0` (and enforce the expected tokenId semantics).",
+  "related_pid": "7b519e30-d10a-11f0-a5a1-c38d49d0912c",
+  "triage_reason": null,
+  "recommendation": "- Enforce a single, canonical TokenInfo invariant check at the start of push/_push and any entry point that accepts TokenInfo; revert (e.g., BadToken) on mismatch.\n- Invariants to enforce:\n  - NativeCoin: tokAddr == 0 and tokenId == 0.\n  - Erc20: tokAddr != 0 and tokenId == 0.\n  - Erc1155: tokAddr != 0; validate tokenId semantics according to the call context (single vs batch).\n- Validate before branching on tokType and before any transfer logic. Do not ignore nonzero tokAddr for NativeCoin; reject the input instead.\n- In Vault.createFixDepositProp and similar constructors, require the exact tokType expected by the product (e.g., tokType != NativeCoin when an ERC token is required), not just tokAddr != 0.\n- Add a guard that msg.value == 0 unless tokType == NativeCoin, and require msg.value to match the intended NativeCoin amount when tokType == NativeCoin.\n- Centralize the invariant check (pure/internal function) and reuse it across request creation, execution, deposits, and withdrawals; include unit tests for inconsistent combinations to ensure they revert.",
+  "triage_verdict": "valid",
+  "related_context": null,
+  "scan_model_name": null,
+  "triage_severity": null,
+  "proof_of_concept": null,
+  "related_checklist": null,
+  "related_commit_id": "0b8edde27935e70ed3decbb30508bde926edf57c",
+  "related_function_code": "/// @notice Push `qty` units of token to the `to`\n/// @dev Allows caller to use this contract's access control rather than approval per token\n/// - Caller can log the event consistently upon either forward or pull\n/// @param to Transfer recipient\n/// @param info Token info for a single transfer\n/// @param qty Quantity to push; =0 to push entire balance\n/// @return result Indicates progress where `rc` is set from `PushRc`\n/// @custom:api private\nfunction push(address to, TI.TokenInfo calldata info, uint qty) external override\n    returns(PushResult memory result)\n{ unchecked {\n    _requireOwner(msg.sender); // Access control\n\n    result = _push(to, info, qty);\n}}\n\n/// @notice Push `qty` units of each token to the `to`\n/// @dev Allows caller to use this contract's access control rather than approval per token\n/// - Caller can log the event consistently upon either forward or pull\n/// @param to Transfer recipient\n/// @param infos Token info for each transfer\n/// @param qty Quantity to push; =0 to push entire balance\n/// @return results Items indicates progress where `rc` is set from `PushRc`\n/// @custom:api private\nfunction pushAll(address to, TI.TokenInfo[] calldata infos, uint qty) external override\n    returns(PushResult[] memory results)\n{ unchecked {\n    _requireOwner(msg.sender); // Access control\n\n    uint pushed = 0;\n    uint infosLen = infos.length;\n    results = new PushResult[](infosLen);\n    for (uint i = 0; i < infosLen; ++i) { // Ubound: Caller must page\n        PushResult memory result = _push(to, infos[i], qty);\n        if (result.rc == PushRc.Success) ++pushed;\n        results[i] = result;\n    }\n} }"
+}

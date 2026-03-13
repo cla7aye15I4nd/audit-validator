@@ -1,0 +1,31 @@
+{
+  "title": "Reentrancy in `_createNFT` Leads to Inconsistent Ledger State",
+  "location": {
+    "local_file_path": "./src/GLDB Pulse Contracts/ENT&Swap/NFT.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/b619bc20-116e-11f0-85f2-afceaa02a7b6/source?file=$/github/GLBank/Web3/54b12f25ff139912cbddcc316c940624a64687cf/GLDB Pulse Contracts/ENT&Swap/NFT.sol",
+    "start_line": 1,
+    "end_line": 1
+  },
+  "all_locations": null,
+  "category": null,
+  "severity": null,
+  "confidence": null,
+  "description": "The `_createNFT` function is vulnerable to a reentrancy attack that causes the internal accounting ledger to become permanently inconsistent with the actual NFT balances. The function first mints NFTs to `partyA` via the `_swap` function and then updates an internal ledger, `TOTAL_HOLD`, via `_updateTotalHold`. The `_mint` operation within `_swap` can trigger an `onERC1155Received` hook on `partyA` if it is a contract. An attacker can use this hook to re-enter the `NFT` contract and call `processCondition`, leading to the settlement of the newly minted NFTs. The `_settle` function burns the NFTs and pays out the corresponding tokens but fails to update the `TOTAL_HOLD` ledger. When control returns to `_createNFT`, it proceeds to increment the `TOTAL_HOLD` for `partyA`, creating a record of ownership for NFTs that have already been burned. This results in a permanent discrepancy where the internal ledger shows a balance that does not exist, potentially misleading any party that relies on this accounting.\n\n**Exploit Demonstration:**\n\n1. Attacker deploys a malicious contract, `AttackerContract`, which will act as `partyA`.\n2. Attacker, as the `sender`, calls `createNFTsFromTokens`, specifying `AttackerContract` as `partyA` (the receiver). The NFT is configured such that `_createNFT` is not called immediately, and `AttackerContract` is the operator of a condition.\n3. `AttackerContract` calls `setConditionStartTimestamp` (or `setExecutionStartTimestamp`) to trigger the execution of `_createNFT`.\n4. The `_createNFT` function begins execution:\n    a. It calls `_changeNFTStatus`, setting the NFT's status to `CREATED`.\n    b. It calls `_swap`, which mints the NFTs to `AttackerContract`. This triggers the `onERC1155Received` function on `AttackerContract`.\n5. Inside `onERC1155Received`, `AttackerContract` re-enters the `NFT` contract by calling `processCondition`.\n6. `processCondition` validates the call and proceeds to `_triggerPay`, which determines the conditions are met and calls `_settle`.\n7. The `_settle` function burns the NFTs just minted to `AttackerContract` and transfers the underlying ERC20 tokens to it.\n8. Control returns to `_createNFT`, which was paused at the `_swap` call.\n9. `_createNFT` executes its next line: `_updateTotalHold(nftId, nft.partyA, nft.amount, true)`. This increments the `TOTAL_HOLD` ledger for `AttackerContract`.\n\n**Outcome:** The `AttackerContract` has successfully redeemed the NFTs for tokens. However, the `TOTAL_HOLD` ledger now incorrectly shows that `AttackerContract` holds a balance of NFTs, even though they were burned. The contract's internal accounting is now permanently out of sync with the actual state of NFT ownership.",
+  "scenario": null,
+  "proof_of_concept": null,
+  "recommendation": null,
+  "id": "bc7f",
+  "duplicates": null,
+  "source": "scanner.smart_audit",
+  "status": "verified_as_valid",
+  "scan_model_name": "gemini-2.5-pro",
+  "related_function_code": "function _createNFT(uint256 nftId, NFTMetadata storage nft) private {\n        _changeNFTStatus(nftId, nft, NFTStatus.CREATED);\n        nft.nftCreatedAt = uint40(block.timestamp);\n        _swap(nft.sender, nft.partyA, nftId, nft.amount);\n        _updateTotalHold(nftId, nft.partyA, nft.amount, true);\n    }",
+  "related_context": "_changeNFTStatus ->     function _changeNFTStatus(uint256 nftId, NFTMetadata storage nft, NFTStatus status) private {\n        NFTStatus preStatus = nft.status;\n        if (preStatus == status) {\n            return;\n        }\n        nft.status = status;\n        emit NFTStatusChanged(nftId, status, preStatus);\n    }\n\n_swap ->     function _swap(address from, address to, uint256 nftId, uint256 amount) internal {\n        IERC20(tokenAddress).safeTransferFrom(from, address(this), amount);\n        super._mint(to, nftId, amount, \"\");\n        emit NFTMinted(nftId, from, to, amount);\n    }\n\n_updateTotalHold -> function _updateTotalHold(uint256 nftId, address account, uint256 amount, bool increase) internal {\n        mapping(NFTStatisticsType => uint256) storage r = _getNFTStorage().nftActivityLedger[nftId][account];\n        if (increase) {\n            r[NFTStatisticsType.TOTAL_HOLD] += amount;\n        } else {\n            r[NFTStatisticsType.TOTAL_HOLD] -= amount;\n        }\n    }",
+  "related_checklist": null,
+  "related_pid": "b619bc20-116e-11f0-85f2-afceaa02a7b6",
+  "related_commit_id": "54b12f25ff139912cbddcc316c940624a64687cf",
+  "triage_verdict": "valid",
+  "triage_severity": "",
+  "triage_reason": "",
+  "is_main_finding": true
+}

@@ -1,0 +1,202 @@
+// protoc -I proto/tunnelapi -I $GOOGLE_APIS_PATH --go_out proto/tunnelapi --go_opt paths=source_relative --go-grpc_out proto/tunnelapi --go-grpc_opt paths=source_relative --grpc-gateway_out proto/tunnelapi --grpc-gateway_opt logtostderr=true --grpc-gateway_opt paths=source_relative proto/tunnelapi/managerapi.proto
+
+syntax = "proto3";
+
+option go_package = "gitlab.weinvent.org/yangchenzhong/dogelayer-tunnel/proto/tunnelapi/tunnelapi";
+package tunnelapi;
+
+import "google/api/annotations.proto";
+import "tunnelapi.proto";
+
+// The Manager API service definition.
+service ManagerAPI {
+  // system info
+  rpc SystemInfo (InfoRequest) returns (InfoReply) {
+    option (google.api.http) = {
+      get: "/v1/info"
+    };
+  }
+
+  rpc SetConfig (SetConfigRequest) returns (SetConfigReply) {
+    option (google.api.http) = {
+      post: "/v1/config",
+      body: "*"
+    };
+  }
+
+  // update pair
+  rpc UpdatePair (UpdatePairRequest) returns (UpdatePairReply) {
+    option (google.api.http) = {
+      post: "/v1/pair/update",
+      body: "*"
+    };
+  }
+
+  // approve tx
+  rpc ApproveTx (ApproveTxRequest) returns (ApproveTxReply) {
+    option (google.api.http) = {
+      post: "/v1/approve",
+      body: "*"
+    };
+  }
+
+  rpc GetSystemBalance (SystemBalanceRequest) returns (SystemBalanceReply) {
+    option (google.api.http) = {
+      get: "/v1/balance",
+    };
+  }
+}
+
+message InfoRequest {
+  bool only_system_config = 1 [json_name = "only_system_config"];
+}
+
+message InfoReply {
+  string status = 1;
+  repeated Config configs = 2;
+}
+
+message Config {
+  string key = 1;
+  string value = 2;
+}
+
+message ApproveTxRequest {
+  uint64 history_id = 1 [json_name = "history_id"];
+
+  string source_slug  = 2 [json_name = "source_slug"];
+  string source_network = 3 [json_name = "source_network"];
+  string source_chain_id = 4 [json_name = "source_chain_id"];
+  string source_base_chain = 5 [json_name = "source_base_chain"];
+
+  uint64 source_block_number = 6 [json_name = "source_block_number"];
+  string source_tx_hash = 7 [json_name = "source_tx_hash"];
+
+  uint64 source_asset_id = 8 [json_name = "source_asset_id"];
+
+  string source_amount = 9 [json_name = "source_amount"];
+  string status = 10;
+  string status_message = 11;
+}
+
+message ApproveTxReply {
+  uint64 history_id = 1 [json_name = "history_id"];
+  string status = 2;
+}
+
+message SystemBalanceRequest {
+
+}
+
+message AssetBalance {
+  Asset asset = 1;
+
+  string total_deposit = 2 [json_name = "total_deposit"]; // total user's deposit
+  string total_withdraw = 3 [json_name = "total_withdraw"]; // total user's withdraw or mint
+  string total_deposit_last_day = 4 [json_name = "total_deposit_last_day"]; // from utc 00:00:00
+  string total_withdraw_last_day = 5 [json_name = "total_withdraw_last_day"]; // from utc 00:00:00
+
+  string balance = 7 [json_name = "balance_onchain"]; // total user's withdraw or mint
+}
+
+message Balance {
+  uint64 blockchain_id = 1 [json_name = "blockchain_id"];
+  Blockchain blockchain = 2;
+  repeated AssetBalance balances = 3; // asset => balance
+
+  uint64 LatestBlockHeight = 4 [json_name = "latest_block_height"];
+  uint64 LatestBlockHeightOnChain = 5 [json_name = "latest_block_height_onchain"];
+}
+
+message PairBalance {
+  uint64 pair_id = 1 [json_name = "pair_id"];
+  Pair pair = 2;
+  repeated AssetBalance balances = 3; // asset => balance
+}
+
+message SystemBalanceReply {
+  repeated Balance blockchains = 1; // blockchain => balance
+  repeated PairBalance pairs = 2;
+}
+
+message SetConfigRequest {
+  string key = 1;
+  string value = 2;
+}
+
+message SetConfigReply {
+  string key = 1;
+  string value = 2;
+  string status = 3;  // SUCCESS FAILURE
+}
+
+message AddAssetRequest {
+  uint64 blockchain_id = 1 [json_name = "blockchain_id"];
+  string asset = 2; // AssetTickOrTokenAddress
+  string name = 3;
+  string symbol = 4;
+  uint32 decimals = 5;
+  string attribute = 6;
+  string asset_type = 7 [json_name = "asset_type"];
+}
+
+message AddAssetReply {
+
+}
+
+message DeleteAssetRequest {
+
+}
+
+message DeleteAssetReply {
+
+}
+
+message SetAutoConfirmAmountRequest {
+
+}
+
+message SetPairReply {
+  uint64 pair_id = 1 [json_name = "pair_id"];
+  uint64 asset_a_id = 2 [json_name = "asset_a_id"];
+  uint64 asset_b_id = 3 [json_name = "asset_b_id"];
+  Asset a = 4;
+  Asset b = 5;
+  string a2b_auto_confirm_deposit_amount = 6 [json_name = "a2b_auto_confirm_deposit_amount"];
+  string b2a_auto_confirm_deposit_amount = 7 [json_name = "b2a_auto_confirm_deposit_amount"];
+}
+
+
+
+
+message AddPairRequest {
+
+}
+
+message AddPairReply {
+
+}
+
+
+message UpdatePairRequest {
+  uint64 pair_id = 1;
+  uint64 asset_a_id = 2 [json_name = "asset_a_id"];
+  uint64 asset_b_id = 3 [json_name = "asset_b_id"];
+  // set the follow to empty if not update, amount in decimals
+  string a2b_min_deposit_amount = 6 [json_name = "a2b_min_deposit_amount"];
+  string b2a_min_deposit_amount = 7 [json_name = "b2a_min_deposit_amount"];
+  string a2b_fee_percent = 8 [json_name = "a2b_fee_percent"];
+  string b2a_fee_percent = 9 [json_name = "b2a_fee_percent"];
+  string a2b_fee_min_amount = 10 [json_name = "a2b_fee_min_amount"];
+  string b2a_fee_min_amount = 11 [json_name = "b2a_fee_min_amount"];
+  string a2b_auto_confirm_deposit_amount = 12 [json_name = "a2b_auto_confirm_deposit_amount"];
+  string b2a_auto_confirm_deposit_amount = 13 [json_name = "b2a_auto_confirm_deposit_amount"];
+}
+
+message UpdatePairReply {
+  uint64 pair_id = 1;
+  uint64 asset_a_id = 2 [json_name = "asset_a_id"];
+  uint64 asset_b_id = 3 [json_name = "asset_b_id"];
+  string status = 4;
+  string status_message = 5;
+}

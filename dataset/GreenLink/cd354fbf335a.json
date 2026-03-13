@@ -1,0 +1,33 @@
+{
+  "title": "Unbounded Loop in batchTransfer Potentially Causes Gas Exhaustion",
+  "location": {
+    "local_file_path": "./src/GLDB Pulse Contracts/PLT/GLDBToken.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/b619bc20-116e-11f0-85f2-afceaa02a7b6/source?file=$/github/GLBank/Web3/54b12f25ff139912cbddcc316c940624a64687cf/GLDB Pulse Contracts/PLT/GLDBToken.sol",
+    "start_line": 1,
+    "end_line": 1
+  },
+  "all_locations": null,
+  "category": "",
+  "severity": "medium",
+  "confidence": null,
+  "description": "The batchTransfer function loops over the entire dynamic toList array without any limit, allowing for unbounded iteration that can consume all gas.Impose a maximum limit on the batch size (e.g., cap toList length) or process transfers in fixed-size chunks with pull-based claims.1. Attacker prepares two arrays: toList and amountList of length 10000.\n2. Calls batchTransfer(toList, amountList) with 10000 entries.\n3. The loop will attempt 10000 transfers in one transaction, exceeding the block gas limit and reverting.\n4. Normal users can no longer execute batchTransfer at all, causing denial of service.",
+  "scenario": null,
+  "proof_of_concept": "1. Attacker prepares two arrays: toList and amountList of length 10000.\n2. Calls batchTransfer(toList, amountList) with 10000 entries.\n3. The loop will attempt 10000 transfers in one transaction, exceeding the block gas limit and reverting.\n4. Normal users can no longer execute batchTransfer at all, causing denial of service.",
+  "recommendation": "Impose a maximum limit on the batch size (e.g., cap toList length) or process transfers in fixed-size chunks with pull-based claims.",
+  "id": "663f",
+  "duplicates": null,
+  "source": "scanner.token_scanner",
+  "status": "verified_as_valid",
+  "scan_model_name": "o4-mini, gemini-2.5-pro",
+  "related_function_code": "function batchTransfer(address[] memory toList, uint256[] memory amountList) external whenNotPaused {\n    uint256 len = toList.length;\n    if (len != amountList.length) {\n        revert InvalidRecipientAndAmount();\n    }\n    for (uint256 i = 0; i < len;) {\n        transfer(toList[i], amountList[i]);\n        unchecked {\n            i++;\n        }\n    }\n}",
+  "related_context": "",
+  "related_checklist": {
+    "checklist": "### Identify Potential Infinite Loops\nLook for `for`/`while` loops over dynamic data without hard gas-safe limits.\n\n```solidity\n// Unbounded loop can run out of gas\nfunction distribute() external {\n    for (uint256 i = 0; i < recipients.length; i++) {\n        token.transfer(recipients[i], amount);\n    }\n}\n```\n\n**Invariant:** Batch in chunks, cap `recipients.length`, or use pull-based claiming."
+  },
+  "related_pid": "b619bc20-116e-11f0-85f2-afceaa02a7b6",
+  "related_commit_id": "54b12f25ff139912cbddcc316c940624a64687cf",
+  "triage_verdict": "invalid",
+  "triage_severity": "",
+  "triage_reason": "not important enough",
+  "is_main_finding": true
+}

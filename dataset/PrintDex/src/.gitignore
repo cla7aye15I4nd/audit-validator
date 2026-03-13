@@ -1,0 +1,13 @@
+
+.anchor
+.DS_Store
+target/debug
+target/deploy
+target/release
+target/sbf-solana-solana
+**/*.rs.bk
+node_modules
+test-ledger
+.yarn
+pDEX9VxuEnKR9LS3w7QFTrX9L8EpQfftw3y3a8rp59h.json
+pDEXhTzg4VKnKsAnyDj9pzRC8xr7QgNGKZQH6coi91Q.json

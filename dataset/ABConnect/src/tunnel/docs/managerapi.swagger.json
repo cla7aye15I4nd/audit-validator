@@ -1,0 +1,446 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "managerapi.proto",
+    "version": "version not set"
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:9393",
+      "description": "Production server"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/tunnel/approve": {
+      "post": {
+        "summary": "approve tx",
+        "operationId": "ManagerAPI_ApproveTx",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/tunnelapiApproveTxReply"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/tunnelapiApproveTxRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ManagerAPI"
+        ]
+      }
+    },
+    "/v1/tunnel/balance": {
+      "get": {
+        "operationId": "ManagerAPI_GetSystemBalance",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/tunnelapiSystemBalanceReply"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "ManagerAPI"
+        ]
+      }
+    },
+    "/v1/tunnel/config": {
+      "post": {
+        "operationId": "ManagerAPI_SetConfig",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/tunnelapiSetConfigReply"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/tunnelapiSetConfigRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ManagerAPI"
+        ]
+      }
+    },
+    "/v1/tunnel/info": {
+      "get": {
+        "summary": "system info",
+        "operationId": "ManagerAPI_SystemInfo",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/tunnelapiInfoReply"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "only_system_config",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "tags": [
+          "ManagerAPI"
+        ]
+      }
+    },
+    "/v1/tunnel/pair/update": {
+      "post": {
+        "summary": "update pair",
+        "operationId": "ManagerAPI_UpdatePair",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/tunnelapiUpdatePairReply"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/tunnelapiUpdatePairRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ManagerAPI"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "typeUrl": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "tunnelapiApproveTxReply": {
+      "type": "object",
+      "properties": {
+        "history_id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "status": {
+          "type": "string"
+        }
+      }
+    },
+    "tunnelapiApproveTxRequest": {
+      "type": "object",
+      "properties": {
+        "history_id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "source_tx_hash": {
+          "type": "string"
+        }
+      }
+    },
+    "tunnelapiAsset": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "asset": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "symbol": {
+          "type": "string"
+        },
+        "decimals": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "asset_type": {
+          "type": "string"
+        },
+        "network": {
+          "type": "string"
+        },
+        "chain_id": {
+          "type": "string"
+        },
+        "base_chain": {
+          "type": "string"
+        },
+        "slug": {
+          "type": "string"
+        }
+      }
+    },
+    "tunnelapiAssetBalance": {
+      "type": "object",
+      "properties": {
+        "asset": {
+          "$ref": "#/definitions/tunnelapiAsset"
+        },
+        "total_deposit": {
+          "type": "string"
+        },
+        "total_withdraw": {
+          "type": "string"
+        },
+        "total_deposit_last_day": {
+          "type": "string"
+        },
+        "total_withdraw_last_day": {
+          "type": "string"
+        }
+      }
+    },
+    "tunnelapiBalance": {
+      "type": "object",
+      "properties": {
+        "blockchain_id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "blockchain": {
+          "$ref": "#/definitions/tunnelapiBlockchain"
+        },
+        "balances": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/tunnelapiAssetBalance"
+          }
+        }
+      }
+    },
+    "tunnelapiBlockchain": {
+      "type": "object",
+      "properties": {
+        "network": {
+          "type": "string"
+        },
+        "chain_id": {
+          "type": "string"
+        },
+        "base_chain": {
+          "type": "string"
+        },
+        "slug": {
+          "type": "string"
+        }
+      }
+    },
+    "tunnelapiConfig": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "tunnelapiInfoReply": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "configs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/tunnelapiConfig"
+          }
+        }
+      }
+    },
+    "tunnelapiSetConfigReply": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        }
+      }
+    },
+    "tunnelapiSetConfigRequest": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "tunnelapiSystemBalanceReply": {
+      "type": "object",
+      "properties": {
+        "blockchains": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/tunnelapiBalance"
+          }
+        }
+      }
+    },
+    "tunnelapiUpdatePairReply": {
+      "type": "object",
+      "properties": {
+        "pairId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "asset_a_id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "asset_b_id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "status": {
+          "type": "string"
+        },
+        "statusMessage": {
+          "type": "string"
+        }
+      }
+    },
+    "tunnelapiUpdatePairRequest": {
+      "type": "object",
+      "properties": {
+        "pairId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "asset_a_id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "asset_b_id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "a2b_min_deposit_amount": {
+          "type": "string",
+          "title": "set the follow to empty if not update, amount in decimals"
+        },
+        "b2a_min_deposit_amount": {
+          "type": "string"
+        },
+        "a2b_fee_percent": {
+          "type": "string"
+        },
+        "b2a_fee_percent": {
+          "type": "string"
+        },
+        "a2b_fee_min_amount": {
+          "type": "string"
+        },
+        "b2a_fee_min_amount": {
+          "type": "string"
+        },
+        "a2b_auto_confirm_deposit_amount": {
+          "type": "string"
+        },
+        "b2a_auto_confirm_deposit_amount": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,990 @@
+{
+  "address": "0x47eE99487c40c14931Af0a6aB67D0b75a8E0Aa7A",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "_name",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_symbol",
+          "type": "string"
+        },
+        {
+          "internalType": "address",
+          "name": "_owner",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_feeRecipient",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_feeBasisPoints",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "allowance",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "needed",
+          "type": "uint256"
+        }
+      ],
+      "name": "ERC20InsufficientAllowance",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "balance",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "needed",
+          "type": "uint256"
+        }
+      ],
+      "name": "ERC20InsufficientBalance",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "approver",
+          "type": "address"
+        }
+      ],
+      "name": "ERC20InvalidApprover",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "receiver",
+          "type": "address"
+        }
+      ],
+      "name": "ERC20InvalidReceiver",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        }
+      ],
+      "name": "ERC20InvalidSender",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        }
+      ],
+      "name": "ERC20InvalidSpender",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnableInvalidOwner",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "OwnableUnauthorizedAccount",
+      "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "Approval",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "oldFeeBps",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "newFeeBps",
+          "type": "uint256"
+        }
+      ],
+      "name": "FeeBasisPointsUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "oldRecipient",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newRecipient",
+          "type": "address"
+        }
+      ],
+      "name": "FeeRecipientUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "tonRecipient",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "fee",
+          "type": "uint256"
+        }
+      ],
+      "name": "RedeemToTon",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "Transfer",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "MAX_FEE_BPS",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        }
+      ],
+      "name": "allowance",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "approve",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "balanceOf",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "calculateAmountAfterFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "amountAfterFee",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "calculateFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "fee",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "decimals",
+      "outputs": [
+        {
+          "internalType": "uint8",
+          "name": "",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "feeBasisPoints",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "feeRecipient",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "mint",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "name",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "tonRecipient",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "redeemToTon",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "renounceOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "newFeeBps",
+          "type": "uint256"
+        }
+      ],
+      "name": "setFeeBasisPoints",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newRecipient",
+          "type": "address"
+        }
+      ],
+      "name": "setFeeRecipient",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "symbol",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "totalSupply",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "transfer",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "transferFrom",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x12ae3c262d6bd0aa093756dad58103e818a4fde2b26a377e45979c95de642afc",
+  "receipt": {
+    "to": null,
+    "from": "0x6F7285eC8110A0297BBE6e4811c9Df2324af33c1",
+    "contractAddress": "0x47eE99487c40c14931Af0a6aB67D0b75a8E0Aa7A",
+    "transactionIndex": 125,
+    "gasUsed": "982821",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000800000080000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000020080000000000000000800000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020000001000000000000000000000000000002000000000000000000000000000000",
+    "blockHash": "0x7177e3326e761a2ad7b03f7d15049edac0426d9a3adc83c2a7c1a1cdbe222037",
+    "transactionHash": "0x12ae3c262d6bd0aa093756dad58103e818a4fde2b26a377e45979c95de642afc",
+    "logs": [
+      {
+        "transactionIndex": 125,
+        "blockNumber": 70121542,
+        "transactionHash": "0x12ae3c262d6bd0aa093756dad58103e818a4fde2b26a377e45979c95de642afc",
+        "address": "0x47eE99487c40c14931Af0a6aB67D0b75a8E0Aa7A",
+        "topics": [
+          "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x000000000000000000000000db2782f3d20df976cfb3d5d2a9db1a54b5541ee2"
+        ],
+        "data": "0x",
+        "logIndex": 652,
+        "blockHash": "0x7177e3326e761a2ad7b03f7d15049edac0426d9a3adc83c2a7c1a1cdbe222037"
+      }
+    ],
+    "blockNumber": 70121542,
+    "cumulativeGasUsed": "19072746",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [
+    "SIXRTEST",
+    "SIXRTEST",
+    "0xdb2782F3d20df976Cfb3D5d2A9DB1A54b5541ee2",
+    "0x6f7285ec8110a0297bbe6e4811c9df2324af33c1",
+    100
+  ],
+  "numDeployments": 2,
+  "solcInputHash": "e9b32de018ea3ce39212eb11a6e3e14b",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.22+commit.4fc1097e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_name\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"_symbol\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_feeRecipient\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_feeBasisPoints\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"allowance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"needed\",\"type\":\"uint256\"}],\"name\":\"ERC20InsufficientAllowance\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"needed\",\"type\":\"uint256\"}],\"name\":\"ERC20InsufficientBalance\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"approver\",\"type\":\"address\"}],\"name\":\"ERC20InvalidApprover\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"receiver\",\"type\":\"address\"}],\"name\":\"ERC20InvalidReceiver\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"}],\"name\":\"ERC20InvalidSender\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"}],\"name\":\"ERC20InvalidSpender\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"OwnableInvalidOwner\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"OwnableUnauthorizedAccount\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"Approval\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"oldFeeBps\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"newFeeBps\",\"type\":\"uint256\"}],\"name\":\"FeeBasisPointsUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"oldRecipient\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newRecipient\",\"type\":\"address\"}],\"name\":\"FeeRecipientUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"tonRecipient\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"}],\"name\":\"RedeemToTon\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"Transfer\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"MAX_FEE_BPS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"}],\"name\":\"allowance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"approve\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"calculateAmountAfterFee\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"amountAfterFee\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"calculateFee\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"feeBasisPoints\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"feeRecipient\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"mint\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"tonRecipient\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"redeemToTon\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"newFeeBps\",\"type\":\"uint256\"}],\"name\":\"setFeeBasisPoints\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newRecipient\",\"type\":\"address\"}],\"name\":\"setFeeRecipient\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"symbol\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"transfer\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"transferFrom\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"errors\":{\"ERC20InsufficientAllowance(address,uint256,uint256)\":[{\"details\":\"Indicates a failure with the `spender`\\u2019s `allowance`. Used in transfers.\",\"params\":{\"allowance\":\"Amount of tokens a `spender` is allowed to operate with.\",\"needed\":\"Minimum amount required to perform a transfer.\",\"spender\":\"Address that may be allowed to operate on tokens without being their owner.\"}}],\"ERC20InsufficientBalance(address,uint256,uint256)\":[{\"details\":\"Indicates an error related to the current `balance` of a `sender`. Used in transfers.\",\"params\":{\"balance\":\"Current balance for the interacting account.\",\"needed\":\"Minimum amount required to perform a transfer.\",\"sender\":\"Address whose tokens are being transferred.\"}}],\"ERC20InvalidApprover(address)\":[{\"details\":\"Indicates a failure with the `approver` of a token to be approved. Used in approvals.\",\"params\":{\"approver\":\"Address initiating an approval operation.\"}}],\"ERC20InvalidReceiver(address)\":[{\"details\":\"Indicates a failure with the token `receiver`. Used in transfers.\",\"params\":{\"receiver\":\"Address to which tokens are being transferred.\"}}],\"ERC20InvalidSender(address)\":[{\"details\":\"Indicates a failure with the token `sender`. Used in transfers.\",\"params\":{\"sender\":\"Address whose tokens are being transferred.\"}}],\"ERC20InvalidSpender(address)\":[{\"details\":\"Indicates a failure with the `spender` to be approved. Used in approvals.\",\"params\":{\"spender\":\"Address that may be allowed to operate on tokens without being their owner.\"}}],\"OwnableInvalidOwner(address)\":[{\"details\":\"The owner is not a valid owner account. (eg. `address(0)`)\"}],\"OwnableUnauthorizedAccount(address)\":[{\"details\":\"The caller account is not authorized to perform an operation.\"}]},\"events\":{\"Approval(address,address,uint256)\":{\"details\":\"Emitted when the allowance of a `spender` for an `owner` is set by a call to {approve}. `value` is the new allowance.\"},\"FeeBasisPointsUpdated(uint256,uint256)\":{\"params\":{\"newFeeBps\":\"New fee basis points\",\"oldFeeBps\":\"Previous fee basis points\"}},\"FeeRecipientUpdated(address,address)\":{\"params\":{\"newRecipient\":\"New fee recipient\",\"oldRecipient\":\"Previous fee recipient\"}},\"RedeemToTon(address,string,uint256,uint256)\":{\"params\":{\"amount\":\"Amount after fee deduction (18 decimals)\",\"fee\":\"Fee amount kept on EVM (18 decimals)\",\"from\":\"Address that burned tokens on EVM\",\"tonRecipient\":\"TON address that will receive minted jettons\"}},\"Transfer(address,address,uint256)\":{\"details\":\"Emitted when `value` tokens are moved from one account (`from`) to another (`to`). Note that `value` may be zero.\"}},\"kind\":\"dev\",\"methods\":{\"allowance(address,address)\":{\"details\":\"Returns the remaining number of tokens that `spender` will be allowed to spend on behalf of `owner` through {transferFrom}. This is zero by default. This value changes when {approve} or {transferFrom} are called.\"},\"approve(address,uint256)\":{\"details\":\"See {IERC20-approve}. NOTE: If `value` is the maximum `uint256`, the allowance is not updated on `transferFrom`. This is semantically equivalent to an infinite approval. Requirements: - `spender` cannot be the zero address.\"},\"balanceOf(address)\":{\"details\":\"Returns the value of tokens owned by `account`.\"},\"calculateAmountAfterFee(uint256)\":{\"params\":{\"amount\":\"Amount in 18 decimals (before fee)\"},\"returns\":{\"amountAfterFee\":\"Amount after fee in 18 decimals\"}},\"calculateFee(uint256)\":{\"params\":{\"amount\":\"Amount in 18 decimals\"},\"returns\":{\"fee\":\"Fee amount in 18 decimals\"}},\"decimals()\":{\"details\":\"Returns the number of decimals used to get its user representation. For example, if `decimals` equals `2`, a balance of `505` tokens should be displayed to a user as `5.05` (`505 / 10 ** 2`). Tokens usually opt for a value of 18, imitating the relationship between Ether and Wei. This is the default value returned by this function, unless it's overridden. NOTE: This information is only used for _display_ purposes: it in no way affects any of the arithmetic of the contract, including {IERC20-balanceOf} and {IERC20-transfer}.\"},\"mint(address,uint256)\":{\"details\":\"Only callable by contract owner (bridge multisig) Used when bridging from TON to EVM\",\"params\":{\"amount\":\"Amount to mint (18 decimals)\",\"to\":\"Recipient address\"}},\"name()\":{\"details\":\"Returns the name of the token.\"},\"owner()\":{\"details\":\"Returns the address of the current owner.\"},\"redeemToTon(string,uint256)\":{\"details\":\"Burns user's tokens, keeps fee on EVM, emits event for bridge watcher Flow: 1. Calculate fee amount 2. Transfer fee to feeRecipient 3. Burn remaining amount 4. Emit RedeemToTon event with net amount for bridge\",\"params\":{\"amount\":\"Amount to redeem in 18 decimals (before fee)\",\"tonRecipient\":\"TON address in user-friendly format (EQ... or UQ...)\"}},\"renounceOwnership()\":{\"details\":\"Leaves the contract without owner. It will not be possible to call `onlyOwner` functions. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby disabling any functionality that is only available to the owner.\"},\"setFeeBasisPoints(uint256)\":{\"details\":\"Only callable by contract owner\",\"params\":{\"newFeeBps\":\"New fee in basis points (100 = 1%)\"}},\"setFeeRecipient(address)\":{\"details\":\"Only callable by contract owner\",\"params\":{\"newRecipient\":\"New fee recipient address\"}},\"symbol()\":{\"details\":\"Returns the symbol of the token, usually a shorter version of the name.\"},\"totalSupply()\":{\"details\":\"Returns the value of tokens in existence.\"},\"transfer(address,uint256)\":{\"details\":\"See {IERC20-transfer}. Requirements: - `to` cannot be the zero address. - the caller must have a balance of at least `value`.\"},\"transferFrom(address,address,uint256)\":{\"details\":\"See {IERC20-transferFrom}. Skips emitting an {Approval} event indicating an allowance update. This is not required by the ERC. See {xref-ERC20-_approve-address-address-uint256-bool-}[_approve]. NOTE: Does not update the allowance if the current allowance is the maximum `uint256`. Requirements: - `from` and `to` cannot be the zero address. - `from` must have a balance of at least `value`. - the caller must have allowance for ``from``'s tokens of at least `value`.\"},\"transferOwnership(address)\":{\"details\":\"Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.\"}},\"title\":\"BridgedSIXR\",\"version\":1},\"userdoc\":{\"events\":{\"FeeBasisPointsUpdated(uint256,uint256)\":{\"notice\":\"Emitted when fee basis points are updated\"},\"FeeRecipientUpdated(address,address)\":{\"notice\":\"Emitted when fee recipient is updated\"},\"RedeemToTon(address,string,uint256,uint256)\":{\"notice\":\"Emitted when tokens are redeemed to TON (EVM\\u2192TON bridge)\"}},\"kind\":\"user\",\"methods\":{\"MAX_FEE_BPS()\":{\"notice\":\"Maximum allowed fee (10% = 1000 basis points)\"},\"calculateAmountAfterFee(uint256)\":{\"notice\":\"Calculates amount after fee deduction\"},\"calculateFee(uint256)\":{\"notice\":\"Calculates fee for a given amount\"},\"feeBasisPoints()\":{\"notice\":\"Fee in basis points (100 = 1%, 10000 = 100%)\"},\"feeRecipient()\":{\"notice\":\"Address that receives accumulated fees\"},\"mint(address,uint256)\":{\"notice\":\"Mints tokens to an address\"},\"redeemToTon(string,uint256)\":{\"notice\":\"Redeems tokens to TON blockchain with fee\"},\"setFeeBasisPoints(uint256)\":{\"notice\":\"Updates the fee basis points\"},\"setFeeRecipient(address)\":{\"notice\":\"Updates the fee recipient address\"}},\"notice\":\"ERC-20 representation of SIXR jetton bridged from TON This contract implements: - Standard ERC-20 functionality - TON bridge integration via redeemToTon() with configurable fee - Owner-controlled minting (BridgeMultisig mints on TON\\u2192EVM bridge) Fee mechanism: - EVM \\u2192 TON: Fee stays on EVM (transferred to feeRecipient), rest is burned - TON \\u2192 EVM: BridgeMultisig mints tokens to recipient (no fee on this direction)\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/evm/BridgedSIXR.sol\":\"BridgedSIXR\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts/access/Ownable.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.0.0) (access/Ownable.sol)\\n\\npragma solidity ^0.8.20;\\n\\nimport {Context} from \\\"../utils/Context.sol\\\";\\n\\n/**\\n * @dev Contract module which provides a basic access control mechanism, where\\n * there is an account (an owner) that can be granted exclusive access to\\n * specific functions.\\n *\\n * The initial owner is set to the address provided by the deployer. This can\\n * later be changed with {transferOwnership}.\\n *\\n * This module is used through inheritance. It will make available the modifier\\n * `onlyOwner`, which can be applied to your functions to restrict their use to\\n * the owner.\\n */\\nabstract contract Ownable is Context {\\n    address private _owner;\\n\\n    /**\\n     * @dev The caller account is not authorized to perform an operation.\\n     */\\n    error OwnableUnauthorizedAccount(address account);\\n\\n    /**\\n     * @dev The owner is not a valid owner account. (eg. `address(0)`)\\n     */\\n    error OwnableInvalidOwner(address owner);\\n\\n    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);\\n\\n    /**\\n     * @dev Initializes the contract setting the address provided by the deployer as the initial owner.\\n     */\\n    constructor(address initialOwner) {\\n        if (initialOwner == address(0)) {\\n            revert OwnableInvalidOwner(address(0));\\n        }\\n        _transferOwnership(initialOwner);\\n    }\\n\\n    /**\\n     * @dev Throws if called by any account other than the owner.\\n     */\\n    modifier onlyOwner() {\\n        _checkOwner();\\n        _;\\n    }\\n\\n    /**\\n     * @dev Returns the address of the current owner.\\n     */\\n    function owner() public view virtual returns (address) {\\n        return _owner;\\n    }\\n\\n    /**\\n     * @dev Throws if the sender is not the owner.\\n     */\\n    function _checkOwner() internal view virtual {\\n        if (owner() != _msgSender()) {\\n            revert OwnableUnauthorizedAccount(_msgSender());\\n        }\\n    }\\n\\n    /**\\n     * @dev Leaves the contract without owner. It will not be possible to call\\n     * `onlyOwner` functions. Can only be called by the current owner.\\n     *\\n     * NOTE: Renouncing ownership will leave the contract without an owner,\\n     * thereby disabling any functionality that is only available to the owner.\\n     */\\n    function renounceOwnership() public virtual onlyOwner {\\n        _transferOwnership(address(0));\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     * Can only be called by the current owner.\\n     */\\n    function transferOwnership(address newOwner) public virtual onlyOwner {\\n        if (newOwner == address(0)) {\\n            revert OwnableInvalidOwner(address(0));\\n        }\\n        _transferOwnership(newOwner);\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     * Internal function without access restriction.\\n     */\\n    function _transferOwnership(address newOwner) internal virtual {\\n        address oldOwner = _owner;\\n        _owner = newOwner;\\n        emit OwnershipTransferred(oldOwner, newOwner);\\n    }\\n}\\n\",\"keccak256\":\"0xff6d0bb2e285473e5311d9d3caacb525ae3538a80758c10649a4d61029b017bb\",\"license\":\"MIT\"},\"@openzeppelin/contracts/interfaces/draft-IERC6093.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.4.0) (interfaces/draft-IERC6093.sol)\\npragma solidity >=0.8.4;\\n\\n/**\\n * @dev Standard ERC-20 Errors\\n * Interface of the https://eips.ethereum.org/EIPS/eip-6093[ERC-6093] custom errors for ERC-20 tokens.\\n */\\ninterface IERC20Errors {\\n    /**\\n     * @dev Indicates an error related to the current `balance` of a `sender`. Used in transfers.\\n     * @param sender Address whose tokens are being transferred.\\n     * @param balance Current balance for the interacting account.\\n     * @param needed Minimum amount required to perform a transfer.\\n     */\\n    error ERC20InsufficientBalance(address sender, uint256 balance, uint256 needed);\\n\\n    /**\\n     * @dev Indicates a failure with the token `sender`. Used in transfers.\\n     * @param sender Address whose tokens are being transferred.\\n     */\\n    error ERC20InvalidSender(address sender);\\n\\n    /**\\n     * @dev Indicates a failure with the token `receiver`. Used in transfers.\\n     * @param receiver Address to which tokens are being transferred.\\n     */\\n    error ERC20InvalidReceiver(address receiver);\\n\\n    /**\\n     * @dev Indicates a failure with the `spender`\\u2019s `allowance`. Used in transfers.\\n     * @param spender Address that may be allowed to operate on tokens without being their owner.\\n     * @param allowance Amount of tokens a `spender` is allowed to operate with.\\n     * @param needed Minimum amount required to perform a transfer.\\n     */\\n    error ERC20InsufficientAllowance(address spender, uint256 allowance, uint256 needed);\\n\\n    /**\\n     * @dev Indicates a failure with the `approver` of a token to be approved. Used in approvals.\\n     * @param approver Address initiating an approval operation.\\n     */\\n    error ERC20InvalidApprover(address approver);\\n\\n    /**\\n     * @dev Indicates a failure with the `spender` to be approved. Used in approvals.\\n     * @param spender Address that may be allowed to operate on tokens without being their owner.\\n     */\\n    error ERC20InvalidSpender(address spender);\\n}\\n\\n/**\\n * @dev Standard ERC-721 Errors\\n * Interface of the https://eips.ethereum.org/EIPS/eip-6093[ERC-6093] custom errors for ERC-721 tokens.\\n */\\ninterface IERC721Errors {\\n    /**\\n     * @dev Indicates that an address can't be an owner. For example, `address(0)` is a forbidden owner in ERC-20.\\n     * Used in balance queries.\\n     * @param owner Address of the current owner of a token.\\n     */\\n    error ERC721InvalidOwner(address owner);\\n\\n    /**\\n     * @dev Indicates a `tokenId` whose `owner` is the zero address.\\n     * @param tokenId Identifier number of a token.\\n     */\\n    error ERC721NonexistentToken(uint256 tokenId);\\n\\n    /**\\n     * @dev Indicates an error related to the ownership over a particular token. Used in transfers.\\n     * @param sender Address whose tokens are being transferred.\\n     * @param tokenId Identifier number of a token.\\n     * @param owner Address of the current owner of a token.\\n     */\\n    error ERC721IncorrectOwner(address sender, uint256 tokenId, address owner);\\n\\n    /**\\n     * @dev Indicates a failure with the token `sender`. Used in transfers.\\n     * @param sender Address whose tokens are being transferred.\\n     */\\n    error ERC721InvalidSender(address sender);\\n\\n    /**\\n     * @dev Indicates a failure with the token `receiver`. Used in transfers.\\n     * @param receiver Address to which tokens are being transferred.\\n     */\\n    error ERC721InvalidReceiver(address receiver);\\n\\n    /**\\n     * @dev Indicates a failure with the `operator`\\u2019s approval. Used in transfers.\\n     * @param operator Address that may be allowed to operate on tokens without being their owner.\\n     * @param tokenId Identifier number of a token.\\n     */\\n    error ERC721InsufficientApproval(address operator, uint256 tokenId);\\n\\n    /**\\n     * @dev Indicates a failure with the `approver` of a token to be approved. Used in approvals.\\n     * @param approver Address initiating an approval operation.\\n     */\\n    error ERC721InvalidApprover(address approver);\\n\\n    /**\\n     * @dev Indicates a failure with the `operator` to be approved. Used in approvals.\\n     * @param operator Address that may be allowed to operate on tokens without being their owner.\\n     */\\n    error ERC721InvalidOperator(address operator);\\n}\\n\\n/**\\n * @dev Standard ERC-1155 Errors\\n * Interface of the https://eips.ethereum.org/EIPS/eip-6093[ERC-6093] custom errors for ERC-1155 tokens.\\n */\\ninterface IERC1155Errors {\\n    /**\\n     * @dev Indicates an error related to the current `balance` of a `sender`. Used in transfers.\\n     * @param sender Address whose tokens are being transferred.\\n     * @param balance Current balance for the interacting account.\\n     * @param needed Minimum amount required to perform a transfer.\\n     * @param tokenId Identifier number of a token.\\n     */\\n    error ERC1155InsufficientBalance(address sender, uint256 balance, uint256 needed, uint256 tokenId);\\n\\n    /**\\n     * @dev Indicates a failure with the token `sender`. Used in transfers.\\n     * @param sender Address whose tokens are being transferred.\\n     */\\n    error ERC1155InvalidSender(address sender);\\n\\n    /**\\n     * @dev Indicates a failure with the token `receiver`. Used in transfers.\\n     * @param receiver Address to which tokens are being transferred.\\n     */\\n    error ERC1155InvalidReceiver(address receiver);\\n\\n    /**\\n     * @dev Indicates a failure with the `operator`\\u2019s approval. Used in transfers.\\n     * @param operator Address that may be allowed to operate on tokens without being their owner.\\n     * @param owner Address of the current owner of a token.\\n     */\\n    error ERC1155MissingApprovalForAll(address operator, address owner);\\n\\n    /**\\n     * @dev Indicates a failure with the `approver` of a token to be approved. Used in approvals.\\n     * @param approver Address initiating an approval operation.\\n     */\\n    error ERC1155InvalidApprover(address approver);\\n\\n    /**\\n     * @dev Indicates a failure with the `operator` to be approved. Used in approvals.\\n     * @param operator Address that may be allowed to operate on tokens without being their owner.\\n     */\\n    error ERC1155InvalidOperator(address operator);\\n\\n    /**\\n     * @dev Indicates an array length mismatch between ids and values in a safeBatchTransferFrom operation.\\n     * Used in batch transfers.\\n     * @param idsLength Length of the array of token identifiers\\n     * @param valuesLength Length of the array of token amounts\\n     */\\n    error ERC1155InvalidArrayLength(uint256 idsLength, uint256 valuesLength);\\n}\\n\",\"keccak256\":\"0x19fdfb0f3b89a230e7dbd1cf416f1a6b531a3ee5db4da483f946320fc74afc0e\",\"license\":\"MIT\"},\"@openzeppelin/contracts/token/ERC20/ERC20.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.4.0) (token/ERC20/ERC20.sol)\\n\\npragma solidity ^0.8.20;\\n\\nimport {IERC20} from \\\"./IERC20.sol\\\";\\nimport {IERC20Metadata} from \\\"./extensions/IERC20Metadata.sol\\\";\\nimport {Context} from \\\"../../utils/Context.sol\\\";\\nimport {IERC20Errors} from \\\"../../interfaces/draft-IERC6093.sol\\\";\\n\\n/**\\n * @dev Implementation of the {IERC20} interface.\\n *\\n * This implementation is agnostic to the way tokens are created. This means\\n * that a supply mechanism has to be added in a derived contract using {_mint}.\\n *\\n * TIP: For a detailed writeup see our guide\\n * https://forum.openzeppelin.com/t/how-to-implement-erc20-supply-mechanisms/226[How\\n * to implement supply mechanisms].\\n *\\n * The default value of {decimals} is 18. To change this, you should override\\n * this function so it returns a different value.\\n *\\n * We have followed general OpenZeppelin Contracts guidelines: functions revert\\n * instead returning `false` on failure. This behavior is nonetheless\\n * conventional and does not conflict with the expectations of ERC-20\\n * applications.\\n */\\nabstract contract ERC20 is Context, IERC20, IERC20Metadata, IERC20Errors {\\n    mapping(address account => uint256) private _balances;\\n\\n    mapping(address account => mapping(address spender => uint256)) private _allowances;\\n\\n    uint256 private _totalSupply;\\n\\n    string private _name;\\n    string private _symbol;\\n\\n    /**\\n     * @dev Sets the values for {name} and {symbol}.\\n     *\\n     * Both values are immutable: they can only be set once during construction.\\n     */\\n    constructor(string memory name_, string memory symbol_) {\\n        _name = name_;\\n        _symbol = symbol_;\\n    }\\n\\n    /**\\n     * @dev Returns the name of the token.\\n     */\\n    function name() public view virtual returns (string memory) {\\n        return _name;\\n    }\\n\\n    /**\\n     * @dev Returns the symbol of the token, usually a shorter version of the\\n     * name.\\n     */\\n    function symbol() public view virtual returns (string memory) {\\n        return _symbol;\\n    }\\n\\n    /**\\n     * @dev Returns the number of decimals used to get its user representation.\\n     * For example, if `decimals` equals `2`, a balance of `505` tokens should\\n     * be displayed to a user as `5.05` (`505 / 10 ** 2`).\\n     *\\n     * Tokens usually opt for a value of 18, imitating the relationship between\\n     * Ether and Wei. This is the default value returned by this function, unless\\n     * it's overridden.\\n     *\\n     * NOTE: This information is only used for _display_ purposes: it in\\n     * no way affects any of the arithmetic of the contract, including\\n     * {IERC20-balanceOf} and {IERC20-transfer}.\\n     */\\n    function decimals() public view virtual returns (uint8) {\\n        return 18;\\n    }\\n\\n    /// @inheritdoc IERC20\\n    function totalSupply() public view virtual returns (uint256) {\\n        return _totalSupply;\\n    }\\n\\n    /// @inheritdoc IERC20\\n    function balanceOf(address account) public view virtual returns (uint256) {\\n        return _balances[account];\\n    }\\n\\n    /**\\n     * @dev See {IERC20-transfer}.\\n     *\\n     * Requirements:\\n     *\\n     * - `to` cannot be the zero address.\\n     * - the caller must have a balance of at least `value`.\\n     */\\n    function transfer(address to, uint256 value) public virtual returns (bool) {\\n        address owner = _msgSender();\\n        _transfer(owner, to, value);\\n        return true;\\n    }\\n\\n    /// @inheritdoc IERC20\\n    function allowance(address owner, address spender) public view virtual returns (uint256) {\\n        return _allowances[owner][spender];\\n    }\\n\\n    /**\\n     * @dev See {IERC20-approve}.\\n     *\\n     * NOTE: If `value` is the maximum `uint256`, the allowance is not updated on\\n     * `transferFrom`. This is semantically equivalent to an infinite approval.\\n     *\\n     * Requirements:\\n     *\\n     * - `spender` cannot be the zero address.\\n     */\\n    function approve(address spender, uint256 value) public virtual returns (bool) {\\n        address owner = _msgSender();\\n        _approve(owner, spender, value);\\n        return true;\\n    }\\n\\n    /**\\n     * @dev See {IERC20-transferFrom}.\\n     *\\n     * Skips emitting an {Approval} event indicating an allowance update. This is not\\n     * required by the ERC. See {xref-ERC20-_approve-address-address-uint256-bool-}[_approve].\\n     *\\n     * NOTE: Does not update the allowance if the current allowance\\n     * is the maximum `uint256`.\\n     *\\n     * Requirements:\\n     *\\n     * - `from` and `to` cannot be the zero address.\\n     * - `from` must have a balance of at least `value`.\\n     * - the caller must have allowance for ``from``'s tokens of at least\\n     * `value`.\\n     */\\n    function transferFrom(address from, address to, uint256 value) public virtual returns (bool) {\\n        address spender = _msgSender();\\n        _spendAllowance(from, spender, value);\\n        _transfer(from, to, value);\\n        return true;\\n    }\\n\\n    /**\\n     * @dev Moves a `value` amount of tokens from `from` to `to`.\\n     *\\n     * This internal function is equivalent to {transfer}, and can be used to\\n     * e.g. implement automatic token fees, slashing mechanisms, etc.\\n     *\\n     * Emits a {Transfer} event.\\n     *\\n     * NOTE: This function is not virtual, {_update} should be overridden instead.\\n     */\\n    function _transfer(address from, address to, uint256 value) internal {\\n        if (from == address(0)) {\\n            revert ERC20InvalidSender(address(0));\\n        }\\n        if (to == address(0)) {\\n            revert ERC20InvalidReceiver(address(0));\\n        }\\n        _update(from, to, value);\\n    }\\n\\n    /**\\n     * @dev Transfers a `value` amount of tokens from `from` to `to`, or alternatively mints (or burns) if `from`\\n     * (or `to`) is the zero address. All customizations to transfers, mints, and burns should be done by overriding\\n     * this function.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function _update(address from, address to, uint256 value) internal virtual {\\n        if (from == address(0)) {\\n            // Overflow check required: The rest of the code assumes that totalSupply never overflows\\n            _totalSupply += value;\\n        } else {\\n            uint256 fromBalance = _balances[from];\\n            if (fromBalance < value) {\\n                revert ERC20InsufficientBalance(from, fromBalance, value);\\n            }\\n            unchecked {\\n                // Overflow not possible: value <= fromBalance <= totalSupply.\\n                _balances[from] = fromBalance - value;\\n            }\\n        }\\n\\n        if (to == address(0)) {\\n            unchecked {\\n                // Overflow not possible: value <= totalSupply or value <= fromBalance <= totalSupply.\\n                _totalSupply -= value;\\n            }\\n        } else {\\n            unchecked {\\n                // Overflow not possible: balance + value is at most totalSupply, which we know fits into a uint256.\\n                _balances[to] += value;\\n            }\\n        }\\n\\n        emit Transfer(from, to, value);\\n    }\\n\\n    /**\\n     * @dev Creates a `value` amount of tokens and assigns them to `account`, by transferring it from address(0).\\n     * Relies on the `_update` mechanism\\n     *\\n     * Emits a {Transfer} event with `from` set to the zero address.\\n     *\\n     * NOTE: This function is not virtual, {_update} should be overridden instead.\\n     */\\n    function _mint(address account, uint256 value) internal {\\n        if (account == address(0)) {\\n            revert ERC20InvalidReceiver(address(0));\\n        }\\n        _update(address(0), account, value);\\n    }\\n\\n    /**\\n     * @dev Destroys a `value` amount of tokens from `account`, lowering the total supply.\\n     * Relies on the `_update` mechanism.\\n     *\\n     * Emits a {Transfer} event with `to` set to the zero address.\\n     *\\n     * NOTE: This function is not virtual, {_update} should be overridden instead\\n     */\\n    function _burn(address account, uint256 value) internal {\\n        if (account == address(0)) {\\n            revert ERC20InvalidSender(address(0));\\n        }\\n        _update(account, address(0), value);\\n    }\\n\\n    /**\\n     * @dev Sets `value` as the allowance of `spender` over the `owner`'s tokens.\\n     *\\n     * This internal function is equivalent to `approve`, and can be used to\\n     * e.g. set automatic allowances for certain subsystems, etc.\\n     *\\n     * Emits an {Approval} event.\\n     *\\n     * Requirements:\\n     *\\n     * - `owner` cannot be the zero address.\\n     * - `spender` cannot be the zero address.\\n     *\\n     * Overrides to this logic should be done to the variant with an additional `bool emitEvent` argument.\\n     */\\n    function _approve(address owner, address spender, uint256 value) internal {\\n        _approve(owner, spender, value, true);\\n    }\\n\\n    /**\\n     * @dev Variant of {_approve} with an optional flag to enable or disable the {Approval} event.\\n     *\\n     * By default (when calling {_approve}) the flag is set to true. On the other hand, approval changes made by\\n     * `_spendAllowance` during the `transferFrom` operation set the flag to false. This saves gas by not emitting any\\n     * `Approval` event during `transferFrom` operations.\\n     *\\n     * Anyone who wishes to continue emitting `Approval` events on the`transferFrom` operation can force the flag to\\n     * true using the following override:\\n     *\\n     * ```solidity\\n     * function _approve(address owner, address spender, uint256 value, bool) internal virtual override {\\n     *     super._approve(owner, spender, value, true);\\n     * }\\n     * ```\\n     *\\n     * Requirements are the same as {_approve}.\\n     */\\n    function _approve(address owner, address spender, uint256 value, bool emitEvent) internal virtual {\\n        if (owner == address(0)) {\\n            revert ERC20InvalidApprover(address(0));\\n        }\\n        if (spender == address(0)) {\\n            revert ERC20InvalidSpender(address(0));\\n        }\\n        _allowances[owner][spender] = value;\\n        if (emitEvent) {\\n            emit Approval(owner, spender, value);\\n        }\\n    }\\n\\n    /**\\n     * @dev Updates `owner`'s allowance for `spender` based on spent `value`.\\n     *\\n     * Does not update the allowance value in case of infinite allowance.\\n     * Revert if not enough allowance is available.\\n     *\\n     * Does not emit an {Approval} event.\\n     */\\n    function _spendAllowance(address owner, address spender, uint256 value) internal virtual {\\n        uint256 currentAllowance = allowance(owner, spender);\\n        if (currentAllowance < type(uint256).max) {\\n            if (currentAllowance < value) {\\n                revert ERC20InsufficientAllowance(spender, currentAllowance, value);\\n            }\\n            unchecked {\\n                _approve(owner, spender, currentAllowance - value, false);\\n            }\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0x86b7b71a6aedefdad89b607378eeab1dcc5389b9ea7d17346d08af01d7190994\",\"license\":\"MIT\"},\"@openzeppelin/contracts/token/ERC20/IERC20.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.4.0) (token/ERC20/IERC20.sol)\\n\\npragma solidity >=0.4.16;\\n\\n/**\\n * @dev Interface of the ERC-20 standard as defined in the ERC.\\n */\\ninterface IERC20 {\\n    /**\\n     * @dev Emitted when `value` tokens are moved from one account (`from`) to\\n     * another (`to`).\\n     *\\n     * Note that `value` may be zero.\\n     */\\n    event Transfer(address indexed from, address indexed to, uint256 value);\\n\\n    /**\\n     * @dev Emitted when the allowance of a `spender` for an `owner` is set by\\n     * a call to {approve}. `value` is the new allowance.\\n     */\\n    event Approval(address indexed owner, address indexed spender, uint256 value);\\n\\n    /**\\n     * @dev Returns the value of tokens in existence.\\n     */\\n    function totalSupply() external view returns (uint256);\\n\\n    /**\\n     * @dev Returns the value of tokens owned by `account`.\\n     */\\n    function balanceOf(address account) external view returns (uint256);\\n\\n    /**\\n     * @dev Moves a `value` amount of tokens from the caller's account to `to`.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transfer(address to, uint256 value) external returns (bool);\\n\\n    /**\\n     * @dev Returns the remaining number of tokens that `spender` will be\\n     * allowed to spend on behalf of `owner` through {transferFrom}. This is\\n     * zero by default.\\n     *\\n     * This value changes when {approve} or {transferFrom} are called.\\n     */\\n    function allowance(address owner, address spender) external view returns (uint256);\\n\\n    /**\\n     * @dev Sets a `value` amount of tokens as the allowance of `spender` over the\\n     * caller's tokens.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * IMPORTANT: Beware that changing an allowance with this method brings the risk\\n     * that someone may use both the old and the new allowance by unfortunate\\n     * transaction ordering. One possible solution to mitigate this race\\n     * condition is to first reduce the spender's allowance to 0 and set the\\n     * desired value afterwards:\\n     * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729\\n     *\\n     * Emits an {Approval} event.\\n     */\\n    function approve(address spender, uint256 value) external returns (bool);\\n\\n    /**\\n     * @dev Moves a `value` amount of tokens from `from` to `to` using the\\n     * allowance mechanism. `value` is then deducted from the caller's\\n     * allowance.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transferFrom(address from, address to, uint256 value) external returns (bool);\\n}\\n\",\"keccak256\":\"0x74ed01eb66b923d0d0cfe3be84604ac04b76482a55f9dd655e1ef4d367f95bc2\",\"license\":\"MIT\"},\"@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.4.0) (token/ERC20/extensions/IERC20Metadata.sol)\\n\\npragma solidity >=0.6.2;\\n\\nimport {IERC20} from \\\"../IERC20.sol\\\";\\n\\n/**\\n * @dev Interface for the optional metadata functions from the ERC-20 standard.\\n */\\ninterface IERC20Metadata is IERC20 {\\n    /**\\n     * @dev Returns the name of the token.\\n     */\\n    function name() external view returns (string memory);\\n\\n    /**\\n     * @dev Returns the symbol of the token.\\n     */\\n    function symbol() external view returns (string memory);\\n\\n    /**\\n     * @dev Returns the decimals places of the token.\\n     */\\n    function decimals() external view returns (uint8);\\n}\\n\",\"keccak256\":\"0xd6fa4088198f04eef10c5bce8a2f4d60554b7ec4b987f684393c01bf79b94d9f\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/Context.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.0.1) (utils/Context.sol)\\n\\npragma solidity ^0.8.20;\\n\\n/**\\n * @dev Provides information about the current execution context, including the\\n * sender of the transaction and its data. While these are generally available\\n * via msg.sender and msg.data, they should not be accessed in such a direct\\n * manner, since when dealing with meta-transactions the account sending and\\n * paying for execution may not be the actual sender (as far as an application\\n * is concerned).\\n *\\n * This contract is only required for intermediate, library-like contracts.\\n */\\nabstract contract Context {\\n    function _msgSender() internal view virtual returns (address) {\\n        return msg.sender;\\n    }\\n\\n    function _msgData() internal view virtual returns (bytes calldata) {\\n        return msg.data;\\n    }\\n\\n    function _contextSuffixLength() internal view virtual returns (uint256) {\\n        return 0;\\n    }\\n}\\n\",\"keccak256\":\"0x493033a8d1b176a037b2cc6a04dad01a5c157722049bbecf632ca876224dd4b2\",\"license\":\"MIT\"},\"contracts/evm/BridgedSIXR.sol\":{\"content\":\"// SPDX-License-Identifier: UNLICENSED\\r\\npragma solidity 0.8.22;\\r\\n\\r\\nimport { ERC20 } from \\\"@openzeppelin/contracts/token/ERC20/ERC20.sol\\\";\\r\\nimport { Ownable } from \\\"@openzeppelin/contracts/access/Ownable.sol\\\";\\r\\n\\r\\n/**\\r\\n * @title BridgedSIXR\\r\\n * @notice ERC-20 representation of SIXR jetton bridged from TON\\r\\n *\\r\\n * This contract implements:\\r\\n * - Standard ERC-20 functionality\\r\\n * - TON bridge integration via redeemToTon() with configurable fee\\r\\n * - Owner-controlled minting (BridgeMultisig mints on TON\\u2192EVM bridge)\\r\\n *\\r\\n * Fee mechanism:\\r\\n * - EVM \\u2192 TON: Fee stays on EVM (transferred to feeRecipient), rest is burned\\r\\n * - TON \\u2192 EVM: BridgeMultisig mints tokens to recipient (no fee on this direction)\\r\\n */\\r\\ncontract BridgedSIXR is ERC20, Ownable {\\r\\n    /// @notice Emitted when tokens are redeemed to TON (EVM\\u2192TON bridge)\\r\\n    /// @param from Address that burned tokens on EVM\\r\\n    /// @param tonRecipient TON address that will receive minted jettons\\r\\n    /// @param amount Amount after fee deduction (18 decimals)\\r\\n    /// @param fee Fee amount kept on EVM (18 decimals)\\r\\n    event RedeemToTon(\\r\\n        address indexed from,\\r\\n        string tonRecipient,\\r\\n        uint256 amount,\\r\\n        uint256 fee\\r\\n    );\\r\\n\\r\\n    /// @notice Emitted when fee recipient is updated\\r\\n    /// @param oldRecipient Previous fee recipient\\r\\n    /// @param newRecipient New fee recipient\\r\\n    event FeeRecipientUpdated(\\r\\n        address indexed oldRecipient,\\r\\n        address indexed newRecipient\\r\\n    );\\r\\n\\r\\n    /// @notice Emitted when fee basis points are updated\\r\\n    /// @param oldFeeBps Previous fee basis points\\r\\n    /// @param newFeeBps New fee basis points\\r\\n    event FeeBasisPointsUpdated(uint256 oldFeeBps, uint256 newFeeBps);\\r\\n\\r\\n    /// @notice Address that receives accumulated fees\\r\\n    address public feeRecipient;\\r\\n\\r\\n    /// @notice Fee in basis points (100 = 1%, 10000 = 100%)\\r\\n    uint256 public feeBasisPoints;\\r\\n\\r\\n    /// @notice Maximum allowed fee (10% = 1000 basis points)\\r\\n    uint256 public constant MAX_FEE_BPS = 1000;\\r\\n\\r\\n    /// @notice Basis points denominator\\r\\n    uint256 private constant BPS_DENOMINATOR = 10000;\\r\\n\\r\\n    constructor(\\r\\n        string memory _name,\\r\\n        string memory _symbol,\\r\\n        address _owner,\\r\\n        address _feeRecipient,\\r\\n        uint256 _feeBasisPoints\\r\\n    ) ERC20(_name, _symbol) Ownable(_owner) {\\r\\n        require(_feeRecipient != address(0), \\\"BridgedSIXR: fee recipient is zero address\\\");\\r\\n        require(_feeBasisPoints <= MAX_FEE_BPS, \\\"BridgedSIXR: fee too high\\\");\\r\\n\\r\\n        feeRecipient = _feeRecipient;\\r\\n        feeBasisPoints = _feeBasisPoints;\\r\\n    }\\r\\n\\r\\n    /**\\r\\n     * @notice Redeems tokens to TON blockchain with fee\\r\\n     * @dev Burns user's tokens, keeps fee on EVM, emits event for bridge watcher\\r\\n     *\\r\\n     * Flow:\\r\\n     * 1. Calculate fee amount\\r\\n     * 2. Transfer fee to feeRecipient\\r\\n     * 3. Burn remaining amount\\r\\n     * 4. Emit RedeemToTon event with net amount for bridge\\r\\n     *\\r\\n     * @param tonRecipient TON address in user-friendly format (EQ... or UQ...)\\r\\n     * @param amount Amount to redeem in 18 decimals (before fee)\\r\\n     */\\r\\n    function redeemToTon(string calldata tonRecipient, uint256 amount) external {\\r\\n        require(amount > 0, \\\"BridgedSIXR: amount is zero\\\");\\r\\n        require(bytes(tonRecipient).length > 0, \\\"BridgedSIXR: recipient is empty\\\");\\r\\n\\r\\n        // Calculate fee\\r\\n        uint256 fee = (amount * feeBasisPoints) / BPS_DENOMINATOR;\\r\\n        uint256 amountAfterFee = amount - fee;\\r\\n\\r\\n        require(amountAfterFee > 0, \\\"BridgedSIXR: amount after fee is zero\\\");\\r\\n\\r\\n        // Transfer fee to recipient (if fee > 0)\\r\\n        if (fee > 0) {\\r\\n            _transfer(msg.sender, feeRecipient, fee);\\r\\n        }\\r\\n\\r\\n        // Burn the amount after fee\\r\\n        _burn(msg.sender, amountAfterFee);\\r\\n\\r\\n        // Emit event for bridge watcher\\r\\n        emit RedeemToTon(msg.sender, tonRecipient, amountAfterFee, fee);\\r\\n    }\\r\\n\\r\\n    /**\\r\\n     * @notice Updates the fee recipient address\\r\\n     * @dev Only callable by contract owner\\r\\n     * @param newRecipient New fee recipient address\\r\\n     */\\r\\n    function setFeeRecipient(address newRecipient) external onlyOwner {\\r\\n        require(newRecipient != address(0), \\\"BridgedSIXR: fee recipient is zero address\\\");\\r\\n\\r\\n        address oldRecipient = feeRecipient;\\r\\n        feeRecipient = newRecipient;\\r\\n\\r\\n        emit FeeRecipientUpdated(oldRecipient, newRecipient);\\r\\n    }\\r\\n\\r\\n    /**\\r\\n     * @notice Updates the fee basis points\\r\\n     * @dev Only callable by contract owner\\r\\n     * @param newFeeBps New fee in basis points (100 = 1%)\\r\\n     */\\r\\n    function setFeeBasisPoints(uint256 newFeeBps) external onlyOwner {\\r\\n        require(newFeeBps <= MAX_FEE_BPS, \\\"BridgedSIXR: fee too high\\\");\\r\\n\\r\\n        uint256 oldFeeBps = feeBasisPoints;\\r\\n        feeBasisPoints = newFeeBps;\\r\\n\\r\\n        emit FeeBasisPointsUpdated(oldFeeBps, newFeeBps);\\r\\n    }\\r\\n\\r\\n    /**\\r\\n     * @notice Mints tokens to an address\\r\\n     * @dev Only callable by contract owner (bridge multisig)\\r\\n     * Used when bridging from TON to EVM\\r\\n     * @param to Recipient address\\r\\n     * @param amount Amount to mint (18 decimals)\\r\\n     */\\r\\n    function mint(address to, uint256 amount) external onlyOwner {\\r\\n        _mint(to, amount);\\r\\n    }\\r\\n\\r\\n    /**\\r\\n     * @notice Calculates fee for a given amount\\r\\n     * @param amount Amount in 18 decimals\\r\\n     * @return fee Fee amount in 18 decimals\\r\\n     */\\r\\n    function calculateFee(uint256 amount) external view returns (uint256 fee) {\\r\\n        return (amount * feeBasisPoints) / BPS_DENOMINATOR;\\r\\n    }\\r\\n\\r\\n    /**\\r\\n     * @notice Calculates amount after fee deduction\\r\\n     * @param amount Amount in 18 decimals (before fee)\\r\\n     * @return amountAfterFee Amount after fee in 18 decimals\\r\\n     */\\r\\n    function calculateAmountAfterFee(uint256 amount) external view returns (uint256 amountAfterFee) {\\r\\n        uint256 fee = (amount * feeBasisPoints) / BPS_DENOMINATOR;\\r\\n        return amount - fee;\\r\\n    }\\r\\n}\\r\\n\",\"keccak256\":\"0xcdd7992adf397ea3601066dbb44cde50192cc0211601be1846905d811c4a8d83\",\"license\":\"UNLICENSED\"}},\"version\":1}",
+  "bytecode": "0x60806040523480156200001157600080fd5b506040516200131f3803806200131f8339810160408190526200003491620002b7565b8285856003620000458382620003e1565b506004620000548282620003e1565b5050506001600160a01b0381166200008757604051631e4fbdf760e01b8152600060048201526024015b60405180910390fd5b620000928162000180565b506001600160a01b038216620000fe5760405162461bcd60e51b815260206004820152602a60248201527f42726964676564534958523a2066656520726563697069656e74206973207a65604482015269726f206164647265737360b01b60648201526084016200007e565b6103e8811115620001525760405162461bcd60e51b815260206004820152601960248201527f42726964676564534958523a2066656520746f6f20686967680000000000000060448201526064016200007e565b600680546001600160a01b0319166001600160a01b03939093169290921790915560075550620004ad915050565b600580546001600160a01b038381166001600160a01b0319831681179093556040519116919082907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e090600090a35050565b634e487b7160e01b600052604160045260246000fd5b600082601f830112620001fa57600080fd5b81516001600160401b0380821115620002175762000217620001d2565b604051601f8301601f19908116603f01168101908282118183101715620002425762000242620001d2565b81604052838152602092508660208588010111156200026057600080fd5b600091505b8382101562000284578582018301518183018401529082019062000265565b6000602085830101528094505050505092915050565b80516001600160a01b0381168114620002b257600080fd5b919050565b600080600080600060a08688031215620002d057600080fd5b85516001600160401b0380821115620002e857600080fd5b620002f689838a01620001e8565b965060208801519150808211156200030d57600080fd5b506200031c88828901620001e8565b9450506200032d604087016200029a565b92506200033d606087016200029a565b9150608086015190509295509295909350565b600181811c908216806200036557607f821691505b6020821081036200038657634e487b7160e01b600052602260045260246000fd5b50919050565b601f821115620003dc576000816000526020600020601f850160051c81016020861015620003b75750805b601f850160051c820191505b81811015620003d857828155600101620003c3565b5050505b505050565b81516001600160401b03811115620003fd57620003fd620001d2565b62000415816200040e845462000350565b846200038c565b602080601f8311600181146200044d5760008415620004345750858301515b600019600386901b1c1916600185901b178555620003d8565b600085815260208120601f198616915b828110156200047e578886015182559484019460019091019084016200045d565b50858210156200049d5787850151600019600388901b60f8161c191681555b5050505050600190811b01905550565b610e6280620004bd6000396000f3fe608060405234801561001057600080fd5b50600436106101375760003560e01c8063715018a6116100b8578063b8606eef1161007c578063b8606eef14610287578063d55be8c614610290578063dd62ed3e14610299578063e74b981b146102d2578063f2fde38b146102e5578063fd4075b3146102f857600080fd5b8063715018a6146102405780638da5cb5b1461024857806395d89b411461025957806399a5d74714610261578063a9059cbb1461027457600080fd5b8063313ce567116100ff578063313ce567146101b7578063340a599d146101c657806340c10f19146101d957806346904840146101ec57806370a082311461021757600080fd5b80630165dd271461013c57806306fdde0314610151578063095ea7b31461016f57806318160ddd1461019257806323b872dd146101a4575b600080fd5b61014f61014a366004610b8d565b61030b565b005b6101596103af565b6040516101669190610ba6565b60405180910390f35b61018261017d366004610c11565b610441565b6040519015158152602001610166565b6002545b604051908152602001610166565b6101826101b2366004610c3b565b61045b565b60405160128152602001610166565b6101966101d4366004610b8d565b61047f565b61014f6101e7366004610c11565b6104b0565b6006546101ff906001600160a01b031681565b6040516001600160a01b039091168152602001610166565b610196610225366004610c77565b6001600160a01b031660009081526020819052604090205490565b61014f6104c6565b6005546001600160a01b03166101ff565b6101596104da565b61019661026f366004610b8d565b6104e9565b610182610282366004610c11565b610506565b61019660075481565b6101966103e881565b6101966102a7366004610c92565b6001600160a01b03918216600090815260016020908152604080832093909416825291909152205490565b61014f6102e0366004610c77565b610514565b61014f6102f3366004610c77565b6105d7565b61014f610306366004610cc5565b610615565b6103136107b3565b6103e881111561036a5760405162461bcd60e51b815260206004820152601960248201527f42726964676564534958523a2066656520746f6f20686967680000000000000060448201526064015b60405180910390fd5b600780549082905560408051828152602081018490527fa000bd133a155b02a7bc4f0592fdaf6cfb67ae19c4176c6cbc7bdafda544817d910160405180910390a15050565b6060600380546103be90610d3d565b80601f01602080910402602001604051908101604052809291908181526020018280546103ea90610d3d565b80156104375780601f1061040c57610100808354040283529160200191610437565b820191906000526020600020905b81548152906001019060200180831161041a57829003601f168201915b5050505050905090565b60003361044f8185856107e0565b60019150505b92915050565b6000336104698582856107f2565b610474858585610871565b506001949350505050565b600080612710600754846104939190610d8d565b61049d9190610da4565b90506104a98184610dc6565b9392505050565b6104b86107b3565b6104c282826108d0565b5050565b6104ce6107b3565b6104d86000610906565b565b6060600480546103be90610d3d565b6000612710600754836104fc9190610d8d565b6104559190610da4565b60003361044f818585610871565b61051c6107b3565b6001600160a01b0381166105855760405162461bcd60e51b815260206004820152602a60248201527f42726964676564534958523a2066656520726563697069656e74206973207a65604482015269726f206164647265737360b01b6064820152608401610361565b600680546001600160a01b038381166001600160a01b0319831681179093556040519116919082907faaebcf1bfa00580e41d966056b48521fa9f202645c86d4ddf28113e617c1b1d390600090a35050565b6105df6107b3565b6001600160a01b03811661060957604051631e4fbdf760e01b815260006004820152602401610361565b61061281610906565b50565b600081116106655760405162461bcd60e51b815260206004820152601b60248201527f42726964676564534958523a20616d6f756e74206973207a65726f00000000006044820152606401610361565b816106b25760405162461bcd60e51b815260206004820152601f60248201527f42726964676564534958523a20726563697069656e7420697320656d707479006044820152606401610361565b6000612710600754836106c59190610d8d565b6106cf9190610da4565b905060006106dd8284610dc6565b90506000811161073d5760405162461bcd60e51b815260206004820152602560248201527f42726964676564534958523a20616d6f756e7420616674657220666565206973604482015264207a65726f60d81b6064820152608401610361565b811561075b5760065461075b9033906001600160a01b031684610871565b6107653382610958565b336001600160a01b03167f7691ebb02c9f0ec3302fabf9c433f0539d95725d6ef19576e9dfdb22da256e05868684866040516107a49493929190610dd9565b60405180910390a25050505050565b6005546001600160a01b031633146104d85760405163118cdaa760e01b8152336004820152602401610361565b6107ed838383600161098e565b505050565b6001600160a01b0383811660009081526001602090815260408083209386168352929052205460001981101561086b578181101561085c57604051637dc7a0d960e11b81526001600160a01b03841660048201526024810182905260448101839052606401610361565b61086b8484848403600061098e565b50505050565b6001600160a01b03831661089b57604051634b637e8f60e11b815260006004820152602401610361565b6001600160a01b0382166108c55760405163ec442f0560e01b815260006004820152602401610361565b6107ed838383610a63565b6001600160a01b0382166108fa5760405163ec442f0560e01b815260006004820152602401610361565b6104c260008383610a63565b600580546001600160a01b038381166001600160a01b0319831681179093556040519116919082907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e090600090a35050565b6001600160a01b03821661098257604051634b637e8f60e11b815260006004820152602401610361565b6104c282600083610a63565b6001600160a01b0384166109b85760405163e602df0560e01b815260006004820152602401610361565b6001600160a01b0383166109e257604051634a1406b160e11b815260006004820152602401610361565b6001600160a01b038085166000908152600160209081526040808320938716835292905220829055801561086b57826001600160a01b0316846001600160a01b03167f8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b92584604051610a5591815260200190565b60405180910390a350505050565b6001600160a01b038316610a8e578060026000828254610a839190610e19565b90915550610b009050565b6001600160a01b03831660009081526020819052604090205481811015610ae15760405163391434e360e21b81526001600160a01b03851660048201526024810182905260448101839052606401610361565b6001600160a01b03841660009081526020819052604090209082900390555b6001600160a01b038216610b1c57600280548290039055610b3b565b6001600160a01b03821660009081526020819052604090208054820190555b816001600160a01b0316836001600160a01b03167fddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef83604051610b8091815260200190565b60405180910390a3505050565b600060208284031215610b9f57600080fd5b5035919050565b60006020808352835180602085015260005b81811015610bd457858101830151858201604001528201610bb8565b506000604082860101526040601f19601f8301168501019250505092915050565b80356001600160a01b0381168114610c0c57600080fd5b919050565b60008060408385031215610c2457600080fd5b610c2d83610bf5565b946020939093013593505050565b600080600060608486031215610c5057600080fd5b610c5984610bf5565b9250610c6760208501610bf5565b9150604084013590509250925092565b600060208284031215610c8957600080fd5b6104a982610bf5565b60008060408385031215610ca557600080fd5b610cae83610bf5565b9150610cbc60208401610bf5565b90509250929050565b600080600060408486031215610cda57600080fd5b833567ffffffffffffffff80821115610cf257600080fd5b818601915086601f830112610d0657600080fd5b813581811115610d1557600080fd5b876020828501011115610d2757600080fd5b6020928301989097509590910135949350505050565b600181811c90821680610d5157607f821691505b602082108103610d7157634e487b7160e01b600052602260045260246000fd5b50919050565b634e487b7160e01b600052601160045260246000fd5b808202811582820484141761045557610455610d77565b600082610dc157634e487b7160e01b600052601260045260246000fd5b500490565b8181038181111561045557610455610d77565b606081528360608201528385608083013760006080858301015260006080601f19601f870116830101905083602083015282604083015295945050505050565b8082018082111561045557610455610d7756fea26469706673582212201a8947baa312084f1eb3419f8463c4317f4ff688ff43b6d37813e3831eaf2d8c64736f6c63430008160033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106101375760003560e01c8063715018a6116100b8578063b8606eef1161007c578063b8606eef14610287578063d55be8c614610290578063dd62ed3e14610299578063e74b981b146102d2578063f2fde38b146102e5578063fd4075b3146102f857600080fd5b8063715018a6146102405780638da5cb5b1461024857806395d89b411461025957806399a5d74714610261578063a9059cbb1461027457600080fd5b8063313ce567116100ff578063313ce567146101b7578063340a599d146101c657806340c10f19146101d957806346904840146101ec57806370a082311461021757600080fd5b80630165dd271461013c57806306fdde0314610151578063095ea7b31461016f57806318160ddd1461019257806323b872dd146101a4575b600080fd5b61014f61014a366004610b8d565b61030b565b005b6101596103af565b6040516101669190610ba6565b60405180910390f35b61018261017d366004610c11565b610441565b6040519015158152602001610166565b6002545b604051908152602001610166565b6101826101b2366004610c3b565b61045b565b60405160128152602001610166565b6101966101d4366004610b8d565b61047f565b61014f6101e7366004610c11565b6104b0565b6006546101ff906001600160a01b031681565b6040516001600160a01b039091168152602001610166565b610196610225366004610c77565b6001600160a01b031660009081526020819052604090205490565b61014f6104c6565b6005546001600160a01b03166101ff565b6101596104da565b61019661026f366004610b8d565b6104e9565b610182610282366004610c11565b610506565b61019660075481565b6101966103e881565b6101966102a7366004610c92565b6001600160a01b03918216600090815260016020908152604080832093909416825291909152205490565b61014f6102e0366004610c77565b610514565b61014f6102f3366004610c77565b6105d7565b61014f610306366004610cc5565b610615565b6103136107b3565b6103e881111561036a5760405162461bcd60e51b815260206004820152601960248201527f42726964676564534958523a2066656520746f6f20686967680000000000000060448201526064015b60405180910390fd5b600780549082905560408051828152602081018490527fa000bd133a155b02a7bc4f0592fdaf6cfb67ae19c4176c6cbc7bdafda544817d910160405180910390a15050565b6060600380546103be90610d3d565b80601f01602080910402602001604051908101604052809291908181526020018280546103ea90610d3d565b80156104375780601f1061040c57610100808354040283529160200191610437565b820191906000526020600020905b81548152906001019060200180831161041a57829003601f168201915b5050505050905090565b60003361044f8185856107e0565b60019150505b92915050565b6000336104698582856107f2565b610474858585610871565b506001949350505050565b600080612710600754846104939190610d8d565b61049d9190610da4565b90506104a98184610dc6565b9392505050565b6104b86107b3565b6104c282826108d0565b5050565b6104ce6107b3565b6104d86000610906565b565b6060600480546103be90610d3d565b6000612710600754836104fc9190610d8d565b6104559190610da4565b60003361044f818585610871565b61051c6107b3565b6001600160a01b0381166105855760405162461bcd60e51b815260206004820152602a60248201527f42726964676564534958523a2066656520726563697069656e74206973207a65604482015269726f206164647265737360b01b6064820152608401610361565b600680546001600160a01b038381166001600160a01b0319831681179093556040519116919082907faaebcf1bfa00580e41d966056b48521fa9f202645c86d4ddf28113e617c1b1d390600090a35050565b6105df6107b3565b6001600160a01b03811661060957604051631e4fbdf760e01b815260006004820152602401610361565b61061281610906565b50565b600081116106655760405162461bcd60e51b815260206004820152601b60248201527f42726964676564534958523a20616d6f756e74206973207a65726f00000000006044820152606401610361565b816106b25760405162461bcd60e51b815260206004820152601f60248201527f42726964676564534958523a20726563697069656e7420697320656d707479006044820152606401610361565b6000612710600754836106c59190610d8d565b6106cf9190610da4565b905060006106dd8284610dc6565b90506000811161073d5760405162461bcd60e51b815260206004820152602560248201527f42726964676564534958523a20616d6f756e7420616674657220666565206973604482015264207a65726f60d81b6064820152608401610361565b811561075b5760065461075b9033906001600160a01b031684610871565b6107653382610958565b336001600160a01b03167f7691ebb02c9f0ec3302fabf9c433f0539d95725d6ef19576e9dfdb22da256e05868684866040516107a49493929190610dd9565b60405180910390a25050505050565b6005546001600160a01b031633146104d85760405163118cdaa760e01b8152336004820152602401610361565b6107ed838383600161098e565b505050565b6001600160a01b0383811660009081526001602090815260408083209386168352929052205460001981101561086b578181101561085c57604051637dc7a0d960e11b81526001600160a01b03841660048201526024810182905260448101839052606401610361565b61086b8484848403600061098e565b50505050565b6001600160a01b03831661089b57604051634b637e8f60e11b815260006004820152602401610361565b6001600160a01b0382166108c55760405163ec442f0560e01b815260006004820152602401610361565b6107ed838383610a63565b6001600160a01b0382166108fa5760405163ec442f0560e01b815260006004820152602401610361565b6104c260008383610a63565b600580546001600160a01b038381166001600160a01b0319831681179093556040519116919082907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e090600090a35050565b6001600160a01b03821661098257604051634b637e8f60e11b815260006004820152602401610361565b6104c282600083610a63565b6001600160a01b0384166109b85760405163e602df0560e01b815260006004820152602401610361565b6001600160a01b0383166109e257604051634a1406b160e11b815260006004820152602401610361565b6001600160a01b038085166000908152600160209081526040808320938716835292905220829055801561086b57826001600160a01b0316846001600160a01b03167f8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b92584604051610a5591815260200190565b60405180910390a350505050565b6001600160a01b038316610a8e578060026000828254610a839190610e19565b90915550610b009050565b6001600160a01b03831660009081526020819052604090205481811015610ae15760405163391434e360e21b81526001600160a01b03851660048201526024810182905260448101839052606401610361565b6001600160a01b03841660009081526020819052604090209082900390555b6001600160a01b038216610b1c57600280548290039055610b3b565b6001600160a01b03821660009081526020819052604090208054820190555b816001600160a01b0316836001600160a01b03167fddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef83604051610b8091815260200190565b60405180910390a3505050565b600060208284031215610b9f57600080fd5b5035919050565b60006020808352835180602085015260005b81811015610bd457858101830151858201604001528201610bb8565b506000604082860101526040601f19601f8301168501019250505092915050565b80356001600160a01b0381168114610c0c57600080fd5b919050565b60008060408385031215610c2457600080fd5b610c2d83610bf5565b946020939093013593505050565b600080600060608486031215610c5057600080fd5b610c5984610bf5565b9250610c6760208501610bf5565b9150604084013590509250925092565b600060208284031215610c8957600080fd5b6104a982610bf5565b60008060408385031215610ca557600080fd5b610cae83610bf5565b9150610cbc60208401610bf5565b90509250929050565b600080600060408486031215610cda57600080fd5b833567ffffffffffffffff80821115610cf257600080fd5b818601915086601f830112610d0657600080fd5b813581811115610d1557600080fd5b876020828501011115610d2757600080fd5b6020928301989097509590910135949350505050565b600181811c90821680610d5157607f821691505b602082108103610d7157634e487b7160e01b600052602260045260246000fd5b50919050565b634e487b7160e01b600052601160045260246000fd5b808202811582820484141761045557610455610d77565b600082610dc157634e487b7160e01b600052601260045260246000fd5b500490565b8181038181111561045557610455610d77565b606081528360608201528385608083013760006080858301015260006080601f19601f870116830101905083602083015282604083015295945050505050565b8082018082111561045557610455610d7756fea26469706673582212201a8947baa312084f1eb3419f8463c4317f4ff688ff43b6d37813e3831eaf2d8c64736f6c63430008160033",
+  "devdoc": {
+    "errors": {
+      "ERC20InsufficientAllowance(address,uint256,uint256)": [
+        {
+          "details": "Indicates a failure with the `spender`’s `allowance`. Used in transfers.",
+          "params": {
+            "allowance": "Amount of tokens a `spender` is allowed to operate with.",
+            "needed": "Minimum amount required to perform a transfer.",
+            "spender": "Address that may be allowed to operate on tokens without being their owner."
+          }
+        }
+      ],
+      "ERC20InsufficientBalance(address,uint256,uint256)": [
+        {
+          "details": "Indicates an error related to the current `balance` of a `sender`. Used in transfers.",
+          "params": {
+            "balance": "Current balance for the interacting account.",
+            "needed": "Minimum amount required to perform a transfer.",
+            "sender": "Address whose tokens are being transferred."
+          }
+        }
+      ],
+      "ERC20InvalidApprover(address)": [
+        {
+          "details": "Indicates a failure with the `approver` of a token to be approved. Used in approvals.",
+          "params": {
+            "approver": "Address initiating an approval operation."
+          }
+        }
+      ],
+      "ERC20InvalidReceiver(address)": [
+        {
+          "details": "Indicates a failure with the token `receiver`. Used in transfers.",
+          "params": {
+            "receiver": "Address to which tokens are being transferred."
+          }
+        }
+      ],
+      "ERC20InvalidSender(address)": [
+        {
+          "details": "Indicates a failure with the token `sender`. Used in transfers.",
+          "params": {
+            "sender": "Address whose tokens are being transferred."
+          }
+        }
+      ],
+      "ERC20InvalidSpender(address)": [
+        {
+          "details": "Indicates a failure with the `spender` to be approved. Used in approvals.",
+          "params": {
+            "spender": "Address that may be allowed to operate on tokens without being their owner."
+          }
+        }
+      ],
+      "OwnableInvalidOwner(address)": [
+        {
+          "details": "The owner is not a valid owner account. (eg. `address(0)`)"
+        }
+      ],
+      "OwnableUnauthorizedAccount(address)": [
+        {
+          "details": "The caller account is not authorized to perform an operation."
+        }
+      ]
+    },
+    "events": {
+      "Approval(address,address,uint256)": {
+        "details": "Emitted when the allowance of a `spender` for an `owner` is set by a call to {approve}. `value` is the new allowance."
+      },
+      "FeeBasisPointsUpdated(uint256,uint256)": {
+        "params": {
+          "newFeeBps": "New fee basis points",
+          "oldFeeBps": "Previous fee basis points"
+        }
+      },
+      "FeeRecipientUpdated(address,address)": {
+        "params": {
+          "newRecipient": "New fee recipient",
+          "oldRecipient": "Previous fee recipient"
+        }
+      },
+      "RedeemToTon(address,string,uint256,uint256)": {
+        "params": {
+          "amount": "Amount after fee deduction (18 decimals)",
+          "fee": "Fee amount kept on EVM (18 decimals)",
+          "from": "Address that burned tokens on EVM",
+          "tonRecipient": "TON address that will receive minted jettons"
+        }
+      },
+      "Transfer(address,address,uint256)": {
+        "details": "Emitted when `value` tokens are moved from one account (`from`) to another (`to`). Note that `value` may be zero."
+      }
+    },
+    "kind": "dev",
+    "methods": {
+      "allowance(address,address)": {
+        "details": "Returns the remaining number of tokens that `spender` will be allowed to spend on behalf of `owner` through {transferFrom}. This is zero by default. This value changes when {approve} or {transferFrom} are called."
+      },
+      "approve(address,uint256)": {
+        "details": "See {IERC20-approve}. NOTE: If `value` is the maximum `uint256`, the allowance is not updated on `transferFrom`. This is semantically equivalent to an infinite approval. Requirements: - `spender` cannot be the zero address."
+      },
+      "balanceOf(address)": {
+        "details": "Returns the value of tokens owned by `account`."
+      },
+      "calculateAmountAfterFee(uint256)": {
+        "params": {
+          "amount": "Amount in 18 decimals (before fee)"
+        },
+        "returns": {
+          "amountAfterFee": "Amount after fee in 18 decimals"
+        }
+      },
+      "calculateFee(uint256)": {
+        "params": {
+          "amount": "Amount in 18 decimals"
+        },
+        "returns": {
+          "fee": "Fee amount in 18 decimals"
+        }
+      },
+      "decimals()": {
+        "details": "Returns the number of decimals used to get its user representation. For example, if `decimals` equals `2`, a balance of `505` tokens should be displayed to a user as `5.05` (`505 / 10 ** 2`). Tokens usually opt for a value of 18, imitating the relationship between Ether and Wei. This is the default value returned by this function, unless it's overridden. NOTE: This information is only used for _display_ purposes: it in no way affects any of the arithmetic of the contract, including {IERC20-balanceOf} and {IERC20-transfer}."
+      },
+      "mint(address,uint256)": {
+        "details": "Only callable by contract owner (bridge multisig) Used when bridging from TON to EVM",
+        "params": {
+          "amount": "Amount to mint (18 decimals)",
+          "to": "Recipient address"
+        }
+      },
+      "name()": {
+        "details": "Returns the name of the token."
+      },
+      "owner()": {
+        "details": "Returns the address of the current owner."
+      },
+      "redeemToTon(string,uint256)": {
+        "details": "Burns user's tokens, keeps fee on EVM, emits event for bridge watcher Flow: 1. Calculate fee amount 2. Transfer fee to feeRecipient 3. Burn remaining amount 4. Emit RedeemToTon event with net amount for bridge",
+        "params": {
+          "amount": "Amount to redeem in 18 decimals (before fee)",
+          "tonRecipient": "TON address in user-friendly format (EQ... or UQ...)"
+        }
+      },
+      "renounceOwnership()": {
+        "details": "Leaves the contract without owner. It will not be possible to call `onlyOwner` functions. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby disabling any functionality that is only available to the owner."
+      },
+      "setFeeBasisPoints(uint256)": {
+        "details": "Only callable by contract owner",
+        "params": {
+          "newFeeBps": "New fee in basis points (100 = 1%)"
+        }
+      },
+      "setFeeRecipient(address)": {
+        "details": "Only callable by contract owner",
+        "params": {
+          "newRecipient": "New fee recipient address"
+        }
+      },
+      "symbol()": {
+        "details": "Returns the symbol of the token, usually a shorter version of the name."
+      },
+      "totalSupply()": {
+        "details": "Returns the value of tokens in existence."
+      },
+      "transfer(address,uint256)": {
+        "details": "See {IERC20-transfer}. Requirements: - `to` cannot be the zero address. - the caller must have a balance of at least `value`."
+      },
+      "transferFrom(address,address,uint256)": {
+        "details": "See {IERC20-transferFrom}. Skips emitting an {Approval} event indicating an allowance update. This is not required by the ERC. See {xref-ERC20-_approve-address-address-uint256-bool-}[_approve]. NOTE: Does not update the allowance if the current allowance is the maximum `uint256`. Requirements: - `from` and `to` cannot be the zero address. - `from` must have a balance of at least `value`. - the caller must have allowance for ``from``'s tokens of at least `value`."
+      },
+      "transferOwnership(address)": {
+        "details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
+      }
+    },
+    "title": "BridgedSIXR",
+    "version": 1
+  },
+  "userdoc": {
+    "events": {
+      "FeeBasisPointsUpdated(uint256,uint256)": {
+        "notice": "Emitted when fee basis points are updated"
+      },
+      "FeeRecipientUpdated(address,address)": {
+        "notice": "Emitted when fee recipient is updated"
+      },
+      "RedeemToTon(address,string,uint256,uint256)": {
+        "notice": "Emitted when tokens are redeemed to TON (EVM→TON bridge)"
+      }
+    },
+    "kind": "user",
+    "methods": {
+      "MAX_FEE_BPS()": {
+        "notice": "Maximum allowed fee (10% = 1000 basis points)"
+      },
+      "calculateAmountAfterFee(uint256)": {
+        "notice": "Calculates amount after fee deduction"
+      },
+      "calculateFee(uint256)": {
+        "notice": "Calculates fee for a given amount"
+      },
+      "feeBasisPoints()": {
+        "notice": "Fee in basis points (100 = 1%, 10000 = 100%)"
+      },
+      "feeRecipient()": {
+        "notice": "Address that receives accumulated fees"
+      },
+      "mint(address,uint256)": {
+        "notice": "Mints tokens to an address"
+      },
+      "redeemToTon(string,uint256)": {
+        "notice": "Redeems tokens to TON blockchain with fee"
+      },
+      "setFeeBasisPoints(uint256)": {
+        "notice": "Updates the fee basis points"
+      },
+      "setFeeRecipient(address)": {
+        "notice": "Updates the fee recipient address"
+      }
+    },
+    "notice": "ERC-20 representation of SIXR jetton bridged from TON This contract implements: - Standard ERC-20 functionality - TON bridge integration via redeemToTon() with configurable fee - Owner-controlled minting (BridgeMultisig mints on TON→EVM bridge) Fee mechanism: - EVM → TON: Fee stays on EVM (transferred to feeRecipient), rest is burned - TON → EVM: BridgeMultisig mints tokens to recipient (no fee on this direction)",
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 332,
+        "contract": "contracts/evm/BridgedSIXR.sol:BridgedSIXR",
+        "label": "_balances",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_mapping(t_address,t_uint256)"
+      },
+      {
+        "astId": 338,
+        "contract": "contracts/evm/BridgedSIXR.sol:BridgedSIXR",
+        "label": "_allowances",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))"
+      },
+      {
+        "astId": 340,
+        "contract": "contracts/evm/BridgedSIXR.sol:BridgedSIXR",
+        "label": "_totalSupply",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 342,
+        "contract": "contracts/evm/BridgedSIXR.sol:BridgedSIXR",
+        "label": "_name",
+        "offset": 0,
+        "slot": "3",
+        "type": "t_string_storage"
+      },
+      {
+        "astId": 344,
+        "contract": "contracts/evm/BridgedSIXR.sol:BridgedSIXR",
+        "label": "_symbol",
+        "offset": 0,
+        "slot": "4",
+        "type": "t_string_storage"
+      },
+      {
+        "astId": 8,
+        "contract": "contracts/evm/BridgedSIXR.sol:BridgedSIXR",
+        "label": "_owner",
+        "offset": 0,
+        "slot": "5",
+        "type": "t_address"
+      },
+      {
+        "astId": 8317,
+        "contract": "contracts/evm/BridgedSIXR.sol:BridgedSIXR",
+        "label": "feeRecipient",
+        "offset": 0,
+        "slot": "6",
+        "type": "t_address"
+      },
+      {
+        "astId": 8320,
+        "contract": "contracts/evm/BridgedSIXR.sol:BridgedSIXR",
+        "label": "feeBasisPoints",
+        "offset": 0,
+        "slot": "7",
+        "type": "t_uint256"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => mapping(address => uint256))",
+        "numberOfBytes": "32",
+        "value": "t_mapping(t_address,t_uint256)"
+      },
+      "t_mapping(t_address,t_uint256)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => uint256)",
+        "numberOfBytes": "32",
+        "value": "t_uint256"
+      },
+      "t_string_storage": {
+        "encoding": "bytes",
+        "label": "string",
+        "numberOfBytes": "32"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      }
+    }
+  }
+}

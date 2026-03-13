@@ -1,0 +1,9 @@
+node_modules
+cache
+artifacts
+.env
+artifacts
+cache
+error-log.json
+deployment-metrics.json
+recipients.json

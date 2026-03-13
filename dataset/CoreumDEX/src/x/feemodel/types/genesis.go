@@ -1,0 +1,26 @@
+package types
+
+import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/pkg/errors"
+)
+
+// DefaultGenesisState returns genesis state with default values.
+func DefaultGenesisState() *GenesisState {
+	params := DefaultParams()
+	return &GenesisState{
+		Params:      params,
+		MinGasPrice: sdk.NewDecCoinFromDec(sdk.DefaultBondDenom, params.Model.InitialGasPrice),
+	}
+}
+
+// Validate validates genesis parameters.
+func (m *GenesisState) Validate() error {
+	if err := m.MinGasPrice.Validate(); err != nil {
+		return errors.WithStack(err)
+	}
+	if !m.MinGasPrice.IsPositive() {
+		return errors.New("min gas price must be positive")
+	}
+	return m.Params.ValidateBasic()
+}

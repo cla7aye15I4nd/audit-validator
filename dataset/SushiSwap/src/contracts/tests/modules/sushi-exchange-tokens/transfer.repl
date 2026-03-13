@@ -1,0 +1,51 @@
+(env-enable-repl-natives true)
+
+(begin-tx "transfer test")
+    (env-data {
+    "ns": "sushi",
+    "admin-keyset": {"keys": ["admin-public-key"], "pred": "keys-all"}
+    })
+    (namespace (read-msg "ns"))
+    (use base)
+    (env-sigs [{"key": ADMIN_KEY, "caps": [
+        (sushi-exchange-tokens.TRANSFER "TEST1" ADMIN ALICE 100.0)
+    ]}])
+    (let ((initial-balance-admin (sushi-exchange-tokens.get-balance "TEST1" ADMIN))
+        (initial-balance-alice (sushi-exchange-tokens.get-balance "TEST1" ALICE))
+        (result (sushi-exchange-tokens.transfer "TEST1" ADMIN ALICE 100.0)))
+        (expect "transfer should succeed when using admin's keyset"
+            "Write succeeded"
+            result)
+        (expect "balance should decrease by 100.0"
+            (- initial-balance-admin 100.0)
+            (sushi-exchange-tokens.get-balance "TEST1" ADMIN))
+        (expect "balance should increase by 100.0"
+            (+ initial-balance-alice 100.0)
+            (sushi-exchange-tokens.get-balance "TEST1" ALICE)))
+(commit-tx)
+
+
+(begin-tx "transfer test for alice to bob")
+    (env-data {
+    "ns": "sushi",
+    "alice-keyset": {"keys": ["alice-public-key"], "pred": "keys-all"},
+    "bob-keyset": {"keys": ["bob-public-key"], "pred": "keys-all"}
+    })
+    (namespace (read-msg "ns"))
+    (use base)
+    (env-sigs [{"key": ALICE_KEY, "caps": [
+        (sushi-exchange-tokens.TRANSFER "TEST1" ALICE BOB 100.0)
+    ]}])
+    (let ((initial-balance-alice (sushi-exchange-tokens.get-balance "TEST1" ALICE))
+        (initial-balance-bob (sushi-exchange-tokens.get-balance "TEST1" BOB))
+        (result (sushi-exchange-tokens.transfer "TEST1" ALICE BOB 100.0)))
+        (expect "transfer should succeed when using alice's keyset"
+            "Write succeeded"
+            result)
+        (expect "balance should decrease by 100.0"
+            (- initial-balance-alice 100.0)
+            (sushi-exchange-tokens.get-balance "TEST1" ALICE))
+        (expect "balance should increase by 100.0"
+            (+ initial-balance-bob 100.0)
+            (sushi-exchange-tokens.get-balance "TEST1" BOB)))
+(commit-tx)

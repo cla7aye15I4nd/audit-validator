@@ -1,0 +1,33 @@
+{
+  "title": "Failure to Swap Fees Leads to Locked Tokens in Contract",
+  "location": {
+    "local_file_path": "./src/InvestmentManager.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/a41cefe0-4159-11f0-a06b-992008d4f8aa/source?file=$/github/fivepillarstoken/InvestmentManager/9af8be2c4e53218770015a10ea269caa904fde19/InvestmentManager.sol",
+    "start_line": 1,
+    "end_line": 1
+  },
+  "all_locations": null,
+  "category": "",
+  "severity": "medium",
+  "confidence": null,
+  "description": "The `claimReward` function mints fee tokens directly to the contract and then immediately attempts to swap them for ETH via `_trySendFees`. If this swap fails for any reason (e.g., unfavorable market conditions, insufficient liquidity), the function simply returns. The minted fee tokens are not reverted; they remain in the contract's balance. Since there is no other mechanism to withdraw these specific tokens, they become effectively locked, and the balance update (minting) does not lead to the intended outcome of fee distribution.Decouple fee collection from the swap and distribution process. Instead of minting fees and immediately trying to swap them, accumulate the minted fees in the contract. Implement a separate, privileged (owner-only) function to withdraw these collected fee tokens or to execute the swap under more controlled conditions. This ensures that a temporary failure in the DEX interaction does not lead to a permanent lock-up of fee revenue.1. An investor calls `claimReward()`. The contract calculates a `fee` of `100` tokens.\n2. The line `fivePillarsToken.mint(address(this), 100)` executes, increasing the `InvestmentManager` contract's token balance by 100.\n3. The `_trySendFees()` function is called to swap these tokens for ETH and send them to the treasuries.\n4. The swap fails, for example, because the `minSwapPrice` is set too high, or there is not enough liquidity in the DEX.\n5. The `_trySendFees()` function returns early, and the `SwapFeesFailed` event is emitted.\n6. The 100 fee tokens that were minted remain in the `InvestmentManager` contract's possession. They are not transferred to the treasuries as intended.\n7. If this issue persists across many claims, a large balance of fee tokens will become stranded in the contract, representing a loss of revenue for the project. This is an incorrect final state for the fee balance.",
+  "scenario": null,
+  "proof_of_concept": "1. An investor calls `claimReward()`. The contract calculates a `fee` of `100` tokens.\n2. The line `fivePillarsToken.mint(address(this), 100)` executes, increasing the `InvestmentManager` contract's token balance by 100.\n3. The `_trySendFees()` function is called to swap these tokens for ETH and send them to the treasuries.\n4. The swap fails, for example, because the `minSwapPrice` is set too high, or there is not enough liquidity in the DEX.\n5. The `_trySendFees()` function returns early, and the `SwapFeesFailed` event is emitted.\n6. The 100 fee tokens that were minted remain in the `InvestmentManager` contract's possession. They are not transferred to the treasuries as intended.\n7. If this issue persists across many claims, a large balance of fee tokens will become stranded in the contract, representing a loss of revenue for the project. This is an incorrect final state for the fee balance.",
+  "recommendation": "Decouple fee collection from the swap and distribution process. Instead of minting fees and immediately trying to swap them, accumulate the minted fees in the contract. Implement a separate, privileged (owner-only) function to withdraw these collected fee tokens or to execute the swap under more controlled conditions. This ensures that a temporary failure in the DEX interaction does not lead to a permanent lock-up of fee revenue.",
+  "id": "51bb",
+  "duplicates": null,
+  "source": "scanner.token_scanner",
+  "status": "verified_as_valid",
+  "scan_model_name": "o4-mini, gemini-2.5-pro",
+  "related_function_code": "function claimReward() external NotInPoolCriteriaUpdate {\n    // ...\n    (uint256 toInvestor, uint256 fee) = _calcFee(investor.accumulatedReward, claimFeeInBp);\n    // ...\n    fivePillarsToken.mint(address(this), fee);\n    // ...\n    _trySendFees();\n}\n\nfunction _trySendFees() internal {\n    uint256 accumulatedFees = fivePillarsToken.balanceOf(address(this));\n    // ...\n    (bool success, ) = dexRouter.call(abi.encodeWithSelector(\n        IPancakeRouter01.swapExactTokensForETH.selector,\n        // ...\n    ));\n    if (!success) {\n        fivePillarsToken.approve(dexRouter, 0);\n        emit SwapFeesFailed(accumulatedFees);\n        return; // Fee tokens are left in the contract\n    }\n    // ...\n}",
+  "related_context": "",
+  "related_checklist": {
+    "checklist": "Ensure that the total token supply remains consistent before and after each transfer, unless explicitly intended by deflationary mechanisms such as token burning."
+  },
+  "related_pid": "a41cefe0-4159-11f0-a06b-992008d4f8aa",
+  "related_commit_id": "9af8be2c4e53218770015a10ea269caa904fde19",
+  "triage_verdict": "invalid",
+  "triage_severity": "Minor",
+  "triage_reason": null,
+  "is_main_finding": true
+}

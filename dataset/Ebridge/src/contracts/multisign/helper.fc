@@ -1,0 +1,42 @@
+#include "../common/stdlib.fc";
+#include "utils.fc";
+#include "errors.fc";
+#include "op.fc";
+#include "storage.fc";
+
+int validate_dictionary_sequence(cell dict) impure inline {
+    int index = -1;
+    int expected_index = 0;
+    do {
+        (index, slice value, int found?) = dict.udict_get_next?(INDEX_SIZE, index);
+        if (found?) {
+            throw_unless(error::invalid_dictionary_sequence, index == expected_index);
+            expected_index += 1;
+        }
+    } until (~ found?);
+    return expected_index;
+}
+
+() execute_order(cell order_body) impure inline {
+
+    accept_message();
+    slice action = order_body.begin_parse();
+    int action_op = action~load_uint(32);
+    if(action_op == actions::send_message) {
+        int mode = action~load_uint(8);
+        send_raw_message(action~load_ref(), mode);
+        action.end_parse();
+        save_storage();
+    } elseif (action_op == actions::update_multisig_params) {
+        storage::threshold = action~load_index();
+        storage::signers_info = action~load_nonempty_dict();
+        storage::signers_num = validate_dictionary_sequence(storage::signers_info);
+        throw_unless(error::invalid_signers, storage::signers_num >= 1);
+        throw_unless(error::invalid_threshold, storage::threshold > 0);
+        throw_unless(error::invalid_threshold, storage::threshold <= storage::signers_num);
+
+        storage::proposers = action~load_dict();
+        validate_dictionary_sequence(storage::proposers);
+        save_storage();
+    }
+}

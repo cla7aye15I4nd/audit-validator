@@ -1,0 +1,63 @@
+(begin-tx "credit functions")
+(env-data {
+  "ns": "sushi"
+})
+(namespace (read-msg "ns"))
+(use base)
+(env-data {
+  "admin-keyset": {"keys": [ADMIN_KEY], "pred": "keys-all"}
+})
+
+(env-sigs [{"key": 'any, "caps": []}])
+(expect-failure "credit should fail when not granted Credit capability"
+    "require-capability: not granted: (sushi.sushi-exchange-tokens.CREDIT \"alice\")"
+    (sushi-exchange-tokens.credit "TEST1" ALICE ALICE_GUARD 200.0))
+
+;; Set up admin capabilities for minting
+(env-sigs [{"key": ADMIN_KEY, "caps": [
+    (sushi-exchange-tokens.GOVERNANCE),
+    (sushi-exchange-tokens.CREDIT ALICE)
+  ]}])
+(acquire-module-admin sushi-exchange-tokens)
+(let ((balance (sushi-exchange-tokens.get-balance "TEST1" ALICE)))
+  (with-capability (sushi-exchange-tokens.CREDIT ALICE)
+    (sushi-exchange-tokens.credit "TEST1" ALICE ALICE_GUARD 200.0))
+  (expect "Balance should increase by 200.0"
+    (+ balance 200.0)
+    (sushi-exchange-tokens.get-balance "TEST1" ALICE))
+)
+(commit-tx)
+
+(begin-tx "debit functions")
+(env-data {
+  "ns": "sushi"
+})
+(namespace (read-msg "ns"))
+(use base)
+(env-data {
+  "admin-keyset": {"keys": [ADMIN_KEY], "pred": "keys-all"}
+})
+
+(env-sigs [{"key": 'any, "caps": []}])
+(expect-failure "debit should fail when not granted Debit capability"
+    "require-capability: not granted: (sushi.sushi-exchange-tokens.DEBIT \"TEST1\" \"admin\")"
+    (sushi-exchange-tokens.debit "TEST1" ADMIN 200.0))
+
+;; Set up admin capabilities for minting
+(env-sigs [{"key": ADMIN_KEY, "caps": [
+    (sushi-exchange-tokens.GOVERNANCE),
+    (sushi-exchange-tokens.DEBIT "TEST1" ADMIN)
+  ]}])
+(acquire-module-admin sushi-exchange-tokens)
+(let ((balance (sushi-exchange-tokens.get-balance "TEST1" ADMIN)))
+  (with-capability (sushi-exchange-tokens.DEBIT "TEST1" ADMIN)
+    (sushi-exchange-tokens.debit "TEST1" ADMIN 200.0))
+  (expect "Balance should decrease by 200.0"
+    (- balance 200.0)
+    (sushi-exchange-tokens.get-balance "TEST1" ADMIN))
+)
+
+(expect-failure "module admin should not debit other accounts"
+    "require-capability: not granted: (sushi.sushi-exchange-tokens.DEBIT \"TEST1\" \"alice\")"
+    (sushi-exchange-tokens.debit "TEST1" ALICE 200.0))
+(commit-tx)

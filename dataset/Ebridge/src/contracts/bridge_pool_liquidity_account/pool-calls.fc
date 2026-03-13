@@ -1,0 +1,14 @@
+#include "op.fc";
+#include "storage.fc";
+#include "errors.fc";
+#include "../common/stdlib.fc";
+() handle_pool_messages(int op, int query_id, int my_balance, int msg_value, slice in_msg_body) impure inline {
+    if (op == provider_liquidity) {
+        var liquidity = in_msg_body~load_coins();
+        storage::liquidity += liquidity;  
+        save_storage();  
+        return ();
+    }
+
+    throw(WRONG_OP);
+}

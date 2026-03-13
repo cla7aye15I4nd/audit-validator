@@ -1,0 +1,51 @@
+const transfer = 0xf8a7ea5;
+const transfer_notification = 0x7362d09c;
+const excesses = 0xd53276db;
+
+;; bridge pool
+const lock = "lock"c;
+const lock_native_token = "lock_native_token"c;
+const release = "release"c;
+const release_native_token = "release_native_token"c;
+const add_liquidity = "add_liquidity"c;
+const add_native_token_liquidity = "add_native_token_liquidity"c;
+const remove_liquidity = "remove_liquidity"c;
+const remove_native_token_liquidity = "remove_native_token_liquidity"c;
+
+;; bridge receipt
+const record_receipt = "record_receipt"c;
+
+;; bridge swap
+const swap_ok = "swap_ok"c;
+const swap_failed = "swap_failed"c;
+const record_swap = "record_swap"c;
+
+
+;; bridge liquidity account
+const provider_liquidity = "provider_liquidity"c;
+
+
+;; admin
+const set_daily_limit_config = "set_daily_limit_config"c;
+const set_rate_limit_config = "set_rate_limit_config"c;
+const set_bridge_swap = "set_bridge_swap"c;
+const set_bridge = "set_bridge"c;
+const set_jetton_wallet_address = "set_jetton_wallet_address"c;
+
+const init_code_upgrade = "init_code_upgrade"c;
+const init_owner_upgrade = "init_owner_upgrade"c;
+const init_admin_upgrade = "init_admin_upgrade"c;
+
+const cancel_code_upgrade = "cancel_code_upgrade"c;
+const cancel_owner_upgrade = "cancel_owner_upgrade"c;
+const cancel_admin_upgrade = "cancel_admin_upgrade"c;
+const finalize_upgrades = "finalize_upgrades"c;
+
+;; async "get" calls
+const getter_pool_data = "getter_pool_data"c;
+const getter_pool_liquidity_account_address = "getter_pool_liquidity_account_address"c;
+const getter_receipt_daily_limit = "getter_receipt_daily_limit"c;
+const getter_swap_daily_limit = "getter_swap_daily_limit"c;
+const getter_receipt_rate_limit_state = "getter_receipt_rate_limit_state"c;
+const getter_swap_rate_limit_state = "getter_swap_rate_limit_state"c;
+const getter_bridge_receipt_address = "getter_bridge_receipt_address"c;

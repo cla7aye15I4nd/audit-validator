@@ -1,0 +1,111 @@
+syntax = "proto3";
+package coreum.asset.ft.v1;
+
+import "coreum/asset/ft/v1/token.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/CoreumFoundation/coreum/v5/x/asset/ft/types";
+
+// EventIssued is emitted on MsgIssue.
+message EventIssued {
+  string denom = 1;
+  string issuer = 2;
+  string symbol = 3;
+  string subunit = 4;
+  uint32 precision = 5;
+  string initial_amount = 6 [
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+  string description = 7;
+  repeated Feature features = 8;
+  string burn_rate = 9 [
+    (gogoproto.nullable) = false,
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec"
+  ];
+  string send_commission_rate = 10 [
+    (gogoproto.nullable) = false,
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec"
+  ];
+  string uri = 11 [(gogoproto.customname) = "URI"];
+  string uri_hash = 12 [(gogoproto.customname) = "URIHash"];
+  string admin = 13;
+  DEXSettings dex_settings = 14 [(gogoproto.customname) = "DEXSettings"];
+}
+
+message EventFrozenAmountChanged {
+  string account = 1;
+  string denom = 2;
+  string previous_amount = 3 [
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+  string current_amount = 4 [
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message EventAmountClawedBack {
+  string account = 1;
+  string denom = 2;
+  string amount = 3 [
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message EventWhitelistedAmountChanged {
+  string account = 1;
+  string denom = 2;
+  string previous_amount = 3 [
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+  string current_amount = 4 [
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message EventDEXLockedAmountChanged {
+  string account = 1;
+  string denom = 2;
+  string previous_amount = 3 [
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+  string current_amount = 4 [
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message EventDEXExpectedToReceiveAmountChanged {
+  string account = 1;
+  string denom = 2;
+  string previous_amount = 3 [
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+  string current_amount = 4 [
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message EventAdminTransferred {
+  string denom = 1;
+  string previous_admin = 2;
+  string current_admin = 3;
+}
+
+message EventAdminCleared {
+  string denom = 1;
+  string previous_admin = 2;
+}
+
+message EventDEXSettingsChanged {
+  DEXSettings previous_settings = 1;
+  DEXSettings new_settings = 2 [(gogoproto.nullable) = false];
+}

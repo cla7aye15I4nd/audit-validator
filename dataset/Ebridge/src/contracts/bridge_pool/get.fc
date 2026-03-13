@@ -1,0 +1,91 @@
+#include "../common/stdlib.fc";
+#include "../common/dic.fc";
+#include "storage.fc";
+#include "bridge_pool_liquidity_account-utils.fc";
+#include "bridge_receipt_account-utils.fc";
+#include "limiter.fc";
+#include "params.fc";
+
+(int) get_pool_liquidity() method_id {
+    load_storage();
+    return storage::liquidity;
+}
+
+(slice) get_pool_liquidity_account_address(slice owner_address) method_id {
+    load_storage();
+    cell acc_state_init = calculate_bridge_pool_liquidity_account_state_init(owner_address, my_address(), storage::jetton_address, storage::pool_liquidity_account_code);
+    slice brigde_pool_liquidity_account_address = calculate_bridge_pool_liquidity_account_address(acc_state_init);
+    return brigde_pool_liquidity_account_address;
+}
+
+(slice) get_bridge_receipt_address(slice owner_address) method_id {
+    load_storage();
+    cell acc_state_init = calculate_bridge_receipt_account_state_init(owner_address, my_address(), storage::jetton_address, storage::bridge_address, storage::bridge_receipt_account_code);
+    slice brigde_receipt_address = calculate_bridge_receipt_account_address(acc_state_init);
+    return brigde_receipt_address;
+}
+
+(int, int, int) get_receipt_daily_limit(int target_chain_id) method_id {
+    load_storage();
+    var key_hash = create_key(target_chain_id, RECEIPT);
+    (slice receipt_daily_limit, int found) = storage::daily_limit.udict_get?(DEFAULT_KEY_LENGTH, key_hash);
+    if (found) {
+        (int cur_remain_token_amount, int cur_refresh_time, int cur_daily_limit) =
+                (receipt_daily_limit~load_uint(256), receipt_daily_limit~load_uint(64), receipt_daily_limit~load_uint(256));
+        (int refresh_time, int remain_token_amount) = _refresh_current_daily_limit(cur_refresh_time, cur_remain_token_amount, cur_daily_limit);
+        return (remain_token_amount, refresh_time, cur_daily_limit);
+    } else {
+        return (0, 0, 0);
+    }
+}
+
+(int, int, int) get_swap_daily_limit(int from_chain_id) method_id {
+    load_storage();
+    var key_hash = create_key(from_chain_id, SWAP);
+    (slice swap_daily_limit, int found) = storage::daily_limit.udict_get?(DEFAULT_KEY_LENGTH, key_hash);
+    if (found) {
+        (int cur_remain_token_amount, int cur_refresh_time, int cur_daily_limit) =
+        (swap_daily_limit~load_uint(256), swap_daily_limit~load_uint(64), swap_daily_limit~load_uint(256));
+        (int refresh_time, int remain_token_amount) = _refresh_current_daily_limit(cur_refresh_time, cur_remain_token_amount, cur_daily_limit);
+        return (remain_token_amount, refresh_time, cur_daily_limit);
+    } else {
+        return (0, 0, 0);
+    }
+}
+
+(int, int, int, int, int) get_receipt_rate_limit_state(int target_chain_id) method_id {
+    load_storage();
+    var key_hash = create_key(target_chain_id, RECEIPT);
+    return get_rate_limit(key_hash);
+}
+
+(int, int, int, int, int) get_swap_rate_limit_state(int from_chain_id) method_id {
+    load_storage();
+    var key_hash = create_key(from_chain_id, SWAP);
+    return get_rate_limit(key_hash);
+}
+
+(slice) get_owner() method_id {
+    load_storage();
+    return storage::owner;
+}
+
+(slice) get_admin() method_id {
+    load_storage();
+    return storage::admin;
+}
+
+(slice) get_bridge_address() method_id {
+    load_storage();
+    return storage::bridge_address;
+}
+
+(slice) get_bridge_swap_address() method_id {
+    load_storage();
+    return storage::bridge_swap_address;
+}
+
+(slice, slice) get_jetton_address() method_id {
+    load_storage();
+    return (storage::jetton_address, storage::jetton_pool_wallet_address);
+}

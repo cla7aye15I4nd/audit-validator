@@ -1,0 +1,29 @@
+{
+  "id": "7f65",
+  "title": "ERC-1155 transfers can silently \u201csucceed\u201d against non-ERC1155 or EOA token addresses",
+  "source": "aiflow_scanner_codex",
+  "status": "enhanced",
+  "category": null,
+  "location": {
+    "end_line": 1,
+    "start_line": 1,
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/7b519e30-d10a-11f0-a5a1-c38d49d0912c/source?file=$/github/GigaStarIo-public/vault-audit/0b8edde27935e70ed3decbb30508bde926edf57c/bd/bc-contract/contract/v1_0/XferMgr.sol",
+    "local_file_path": "./src/bd/bc-contract/contract/v1_0/XferMgr.sol"
+  },
+  "scenario": "",
+  "sequence": 462,
+  "severity": "minor",
+  "confidence": null,
+  "description": "_xferLoopErc1155 treats an ERC-1155 transfer as successful unless the external call reverts. Unlike the ERC-20 path (which ABI-decodes a boolean and will fail if no return data), IERC1155.safeTransferFrom has no return value, so calling it on an EOA (or on a contract that doesn\u2019t implement ERC-1155 but has a non-reverting fallback) will typically return success with empty returndata. The try-block will not revert, so the function will advance iExec and the proposal can be marked executed even though no token state changed and no tokens moved. This can cause incorrect ownership/accounting (e.g., CRT/asset ownership not updated while the system emits XfersProcessed and marks the proposal Done). Mitigation: pre-validate tokAddr before looping (e.g., require(tokAddr.code.length > 0) and optionally ERC165 supportsInterface(type(IERC1155).interfaceId)), and treat failure to validate as a hard failure (revert) or mark all remaining transfers as failed without advancing the execution cursor.",
+  "related_pid": "7b519e30-d10a-11f0-a5a1-c38d49d0912c",
+  "triage_reason": null,
+  "recommendation": "- Reject EOAs and non-ERC1155 contracts before any transfer call. For each tokAddr, require tokAddr != address(0), tokAddr.code.length > 0, and ERC165 supportsInterface(type(IERC1155).interfaceId). Do not treat a non-reverting call with empty returndata as success.\n- On validation failure, either revert the whole operation (atomic mode) or mark the relevant transfers as failed and stop advancing the execution cursor; do not emit success events or mark the proposal Done.\n- Optionally maintain a curated allowlist for known non-compliant tokens; otherwise default to strict ERC165 checks.\n- Cache per-token validation results to save gas when processing multiple transfers for the same tokAddr.\n- Add tests to cover EOAs, contracts without ERC-1155, and proxies, ensuring the system never records success when no token state changes.",
+  "triage_verdict": "valid",
+  "related_context": null,
+  "scan_model_name": null,
+  "triage_severity": null,
+  "proof_of_concept": null,
+  "related_checklist": null,
+  "related_commit_id": "0b8edde27935e70ed3decbb30508bde926edf57c",
+  "related_function_code": "function _xferLoopErc1155(Xfer[] storage xfers, address tokAddr, uint iBegin, uint xfersLen, uint gasLimit) private\n        returns(uint iExec, uint fails)\n    { unchecked {\n        // Ubounds: Condition 1: caller must page, Condition 2: gas available vs limit\n        uint skips = 0;\n        IERC1155 token = IERC1155(tokAddr);\n        for (iExec = iBegin; iExec < xfersLen && gasleft() > gasLimit; ++iExec) {\n            Xfer storage t = xfers[iExec];\n            if (t.status == XferStatus.Skipped) { ++skips; continue; } // cold path: transfer pruned\n\n            try token.safeTransferFrom(t.from, t.to, t.tokenId, t.qty, '') {\n                // See SEND_HOT_PATH\n            } catch { // cold path: error, See TRANSFER_FAILURE\n                t.status = XferStatus.Failed;\n                ++fails;\n            }\n        }\n        // sent = iExec - iBegin - skips - fails; // Could be calculated post-loop as an optimization\n    } }"
+}

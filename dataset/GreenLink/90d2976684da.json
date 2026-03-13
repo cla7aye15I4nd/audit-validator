@@ -1,0 +1,33 @@
+{
+  "title": "A Single Failing Transfer Reverts the Entire Batch",
+  "location": {
+    "local_file_path": "./src/GLDB Pulse Contracts/PLT/GLDBToken.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/b619bc20-116e-11f0-85f2-afceaa02a7b6/source?file=$/github/GLBank/Web3/54b12f25ff139912cbddcc316c940624a64687cf/GLDB Pulse Contracts/PLT/GLDBToken.sol",
+    "start_line": 1,
+    "end_line": 1
+  },
+  "all_locations": null,
+  "category": "",
+  "severity": "low",
+  "confidence": null,
+  "description": "The `batchTransfer` function iterates through a list of recipients and executes a `transfer` for each one within a single transaction. If any of the individual `transfer` calls fail for any reason (e.g., the recipient is on a blacklist, a transfer exceeds the maximum allowed balance for a user, etc.), the entire loop is aborted, and the parent `batchTransfer` transaction reverts. This means a single invalid recipient can prevent all other valid transfers in the batch from succeeding, causing a Denial of Service for the batch operation.The `transfer` call inside the `batchTransfer` loop should be wrapped in a `try/catch` block. This would allow the function to handle a failing transfer (e.g., by emitting an event indicating the failure) without reverting the entire transaction. The successful transfers in the batch could then be completed.1. The contract has `isBlacklistEnabled` set to `true`.\n2. A user, Alice, wants to airdrop tokens to 10 recipients. She calls `batchTransfer` with two arrays of 10 elements each.\n3. The 5th address in her `toList` array, `0xbadactor...`, has been blacklisted by the owner. The other 9 addresses are valid.\n4. The `for` loop begins execution. The first four transfers succeed internally.\n5. When `i = 4`, the function calls `transfer(0xbadactor..., amount)`.\n6. This `transfer` call invokes the `checkTransfer` modifier, which finds that the recipient is blacklisted and reverts the transaction.\n7. Because the `transfer` call reverted, the entire `batchTransfer` transaction fails. None of the 10 recipients, including the 9 legitimate ones, receive their tokens. Any attempt by Alice to complete this batch will fail as long as the blacklisted address is included.",
+  "scenario": null,
+  "proof_of_concept": "1. The contract has `isBlacklistEnabled` set to `true`.\n2. A user, Alice, wants to airdrop tokens to 10 recipients. She calls `batchTransfer` with two arrays of 10 elements each.\n3. The 5th address in her `toList` array, `0xbadactor...`, has been blacklisted by the owner. The other 9 addresses are valid.\n4. The `for` loop begins execution. The first four transfers succeed internally.\n5. When `i = 4`, the function calls `transfer(0xbadactor..., amount)`.\n6. This `transfer` call invokes the `checkTransfer` modifier, which finds that the recipient is blacklisted and reverts the transaction.\n7. Because the `transfer` call reverted, the entire `batchTransfer` transaction fails. None of the 10 recipients, including the 9 legitimate ones, receive their tokens. Any attempt by Alice to complete this batch will fail as long as the blacklisted address is included.",
+  "recommendation": "The `transfer` call inside the `batchTransfer` loop should be wrapped in a `try/catch` block. This would allow the function to handle a failing transfer (e.g., by emitting an event indicating the failure) without reverting the entire transaction. The successful transfers in the batch could then be completed.",
+  "id": "28a2",
+  "duplicates": null,
+  "source": "scanner.token_scanner",
+  "status": "verified_as_valid",
+  "scan_model_name": "o4-mini, gemini-2.5-pro",
+  "related_function_code": "function batchTransfer(address[] memory toList, uint256[] memory amountList) external whenNotPaused {\n    uint256 len = toList.length;\n    if (len != amountList.length) {\n        revert InvalidRecipientAndAmount();\n    }\n    for (uint256 i = 0; i < len;) {\n        transfer(toList[i], amountList[i]);\n        unchecked {\n            i++;\n        }\n    }\n}",
+  "related_context": "",
+  "related_checklist": {
+    "checklist": "The deflationary token may feature a periodic liquidity auto-burn mechanism, which reduces the circulating supply by permanently removing liquidity pool tokens at specified intervals, thereby increasing the token's price. This process helps ensure token scarcity over time and supports long-term deflationary goals. However, there is a potential risk that this auto-burn mechanism could be exploited maliciously. During transfers, an attacker triggers the auto-burning mechanism, which can significantly inflate the token's price and allow the attacker to profit (received tokens - cost > 0). For example, this burning action can be triggered at a low cost, such as through a flash loan operation, or it can be activated repeatedly within a single transaction. While the auto-burn mechanism itself is okay, it needs to be effectively managed and controlled to prevent misuse."
+  },
+  "related_pid": "b619bc20-116e-11f0-85f2-afceaa02a7b6",
+  "related_commit_id": "54b12f25ff139912cbddcc316c940624a64687cf",
+  "triage_verdict": "invalid",
+  "triage_severity": "",
+  "triage_reason": "not important enough",
+  "is_main_finding": true
+}

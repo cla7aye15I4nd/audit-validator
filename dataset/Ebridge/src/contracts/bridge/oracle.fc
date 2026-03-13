@@ -1,0 +1,152 @@
+#include "../common/message.fc";
+#include "../common/dic.fc";
+#include "../common/utils.fc";
+#include "storage.fc";
+#include "op.fc";
+#include "errors.fc";
+#include "../gas.fc";
+#include "../common/stdlib.fc";
+
+(int) calculate_leaf_hash(int receipt_index, int key_hash, int jetton_amount, slice target_address) impure inline {
+    int receipt_index_hash = string_hash(begin_cell().store_uint(receipt_index, 256).end_cell().begin_parse());
+    var receipt_id = begin_cell().store_uint(key_hash, 256).store_uint(receipt_index_hash, 256).end_cell();
+    var receipt_hash = string_hash(receipt_id.begin_parse());
+    var amount_hash = string_hash(begin_cell().store_uint(jetton_amount, 256).end_cell().begin_parse());
+    var target_address_hash = string_hash(target_address);
+    var leaf_cell = begin_cell()
+        .store_uint(receipt_hash, 256)
+        .store_uint(amount_hash, 256)
+        .store_uint(target_address_hash, 256)
+        .end_cell();
+    int leaf_hash = string_hash(leaf_cell.begin_parse());
+    return leaf_hash;
+}
+
+() resend_receipt_info(int message_id, int resend_time_span) impure inline_ref {
+    var payload = begin_cell()
+        .store_uint(resend, 32)
+        .store_int(message_id, 256)
+        .store_int(0x01, 8)
+        .store_int(resend_time_span, 32)
+        .end_cell();
+    send_message_nobounce(0, storage::oracle_address, payload, SEND_MODE_CARRY_ALL_REMAINING_MESSAGE_VALUE | SEND_MODE_IGNORE_ERRORS);
+}
+
+() encode_message_and_send_to_oracle(int target_chain_id, slice jetton_address, slice receipt_id, int jetton_amount, slice target_address) impure inline {
+    (var key_hash, var receipt_index) = (receipt_id~load_uint(256), receipt_id~load_uint(256));
+    ;;calculate the leaf hash
+    int leaf_hash = calculate_leaf_hash(receipt_index, key_hash, jetton_amount, target_address);
+
+    int slice_bits = 32 * 8 * 3;
+    int ref_slice_bits = 32 * 8 * 2;
+    cell data_part = begin_cell()
+        .store_uint(receipt_index, 256)
+        .store_uint(key_hash, 256)
+        .store_uint(jetton_amount, 256)
+        .end_cell();
+    cell data_part_other = begin_cell()
+        .store_slice(target_address)
+        .store_uint(leaf_hash, 256)
+        .end_cell();
+    cell message = begin_cell()
+        .store_uint(slice_bits, 16)
+        .store_slice(data_part.begin_parse()) ;; 32 * 8 * 3 = 768 bits
+        .store_uint(1, 8) ;; 1 ref
+        .store_ref(begin_cell()
+            .store_uint(ref_slice_bits, 16) ;; 32 * 8 * 2 = 512 bits
+            .store_slice(data_part_other.begin_parse())
+            .store_uint(0, 8) ;; 0 ref
+            .end_cell())
+        .end_cell();
+    (slice target_contract, _) = storage::target_contract_dic.udict_get?(32, target_chain_id);
+    cell tx = begin_cell()
+        .store_uint(send_bridge_info_to_oracle, 32)
+        .store_uint(target_chain_id, 64)
+        .store_ref(begin_cell()
+            .store_slice(target_contract)
+            .end_cell())
+        .store_ref(message)
+        .store_ref(begin_cell()
+            .store_uint(target_chain_id, 64)
+            .store_ref(begin_cell().store_slice(target_contract).end_cell())
+            .store_ref(begin_cell().store_slice(jetton_address).end_cell())
+            .store_uint(jetton_amount, 256)
+            .end_cell())
+        .end_cell();
+    send_simple_message(0, storage::oracle_address, tx, SEND_MODE_CARRY_ALL_REMAINING_MESSAGE_VALUE);
+}
+
+(int, int, int, int, slice) decode_message_and_verification(slice message) impure inline {
+    ;; message_data : total bytes = 32 + 32 + 32 + 32 + 36 = 164 bytes
+    int slice_bits = message~load_uint(16); ;; 32 bytes * 8 * 3 = 768 bits
+    slice data_part = message~load_bits(slice_bits); ;;32 bytes * 3 = 96 bytes * 8 = 768 bits
+    (int receipt_index, int key_hash, int receipt_amount) =
+    (data_part~load_uint(256), ;; 32 bytes
+        data_part~load_uint(256), ;; 32 bytes
+        data_part~load_uint(256)); ;; 32 bytes
+    int ref_num = message~load_uint(8); ;; remain_bytes = 32 + 36 = 68 bytes ref_num = 1 
+    throw_unless(MESSAGE_DATA_ERROR, ref_num == 1);
+    slice message_ref = message~load_ref().begin_parse();
+    int ref_slice_bits = message_ref~load_uint(16); ;; 68 bytes * 8 = 544 bits
+    slice ref_data_part = message_ref~load_bits(ref_slice_bits); ;;( 32 + 36 ) * 8 = 544 bits
+    int receive_leaf_hash = ref_data_part~load_uint(256); ;; 32 bytes
+    slice receipt_target_address = ref_data_part~load_bits(288); ;;ton address: 36bytes
+    throw_unless(INVALID_AMOUNT, receipt_amount > 0);
+    int leaf_hash = calculate_leaf_hash(receipt_index, key_hash, receipt_amount, receipt_target_address);
+    slice leaf_hash_slice = begin_cell().store_uint(leaf_hash, 256).end_cell().begin_parse();
+    throw_unless(VERIFICATION_FAILED, equal_slices(leaf_hash_slice, begin_cell().store_uint(receive_leaf_hash, 256).end_cell().begin_parse()));
+    var tag = receipt_target_address~load_bits(8);
+    int wc = receipt_target_address~load_int(8);
+    int address_hash = receipt_target_address~load_uint(256);
+    slice target_address = create_address(wc,address_hash);
+    return (receipt_index, key_hash, receipt_amount, leaf_hash, target_address);
+}
+
+() receive_from_oracle(slice in_msg_body,int fee) impure inline {
+    var message_id = in_msg_body~load_uint(256);
+    if (storage::is_pause) {
+        resend_receipt_info(message_id, ONEDAY);
+    }
+    var origin_data = in_msg_body~load_ref();
+    var data = origin_data.begin_parse();
+    (int source_chain_id, int target_chain_id) = (data~load_int(64), data~load_int(64));
+    (slice target_contract, _) = storage::target_contract_dic.udict_get?(CHAIN_ID_KEY_LENGTH, source_chain_id);
+    (slice sender_slice, slice receiver_slice) = (data~load_ref().begin_parse(), data~load_ref().begin_parse());
+    var sender = sender_slice~load_bits(256);
+    var receiver = receiver_slice~load_bits(267);
+    throw_unless(INVALID_SOURCE_CHAIN_CONTRACT, equal_slices(sender, target_contract));
+    throw_unless(INVALID_RECEIVER_CHAIN_CONTRACT, equal_slices(receiver, my_address()));
+    var message = data~load_ref().begin_parse();
+    cell convert_info = data~load_ref();
+    slice info = convert_info.begin_parse();
+    cell swap_id_ref = info~load_ref();
+    int target_chain_id = info~load_uint(64);
+    slice target_contract_address = info~load_ref().begin_parse();
+    slice jetton_address = info~load_ref().begin_parse();
+    slice origin_token = info~load_ref().begin_parse();
+    (int receipt_index, int key_hash, int receipt_amount, int leaf_hash, slice receipt_target_address) = decode_message_and_verification(message);
+    
+    (var jetton_swap_address, int found_swap) = dict_get?(storage::bridge_swap_address_dic, KEY_LENGTH, jetton_address);
+    if (~ found_swap) {
+        throw(NOT_FOUND_SWAP);
+    }
+    
+    var query_id = 0;
+    var payload = begin_cell()
+        .store_uint(swap, 32)
+        .store_uint(query_id, 64)
+        .store_ref(swap_id_ref)
+        .store_uint(message_id, 256)
+        .store_ref(begin_cell()
+            .store_ref(
+                begin_cell()
+                .store_uint(key_hash, 256)
+                .store_uint(receipt_index, 256)
+                .end_cell())
+            .store_uint(leaf_hash, 256)
+            .store_slice(receipt_target_address)
+            .end_cell())
+        .store_coins(receipt_amount)
+        .end_cell();
+    send_simple_message(fee, jetton_swap_address, payload, SEND_MODE_PAY_FEES_SEPARETELY | SEND_MODE_BOUNCE_TRANSACTION);
+}

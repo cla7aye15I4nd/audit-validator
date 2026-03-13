@@ -1,0 +1,10 @@
+;; global errors
+
+const WRONG_OP = 0xffff;
+
+const UNAUTHORIZED = 81;
+
+const WRONG_WORKCHAIN = 85;
+
+const INSUFFICIENT_FEES = 101;
+const STORAGE_FEE_NOT_ENOUGH = 102;

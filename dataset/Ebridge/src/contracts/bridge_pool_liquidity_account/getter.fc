@@ -1,0 +1,23 @@
+#include "../common/stdlib.fc";
+#include "op.fc";
+#include "storage.fc";
+#include "../common/utils.fc";
+
+;; handle onchain 'get' calls
+(int) handle_getter_messages(int op, int query_id, slice sender_address, slice in_msg_body) impure inline {
+    raw_reserve(0, 4);
+
+    if (op == getter_lp_account_data) { 
+        var payload = begin_cell()
+            .store_uint(getter_lp_account_data, 32)
+            .store_uint(query_id, 64)
+            .store_slice(storage::owner)
+            .store_slice(storage::bridge_pool_address)
+            .store_slice(storage::jetton_address)
+            .store_coins(storage::liquidity);
+        send_payload(sender_address, payload.end_cell());
+        return (true);
+    }
+    
+    return (false); ;; wrong op
+}

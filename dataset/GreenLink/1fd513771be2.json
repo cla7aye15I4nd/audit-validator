@@ -1,0 +1,33 @@
+{
+  "title": "Enabling `authorisedSenderEnabled` Freezes All Non-Authorized User Tokens",
+  "location": {
+    "local_file_path": "./src/GLDB Pulse Contracts/PLT/GLDBToken.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/b619bc20-116e-11f0-85f2-afceaa02a7b6/source?file=$/github/GLBank/Web3/54b12f25ff139912cbddcc316c940624a64687cf/GLDB Pulse Contracts/PLT/GLDBToken.sol",
+    "start_line": 1,
+    "end_line": 1
+  },
+  "all_locations": null,
+  "category": "",
+  "severity": "high",
+  "confidence": null,
+  "description": "The `_update` function, which is executed on every token transfer, mint, or burn, contains a check that can enable a restrictive operational mode. If `authorisedSenderEnabled` is set to `true`, only addresses marked as 'authorized senders' can trigger actions that call `_update`. Regular token holders are not authorized by default. If this feature is enabled, it effectively freezes the assets of all non-authorized users, as they cannot call `transfer` or `approve`, leading to a permanent Denial of Service for those users.The `authorisedSenderEnabled` feature should be used with extreme caution and its implications must be clearly communicated. It should not be enabled for a token intended for public trading or general use. If it must be used, there should be a transparent and accessible process for users to request authorization, or it should be controlled by a decentralized governance mechanism rather than a single owner.1. The contract is deployed with the `authorisedSenderEnabled` parameter set to `true` during initialization. By default, only the `tokenOwner` is an authorized sender.\n2. The owner transfers 1000 tokens to a regular user, Alice.\n3. Alice now owns 1000 tokens but is not in the `authorisedSender` mapping.\n4. Alice attempts to transfer 500 tokens to Bob by calling `transfer(Bob, 500)`.\n5. The `transfer` function calls `_update(Alice, Bob, 500)`.\n6. Inside `_update`, the condition `authStorage.authorisedSenderEnabled && !authStorage.authorisedSender[msg.sender]` evaluates to `true && !false`, which is `true`.\n7. The transaction reverts with the `UnAuthorisedSender` error.\n8. Alice is unable to transfer her tokens, approve another account to spend them, or perform any action that relies on the `_update` function. Her funds are effectively frozen.",
+  "scenario": null,
+  "proof_of_concept": "1. The contract is deployed with the `authorisedSenderEnabled` parameter set to `true` during initialization. By default, only the `tokenOwner` is an authorized sender.\n2. The owner transfers 1000 tokens to a regular user, Alice.\n3. Alice now owns 1000 tokens but is not in the `authorisedSender` mapping.\n4. Alice attempts to transfer 500 tokens to Bob by calling `transfer(Bob, 500)`.\n5. The `transfer` function calls `_update(Alice, Bob, 500)`.\n6. Inside `_update`, the condition `authStorage.authorisedSenderEnabled && !authStorage.authorisedSender[msg.sender]` evaluates to `true && !false`, which is `true`.\n7. The transaction reverts with the `UnAuthorisedSender` error.\n8. Alice is unable to transfer her tokens, approve another account to spend them, or perform any action that relies on the `_update` function. Her funds are effectively frozen.",
+  "recommendation": "The `authorisedSenderEnabled` feature should be used with extreme caution and its implications must be clearly communicated. It should not be enabled for a token intended for public trading or general use. If it must be used, there should be a transparent and accessible process for users to request authorization, or it should be controlled by a decentralized governance mechanism rather than a single owner.",
+  "id": "852b",
+  "duplicates": null,
+  "source": "scanner.token_scanner",
+  "status": "verified_as_valid",
+  "scan_model_name": "o4-mini, gemini-2.5-pro",
+  "related_function_code": "function _update(address from, address to, uint256 value)\n    internal\n    virtual\n    override(ERC20Upgradeable, ERC20PausableUpgradeable, ERC20CappedUpgradeable)\n{\n    AuthStorage storage authStorage = _getAuthStorage();\n    if (authStorage.authorisedSenderEnabled && !authStorage.authorisedSender[msg.sender]) {\n        revert UnAuthorisedSender();\n    }\n    super._update(from, to, value);\n}",
+  "related_context": "",
+  "related_checklist": {
+    "checklist": "Check for denial-of-service (DoS) issues in reward distribution operations. For example, ensure a failing transfer to a single recipient does not cause the entire distribution transaction to revert, thereby impacting all other eligible recipients or reverting the entire transaction"
+  },
+  "related_pid": "b619bc20-116e-11f0-85f2-afceaa02a7b6",
+  "related_commit_id": "54b12f25ff139912cbddcc316c940624a64687cf",
+  "triage_verdict": "valid",
+  "triage_severity": "",
+  "triage_reason": "Centralization Related Risk",
+  "is_main_finding": true
+}

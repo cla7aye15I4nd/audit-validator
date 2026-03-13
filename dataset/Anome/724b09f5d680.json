@@ -1,0 +1,31 @@
+{
+  "title": "Unauthorized Pre-binding of Recruits Without Consent",
+  "location": {
+    "local_file_path": "./src/projects/anome 2/shop/referral/ShopReferral.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/e3c45370-51aa-11f0-bdd0-cbef849456d3/source?file=$/github/CertiKProject/certik-audit-projects/2a2826fcbafb5bed23f57406cc61e71a3ccffcf2/projects/anome 2/shop/referral/ShopReferral.sol",
+    "start_line": 30,
+    "end_line": 41
+  },
+  "all_locations": null,
+  "category": null,
+  "severity": null,
+  "confidence": null,
+  "description": "The bindRecruit function lets any registered sponsor (msg.sender with a non-zero accountCode and accountSponsor) bind an arbitrary address as their recruit, without verifying that the recruit has registered or agreed. Because _rebindSponsor only checks that the sponsor is valid and that the recruit has no existing sponsor, an attacker can force any victim address into their referral tree by paying the 0.1 token minimum. Once bound, the victim\u2019s accountSponsor is non-zero and they can no longer call bindSponsor (or any similar function) to choose their intended sponsor.\n\nExploit Steps:\n1. Attacker calls buyCode() and then bindSponsor(code) with a legitimate code to become a registered sponsor (accountCode \u2260 0 and accountSponsor \u2260 0).\n2. Attacker approves the referral card contract to spend at least 0.1 tokens on their behalf.\n3. Attacker calls bindRecruit(victimAddress, cardAddress, 1e17):\n   \u2022 realCard.transferFrom(attacker, victimAddress, 0.1) transfers tokens to the victim\u2019s address.\n   \u2022 _rebindSponsor(victimAddress, attacker) sets data.accountSponsor[victimAddress] = attacker and records the recruit.\n4. When the victim later tries to register by calling buyCode() and bindSponsor(...), _rebindSponsor will immediately revert with AccountAlreadyCreated since their accountSponsor is already set. The victim cannot join under any sponsor or change the relationship.\n\nBy omitting any consent or registration check on the recruit side, bindRecruit enables a griefing attack that hijacks referral relationships and blocks legitimate user registration.",
+  "scenario": null,
+  "proof_of_concept": null,
+  "recommendation": null,
+  "id": "8725",
+  "duplicates": null,
+  "source": "scanner.smart_audit",
+  "status": "verified_as_valid",
+  "scan_model_name": "o4-mini",
+  "related_function_code": "function bindRecruit(address recruit, address card, uint256 amount) external override {\n        ShopStorage.Layout storage data = ShopStorage.layout();\n        ICard realCard = data.pools[data.cardsIndex[card]].card;\n        if (realCard != ICard(card)) revert InvalidReferralCardAddress();\n        if (amount < 1e17) revert InvalidReferralAmount();\n\n        if (data.accountCode[msg.sender] == 0) revert AccountNotRegister(msg.sender);\n        if (data.accountSponsor[msg.sender] == address(0)) revert AccountHasNoSponsor(msg.sender);\n\n        realCard.transferFrom(msg.sender, recruit, amount);\n        _rebindSponsor(recruit, msg.sender);\n    }",
+  "related_context": "layout ->     function layout() internal pure returns (Layout storage l) {\n        bytes32 slot = STORAGE_SLOT;\n        assembly {\n            l.slot := slot\n        }\n    }\n\n_rebindSponsor ->     function _rebindSponsor(address account, address sponsor) internal {\n        ShopStorage.Layout storage data = ShopStorage.layout();\n        if (sponsor == address(0)) revert InvalidAccount(sponsor);\n        if (sponsor == account) revert InvalidSponsor(sponsor);\n        if (data.accountSponsor[account] != address(0)) revert AccountAlreadyCreated();\n\n        data.accountSponsor[account] = sponsor;\n        data.accountRecruits[sponsor].push(ShopTypes.Recruit({account: account, timestamp: block.timestamp}));\n\n        emit RelationBinded(msg.sender, account, sponsor);\n    }",
+  "related_checklist": null,
+  "related_pid": "e3c45370-51aa-11f0-bdd0-cbef849456d3",
+  "related_commit_id": "2a2826fcbafb5bed23f57406cc61e71a3ccffcf2",
+  "triage_verdict": "invalid",
+  "triage_severity": "",
+  "triage_reason": "Intended design",
+  "is_main_finding": true
+}

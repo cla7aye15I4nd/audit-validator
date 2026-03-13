@@ -1,0 +1,27 @@
+#include "storage.fc";
+#include "helper.fc";
+
+_ get_order_data() method_id {
+    load_storage();
+    return (
+        storage::multisig_address,
+        storage::order_seqno,
+        storage::threshold,
+        storage::signers_info,
+        storage::approvals_mask,
+        storage::approvals_num,
+        storage::expiration_time,
+        storage::order,
+        storage::sent_for_execution
+    );
+}
+
+(int) get_signer_index(slice signer_address) method_id {
+    load_storage();
+    (int index,int found) = find_signer_by_address(signer_address);
+    if (found) {
+        return index;
+    } else {
+        return -1;
+    }
+}

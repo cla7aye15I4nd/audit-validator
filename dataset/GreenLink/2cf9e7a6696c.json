@@ -1,0 +1,34 @@
+{
+  "title": "Missing lower-bound validation allows misaligned condition windows",
+  "location": {
+    "local_file_path": "./src/GLDB Pulse Contracts/ENT&Swap/NFT.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/b619bc20-116e-11f0-85f2-afceaa02a7b6/source?file=$/github/GLBank/Web3/54b12f25ff139912cbddcc316c940624a64687cf/GLDB Pulse Contracts/ENT&Swap/NFT.sol",
+    "start_line": 1,
+    "end_line": 1
+  },
+  "all_locations": null,
+  "category": null,
+  "severity": null,
+  "confidence": null,
+  "description": "The function setConditionStartTimestamp only checks that the computed condition end time (startTimestamp + 86400 * conditionDate.day) does not exceed executionDate.endTime, but never enforces that startTimestamp falls after or at executionDate.startTime (or within the originally agreed condition range). This allows a malicious PartyA to set the condition window entirely before or after the execution window, corrupting the NFT\u2019s lifecycle and payment logic.\n\nExploit steps (sabotage scenario):\n1. A user calls createNFTsFromTokens(...) supplying an absolute executionDate with startTime = T_execStart and endTime = T_execEnd, and a single relative condition (conditionDate.day = 1) assigned to the counter-party (the sender).\n2. The NFT enters WAIT_CONDITION_DATE status. PartyA now calls:\n   setConditionStartTimestamp(nftId, 0, startTimestamp = nft.createdAt)  // startTimestamp < T_execStart\n   \u2022 Passes: startTimestamp \u2265 createdAt, and endTimestamp = createdAt + 86400 \u2264 T_execEnd.\n3. conditionDate is set to [nft.createdAt, nft.createdAt + 86400], entirely before the execution window.\n4. conditions.isAllConditionTimeSet() returns true \u21d2 _createNFT is called, minting the NFT to PartyA.\n5. The sender (condition operator) can no longer call processCondition because block.timestamp is now > conditionDate.endTime but < executionDate.startTime, so the condition window has expired.\n6. When trigger() or an ExecuteRole call finally runs after T_execStart, _triggerPay sees the condition unreachable and refunds the deposited tokens to the sender, leaving PartyA with a minted NFT but no tokens.\n\nAlternatively, PartyA could set startTimestamp = T_execEnd (and conditionDate.day=0) to create a window solely at execution end, then immediately call processCondition and collect the full payout prematurely. Both cases stem from missing a check that startTimestamp \u2265 executionDate.startTime (and \u2264 original conditionDate.startTime).**\n\nImpact: PartyA can misalign or completely bypass the intended condition-processing window, leading either to an unjust refund or an unauthorized early payout.",
+  "scenario": null,
+  "proof_of_concept": null,
+  "recommendation": null,
+  "id": "ab41",
+  "duplicates": [
+    "ab41",
+    "5129"
+  ],
+  "source": "scanner.smart_audit",
+  "status": "verified_as_valid",
+  "scan_model_name": "o4-mini",
+  "related_function_code": "function setConditionStartTimestamp(uint256 nftId, uint8 index, uint40 startTimestamp) public {\n        NFTMetadata storage nft = _getNFTStorage().nfts[nftId];\n        // Validate NFT status\n        if (nft.status != NFTStatus.WAIT_CONDITION_DATE) {\n            revert NFTInvalidState(nftId, NFTStatus.WAIT_CONDITION_DATE, nft.status);\n        }\n        // Validate operator identity\n        if (nft.partyA != _msgSender()) {\n            revert Unauthorized();\n        }\n        // Validate start time range\n        if (startTimestamp < nft.createdAt) {\n            revert InvalidStartTime(startTimestamp, nft.createdAt);\n        }\n        // Validate if index is correct\n        NFTCondition[] storage conditions = nft.conditions;\n        if (index >= conditions.length) {\n            revert InvalidConditionIndex(index, conditions.length);\n        }\n        // Validate if already set, don't allow to set again\n        Date storage conditionDate = conditions[index].date;\n        if (conditionDate.isTimeSet()) {\n            revert ConditionAlreadySetTime();\n        }\n        // Validate condition end time <= execution time end\n        Date storage executionDate = nft.executionDate;\n        uint40 endTimestamp = startTimestamp + 86400 * conditionDate.day;\n        if (endTimestamp > executionDate.endTime) {\n            revert ConditionEndTimeOutOfRange(endTimestamp, executionDate.endTime);\n        }\n\n        conditionDate.setTime(startTimestamp, endTimestamp);\n        emit SetConditionStartTimestamp(nftId, index, startTimestamp);\n\n        if (conditions.isAllConditionTimeSet()) {\n            _createNFT(nftId, nft);\n        }\n    }",
+  "related_context": "_getNFTStorage ->     function _getNFTStorage() internal pure returns (NFTStorage storage $) {\n        assembly {\n            $.slot := NFT_STORAGE_LOCATION\n        }\n    }\n\nisTimeSet ->     function isTimeSet(Date storage date) internal view returns (bool) {\n        return date.startTime != 0;\n    }\n\nsetTime ->     function setTime(Date storage date, uint40 startTimestamp, uint40 endTimestamp) internal {\n        date.startTime = startTimestamp;\n        date.endTime = endTimestamp;\n    }\n\nisAllConditionTimeSet ->     function isAllConditionTimeSet(NFTCondition[] storage conditions) internal view returns (bool) {\n        uint256 conditionsLength = conditions.length;\n        for (uint256 i = 0; i < conditionsLength;) {\n            if (!conditions[i].date.isTimeSet()) {\n                return false;\n            }\n            unchecked {\n                i++;\n            }\n        }\n        return true;\n    }\n\n_createNFT -> function _createNFT(uint256 nftId, NFTMetadata storage nft) private {\n        _changeNFTStatus(nftId, nft, NFTStatus.CREATED);\n        nft.nftCreatedAt = uint40(block.timestamp);\n        _swap(nft.sender, nft.partyA, nftId, nft.amount);\n        _updateTotalHold(nftId, nft.partyA, nft.amount, true);\n    }",
+  "related_checklist": null,
+  "related_pid": "b619bc20-116e-11f0-85f2-afceaa02a7b6",
+  "related_commit_id": "54b12f25ff139912cbddcc316c940624a64687cf",
+  "triage_verdict": "invalid",
+  "triage_severity": "",
+  "triage_reason": "Security control exists",
+  "is_main_finding": true
+}

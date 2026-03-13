@@ -1,0 +1,10 @@
+# Latex config file
+# Generated file locations
+$out_dir  = 'out';
+$aux_dir  = 'out';
+
+# $pdf_mode = 1; # Generate *.pdf file in same dir as *.tex file
+$pdf_mode = 5;   # This tells latexmk: use xelatex
+
+# $pdflatex = 'xelatex -shell-escape %O %S';
+$xelatex = "xelatex -synctex=1 -interaction=nonstopmode %O %S";

@@ -1,0 +1,29 @@
+{
+  "id": "53fb",
+  "title": "Outgoing withdrawal/log messages are built with an inconsistent body encoding (body-in-ref bit not set)",
+  "source": "aiflow_scanner_codex",
+  "status": "enhanced",
+  "category": null,
+  "location": {
+    "end_line": 1,
+    "start_line": 1,
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/c0b155c0-ce9d-11f0-afef-b3f141791562/source?file=$/github/Liberty-Games/sixr-bridge-watchers/20fc6b15b4134cdd724fa8a0b8d0f1f7d4981856/contracts/ton/bridge-multisig.fc",
+    "local_file_path": "./src/contracts/ton/bridge-multisig.fc"
+  },
+  "scenario": "",
+  "sequence": 29,
+  "severity": "medium",
+  "confidence": null,
+  "description": "In execute_withdraw_ton_funds, both `send_raw_message` constructions use `.store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)` followed by `.store_ref(msg_body/log)`, which appears to encode `init=0` and `body` as inline while still storing the body as a ref. This can produce a malformed/non-canonical message body (e.g., recipient sees an empty-bit body with an unexpected ref), increasing the chance of bounces or unexpected parsing failures, and undermining the intended inclusion of the comment/log payload. Align the encoding with the pattern used elsewhere in the contract when sending a body by reference (store the `body_in_ref` bit explicitly, e.g., store the init bit then `.store_uint(1,1)` before `.store_ref(body)`).",
+  "related_pid": "c0b155c0-ce9d-11f0-afef-b3f141791562",
+  "triage_reason": null,
+  "recommendation": "- In both send_raw_message constructions in execute_withdraw_ton_funds that use \u201c.store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)\u201d followed by \u201c.store_ref(msg_body/log)\u201d, set the body-in-ref bit to 1 before storing the ref and keep init=0. Do not encode an inline body and a ref simultaneously.\n- If you choose an inline body instead, set body-in-ref=0 and write the body inline; do not call .store_ref in that case.\n- Align this encoding with the pattern used elsewhere in the contract for ref bodies to maintain canonical message layout and avoid bounces/parsing errors.\n- Verify via decoding/tests that the emitted messages include the intended comment/log payload and are accepted by standard parsers/wallets.",
+  "triage_verdict": "valid",
+  "related_context": null,
+  "scan_model_name": null,
+  "triage_severity": null,
+  "proof_of_concept": null,
+  "related_checklist": null,
+  "related_commit_id": "20fc6b15b4134cdd724fa8a0b8d0f1f7d4981856",
+  "related_function_code": "() execute_withdraw_ton_funds(slice destination, int amount, int reference, cell signatures) impure {\n    ;; Load state\n    load_data();\n\n    ;; Validate destination address format\n    validate_destination_address(destination);\n\n    ;; Check reference hasn't been used (replay protection)\n    throw_if(ERR_PAYLOAD_CONSUMED, is_reference_consumed(reference));\n\n    ;; Hash the withdrawal payload\n    int withdraw_hash = hash_withdraw_ton_funds_action(destination, amount, reference);\n\n    ;; Validate governance signatures (3-of-5 threshold)\n    validate_governance_signatures(withdraw_hash, signatures);\n\n    ;; Get current contract balance\n    [int balance, _] = get_balance();\n\n    ;; Ensure contract has enough balance\n    throw_unless(ERR_INSUFFICIENT_BALANCE, balance >= amount);\n\n    ;; Mark reference as consumed\n    mark_reference_consumed(reference);\n\n    ;; Save state before sending (to prevent reentrancy issues)\n    save_data();\n\n    ;; Send TON to destination address\n    ;; Using mode 1 (pay transfer fees separately) to ensure exact amount is sent\n    cell msg_body = begin_cell()\n        .store_uint(0, 32)  ;; Simple transfer, no op code\n        .store_slice(\"TON withdrawal via multisig governance\")  ;; Optional comment\n    .end_cell();\n\n    send_raw_message(begin_cell()\n        .store_uint(0x18, 6)                ;; bounceable flag\n        .store_slice(destination)\n        .store_coins(amount)\n        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)\n        .store_ref(msg_body)\n    .end_cell(), 1);\n\n    ;; Emit withdrawal log\n    cell log = begin_cell()\n        .store_uint(0x574452415720, 48)     ;; ton_funds_withdrawn_log tag\n        .store_slice(destination)\n        .store_uint(amount, 128)\n        .store_uint(reference, 64)\n        .store_uint(now(), 64)\n    .end_cell();\n\n    send_raw_message(begin_cell()\n        .store_uint(0x10, 6)                ;; nobounce\n        .store_slice(my_address())\n        .store_coins(GAS_FOR_LOG)\n        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)\n        .store_ref(log)\n    .end_cell(), 1);\n}"
+}

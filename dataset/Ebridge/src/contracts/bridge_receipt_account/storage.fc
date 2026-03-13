@@ -1,0 +1,38 @@
+#include "../common/stdlib.fc";
+
+global slice storage::owner;
+global slice storage::bridge_pool_address;
+global slice storage::jetton_address;
+global slice storage::bridge_address;
+;; `receipt_info_dic` is HashMap with `chain_id` int key, value is `total_amount:int;index:int`
+global cell storage::receipt_info_dic;
+
+
+() load_storage() impure inline {
+    slice ds = get_data().begin_parse();
+    storage::owner = ds~load_msg_addr();
+    storage::jetton_address = ds~load_msg_addr();
+    cell ds_0 = ds~load_ref();
+    slice ds_0_0 = ds_0.begin_parse();
+    storage::bridge_pool_address = ds_0_0~load_msg_addr();
+    storage::bridge_address = ds_0_0~load_msg_addr();
+    if (ds.slice_bits() == 0) {
+        storage::receipt_info_dic = new_dict();
+    } else {
+        storage::receipt_info_dic = ds~load_dict();
+        
+    }
+}
+
+() save_storage() impure inline {
+    set_data(begin_cell()
+        .store_slice(storage::owner)
+        .store_slice(storage::jetton_address)
+        .store_ref(begin_cell()
+            .store_slice(storage::bridge_pool_address)
+            .store_slice(storage::bridge_address)
+            .end_cell()
+        )
+        .store_dict(storage::receipt_info_dic)
+        .end_cell());
+}

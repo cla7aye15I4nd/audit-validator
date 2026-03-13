@@ -1,0 +1,11 @@
+{
+  "network": "mainnet",
+  "contractAddress": "EQBbpL3KVv6n-lkYDYcEnC_RlQQ_J4vynWdRKYydQKqv9CMR",
+  "deployerAddress": "EQAM00JuRhVw6Rs_ybCUukHabwuCts7qnxwsCbxGyDrDB3ds",
+  "deployedAt": "2025-11-24T18:30:00.258Z",
+  "adminAddress": "UQAM00JuRhVw6Rs_ybCUukHabwuCts7qnxwsCbxGyDrDByqp",
+  "feeWalletAddress": "UQA5Xzzf9gd5_9GHD9e9nM0_o6zoP1hMCOSvWjP1uSaL7Tvg",
+  "allowedJettonAddress": "EQA4PWEd1b2o0aWLn8xJPUqQtVDUm9LzdksbzJDioPP-3Cyv",
+  "initBalance": "0.2",
+  "explorerUrl": "https://tonviewer.com/EQBbpL3KVv6n-lkYDYcEnC_RlQQ_J4vynWdRKYydQKqv9CMR"
+}

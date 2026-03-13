@@ -1,0 +1,169 @@
+(begin-tx "test-swap")
+  (env-data {
+  "ns": "sushi"
+})
+(namespace (read-msg "ns"))
+  (use base)
+  (use token1)
+  (use token2)
+
+  (env-data {
+    "admin-keyset": {"keys": [ADMIN_KEY], "pred": "keys-all"}
+  })
+
+  (let* ((pair (sushi-exchange.get-pair token1 token2))
+         (pair-account (at "account" pair))
+         (pair-key (sushi-exchange.get-pair-key token1 token2))
+         (amount-in 10.0)
+         (reserve-in (sushi-exchange.reserve-for pair token1))
+         (reserve-out (sushi-exchange.reserve-for pair token2))
+         (fee 0.003) ;; FEE constant from sushi-exchange
+         (amount-in-with-fee (* (- 1.0 fee) amount-in))
+         (numerator (* amount-in-with-fee reserve-out))
+         (denominator (+ reserve-in amount-in-with-fee))
+         (amount-out (sushi-exchange.truncate token2 (/ numerator denominator)))
+         )
+    
+    ;; Set up proper capabilities for swaps
+    (env-sigs [{"key": ADMIN_KEY, 
+                "caps": [
+                  (token1.TRANSFER ADMIN pair-account amount-in)
+                ]}])
+
+    ;; Test swap-exact-in          
+    (let ((result (sushi-exchange.swap-exact-in amount-in 0.0 [token1 token2] ADMIN ADMIN constants.ADMIN_GUARD)))
+        (expect "swap-exact-in should return correct token and amount"
+          true
+          (fold (lambda (acc r) (and acc (> (at "amount" r) 0.0)))
+            true
+            result))
+    )
+  )
+(commit-tx)
+
+(begin-tx "test-swap")
+  (env-data {
+  "ns": "sushi"
+})
+(namespace (read-msg "ns"))
+  (use base)
+  (use token1)
+  (use token2)
+
+  (env-data {
+    "admin-keyset": {"keys": [ALICE_KEY], "pred": "keys-all"}
+  })
+
+  (let* ((pair (sushi-exchange.get-pair token1 token2))
+         (pair-account (at "account" pair))
+         (pair-key (sushi-exchange.get-pair-key token1 token2))
+         (amount-in 10.0)
+         (reserve-in (sushi-exchange.reserve-for pair token1))
+         (reserve-out (sushi-exchange.reserve-for pair token2))
+         (fee 0.003) ;; FEE constant from sushi-exchange
+         (amount-in-with-fee (* (- 1.0 fee) amount-in))
+         (numerator (* amount-in-with-fee reserve-out))
+         (denominator (+ reserve-in amount-in-with-fee))
+         (amount-out (sushi-exchange.truncate token2 (/ numerator denominator)))
+         )
+    
+    ;; Set up proper capabilities for swaps
+    (env-sigs [{"key": ALICE_KEY, 
+                "caps": [
+                  (token1.TRANSFER ALICE pair-account amount-in)
+                ]}])
+
+    ;; Test swap-exact-in          
+    (let ((result (sushi-exchange.swap-exact-in amount-in 0.0 [token1 token2] ALICE BOB BOB_GUARD)))
+        (expect "swap-exact-in should return correct token and amount"
+          true
+          (fold (lambda (acc r) (and acc (> (at "amount" r) 0.0)))
+            true
+            result))
+    )
+  )
+(commit-tx)
+
+(begin-tx "test-swap-exact-out-admin")
+  (env-data {
+  "ns": "sushi"
+})
+(namespace (read-msg "ns"))
+  (use base)
+  (use token1)
+  (use token2)
+
+  (env-data {
+    "admin-keyset": {"keys": [ADMIN_KEY], "pred": "keys-all"}
+  })
+
+  (let* ((pair (sushi-exchange.get-pair token1 token2))
+         (pair-account (at "account" pair))
+         (pair-key (sushi-exchange.get-pair-key token1 token2))
+         (desired-output 10.0)
+         ;; Calculate required input based on reserves and fees
+         (reserve-in (sushi-exchange.reserve-for pair token1))
+         (reserve-out (sushi-exchange.reserve-for pair token2))
+         (fee 0.003) ;; FEE constant from sushi-exchange
+         (numerator (* reserve-in desired-output))
+         (denominator (* (- reserve-out desired-output) (- 1.0 fee)))
+         (required-input (ceiling (/ numerator denominator) (try 0.0 (token1.precision))))
+         )
+    
+    ;; Set up proper capabilities for swaps
+    (env-sigs [{"key": ADMIN_KEY, 
+                "caps": [
+                  (token1.TRANSFER ADMIN pair-account required-input)
+                ]}])
+
+    ;; Test swap-exact-out    
+    (let ((result (sushi-exchange.swap-exact-out desired-output required-input [token1 token2] ADMIN ADMIN constants.ADMIN_GUARD)))
+      (expect "swap-exact-out should return correct token and amount"
+        true
+        (fold (lambda (acc r) (and acc (> (at "amount" r) 0.0)))
+              true
+              result)))
+  )
+(commit-tx)
+
+(begin-tx "test-swap-exact-out-alice")
+  (env-data {
+  "ns": "sushi"
+})
+(namespace (read-msg "ns"))
+  (use base)
+  (use token1)
+  (use token2)
+
+  (env-data {
+    "admin-keyset": {"keys": [ALICE_KEY], "pred": "keys-all"}
+  })
+
+  (let* ((pair (sushi-exchange.get-pair token1 token2))
+         (pair-account (at "account" pair))
+         (pair-key (sushi-exchange.get-pair-key token1 token2))
+         (desired-output 10.0)
+         ;; Calculate required input based on reserves and fees
+         (reserve-in (sushi-exchange.reserve-for pair token1))
+         (reserve-out (sushi-exchange.reserve-for pair token2))
+         (fee 0.003) ;; FEE constant from sushi-exchange
+         (numerator (* reserve-in desired-output))
+         (denominator (* (- reserve-out desired-output) (- 1.0 fee)))
+         (required-input (ceiling (/ numerator denominator) (try 0.0 (token1.precision))))
+         )
+    
+    ;; Set up proper capabilities for swaps
+    (env-sigs [{"key": ALICE_KEY, 
+                "caps": [
+                  (token1.TRANSFER ALICE pair-account required-input)
+                ]}])
+
+    ;; Test swap-exact-out    
+    (let ((result (sushi-exchange.swap-exact-out desired-output required-input [token1 token2] ALICE BOB BOB_GUARD)))
+      (expect "swap-exact-out should return correct token and amount"
+        true
+        (fold (lambda (acc r) (and acc (> (at "amount" r) 0.0)))
+              true
+              result)))
+  )
+(commit-tx)

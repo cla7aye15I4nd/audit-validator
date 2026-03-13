@@ -1,0 +1,40 @@
+#include "../../common/stdlib.fc";
+#include "../utils.fc";
+
+global slice storage::multisig_address;
+global int storage::order_seqno;
+global int storage::threshold;
+global cell storage::signers_info;
+global int storage::approvals_mask;
+global int storage::approvals_num;
+global int storage::expiration_time;
+global cell storage::order;
+global int storage::sent_for_execution;
+
+() load_storage() impure inline {
+    slice ds = get_data().begin_parse();
+    storage::multisig_address = ds~load_msg_addr();
+    storage::order_seqno = ds~load_order_seqno();
+    storage::threshold = ds~load_index();
+    storage::signers_info = ds~load_nonempty_dict();
+    storage::approvals_mask = ds~load_uint(MASK_SIZE);
+    storage::approvals_num = ds~load_index();
+    storage::expiration_time = ds~load_timestamp();
+    storage::order = ds~load_ref();
+    storage::sent_for_execution = ds~load_bool();
+}
+
+() save_storage() impure inline {
+    set_data(
+        begin_cell()
+            .store_slice(storage::multisig_address)
+            .store_order_seqno(storage::order_seqno)
+            .store_index(storage::threshold)
+            .store_nonempty_dict(storage::signers_info)
+            .store_uint(storage::approvals_mask, MASK_SIZE)
+            .store_index(storage::approvals_num)
+            .store_timestamp(storage::expiration_time)
+            .store_ref(storage::order)
+            .store_bool(storage::sent_for_execution)
+            .end_cell());
+}

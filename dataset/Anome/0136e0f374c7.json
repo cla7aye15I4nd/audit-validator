@@ -1,0 +1,31 @@
+{
+  "title": "Mismatched Count vs. NFT Transfer Allows Over-Payment",
+  "location": {
+    "local_file_path": "./src/projects/anome 2/shop/card/CardShop.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/e3c45370-51aa-11f0-bdd0-cbef849456d3/source?file=$/github/CertiKProject/certik-audit-projects/2a2826fcbafb5bed23f57406cc61e71a3ccffcf2/projects/anome 2/shop/card/CardShop.sol",
+    "start_line": 40,
+    "end_line": 42
+  },
+  "all_locations": null,
+  "category": null,
+  "severity": null,
+  "confidence": null,
+  "description": "The sellCard function computes the seller\u2019s payout as _priceOf(index) \u00d7 count, but calls safeTransferFrom with count \u00d7 getUnit as a single tokenId. In other words, you pay for \u201ccount\u201d cards yet only transfer one NFT. A malicious seller who owns the NFT with tokenId N can call sellCard(index, N):\n\n1. Precondition: pool.card.getUnit() returns 1 (the usual unit for each NFT).  \n2. The attacker acquires two cards in the pool (e.g. by calling buyCard(index, 2) and receiving tokenIds 1 and 2).  \n3. Now call sellCard(index, 2).  \n   - price = _priceOf(index) \u00d7 2  \n   - pool.card.safeTransferFrom(msg.sender, this, 2 \u00d7 1 = tokenId 2)  \n   - only the single NFT #2 is moved into the contract, but the attacker receives 2 \u00d7 price worth of USDC.  \n   - The attacker still owns tokenId 1.  \n4. The attacker can repeat: buy back tokenId 2 (or mint/acquire it off-chain), then call sellCard(index, 2) again to pocket another unit-price of USDC without ever parting with more than one NFT per call.  \n\nBy mismatching the semantic meaning of count between price calculation and NFT transfer, an attacker can drain the pool\u2019s USDC balance by repeatedly selling a single NFT for multiple card-prices.",
+  "scenario": null,
+  "proof_of_concept": null,
+  "recommendation": null,
+  "id": "fa61",
+  "duplicates": null,
+  "source": "scanner.smart_audit",
+  "status": "verified_as_valid",
+  "scan_model_name": "o4-mini",
+  "related_function_code": "    function sellCard(uint256 index, uint256 count) external override {\n        _sellCard(index, count);\n    }",
+  "related_context": "_sellCard ->     function _sellCard(uint256 index, uint256 count) internal commonCheck noContractCall {\n        if (count == 0) revert InvalidShopAmount();\n\n        ShopStorage.Layout storage data = ShopStorage.layout();\n        ShopTypes.CardPool storage pool = data.pools[index];\n\n        if (data.sellStartsAt[index] > block.timestamp) revert CardRefundNotStarted();\n        if (address(pool.card) == address(0)) revert InvalidCardAddress();\n\n        uint256 price = _priceOf(index) * count;\n        pool.usdaBalance -= price;\n        IUSDA(data.config.usda()).transfer(data.config.treasury(), (price * 5) / 100);\n        IUSDA(data.config.usda()).transfer(msg.sender, (price * 95) / 100);\n\n        pool.card.safeTransferFrom(msg.sender, address(this), count * pool.card.getUnit(), \"\");\n\n        emit CardSell(msg.sender, address(pool.card), count * pool.card.getUnit(), price);\n    }",
+  "related_checklist": null,
+  "related_pid": "e3c45370-51aa-11f0-bdd0-cbef849456d3",
+  "related_commit_id": "2a2826fcbafb5bed23f57406cc61e71a3ccffcf2",
+  "triage_verdict": "invalid",
+  "triage_severity": "",
+  "triage_reason": "The cards are not NFT",
+  "is_main_finding": true
+}

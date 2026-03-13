@@ -1,0 +1,6 @@
+# modules to intentionally exclude from testing
+ns.pact
+constants.pact
+sushi-noop-callable.pact
+sushi-callable-v1.pact
+fungible-util.pact

@@ -1,0 +1,43 @@
+# BSC Testnet config
+
+# AWS KMS
+APISignKeyId = "alias/ABConnectSignKey"
+ManagerAPISignKeyId = "alias/ABConnectSignKey"
+CoreSignKeyId = "alias/ABConnectSignKey"
+ToolsSignKeyId = "alias/ABConnectSignKey"
+
+LogLevel = "debug"
+
+EnableNotify = true
+[Pushover]
+    Token = "<pushover_token>"
+    Key = "<pushover_key>"
+
+[Blockchain]
+    Network = "BSCTestnet" # blockchainId <==> network + chain
+    ChainId = "97" # ChainId or chain name, get from rpcurl
+    BaseChain = "Ethereum"
+    ChainAPIHost = "127.0.0.1:8603"
+    RPCUrl = "https://data-seed-prebsc-1-s1.bnbchain.org:8545"
+    DelayBlockNumber = 20 # block number to confirm
+    RateLimitPerMinute = 2000
+    ChainKeyId = "alias/ABConnectKey"
+    ChainAPISignKeyId = "alias/ABConnectSignKey"
+    ChainTaskSignKeyId = "alias/ABConnectSignKey"
+    ChainManagerSignKeyId = "alias/ABConnectSignKey"
+    MonitorSignKeyId = "alias/ABConnectSignKey"
+
+[Blockchain.DB]
+    adapter = "mysql"
+    database = "abconnect_bsc_testnet_accounts"
+    host = "127.0.0.1"
+    password = "password"
+    user = "abconnect_accounts"
+
+[DB]
+    adapter = "mysql"
+    database = "abconnect"
+    host = "127.0.0.1"
+    password = "password"
+    user = "abconnect"
+

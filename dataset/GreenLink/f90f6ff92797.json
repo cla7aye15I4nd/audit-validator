@@ -1,0 +1,31 @@
+{
+  "title": "safeTransferFrom Bypasses Whitelist/Blacklist Enforcement",
+  "location": {
+    "local_file_path": "./src/GLDB Pulse Contracts/ENT&Swap/NFT.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/b619bc20-116e-11f0-85f2-afceaa02a7b6/source?file=$/github/GLBank/Web3/54b12f25ff139912cbddcc316c940624a64687cf/GLDB Pulse Contracts/ENT&Swap/NFT.sol",
+    "start_line": 1,
+    "end_line": 1
+  },
+  "all_locations": null,
+  "category": null,
+  "severity": null,
+  "confidence": null,
+  "description": "Vulnerability: The override of safeTransferFrom completely omits the contract\u2019s whitelist/blacklist checks (the checkTransfer modifier used in createNFTsFromTokens). As a result, once an NFT is in the CREATED state, partyA can transfer it to any address\u2014even if that address is blacklisted or not whitelisted.\n\nExploit Steps:\n1. Deploy the NFT contract and initialize it with a whitelisting and blacklisting implementation.\n2. Let A call createNFTsFromTokens(...) so that partyA receives NFT id = N (status CREATED).\n3. Using the blacklist controller, add address X to the blacklist.\n4. From partyA\u2019s EOA, invoke safeTransferFrom(partyA, X, N, value, \"\").\n   - The function skips any calls to checkWhiteBlacklist, so it passes the from/to and timing checks.\n   - It updates the transfer history and ledger, then calls super.safeTransferFrom, which succeeds.\n5. Confirm the transfer by calling balanceOf(X, N) and getHistoryLength(N):\n   - balanceOf(X, N) == value\n   - getHistoryLength(N) increased by 1\n\nImpact: A blacklisted or non-whitelisted address X can receive and later realize (redeem) NFTs despite being explicitly disallowed by the blacklist policy, completely bypassing the intended access control.",
+  "scenario": null,
+  "proof_of_concept": null,
+  "recommendation": null,
+  "id": "8759",
+  "duplicates": null,
+  "source": "scanner.smart_audit",
+  "status": "verified_as_valid",
+  "scan_model_name": "o4-mini",
+  "related_function_code": "function safeTransferFrom(address from, address to, uint256 id, uint256 value, bytes memory data)\n        public\n        virtual\n        override\n    {\n        address operator = _msgSender();\n        NFTMetadata storage mt = _getNFTStorage().nfts[id];\n        address nftPartyA = mt.partyA;\n        if (nftPartyA != from || to == nftPartyA) {\n            revert TransferNotAllowed();\n        }\n        uint40 nowTime = uint40(block.timestamp);\n        // Only before the execution date can it be transferred.\n        if (mt.status != NFTStatus.CREATED || nowTime > mt.executionDate.startTime) {\n            revert TransferNotAllowed();\n        }\n        if (_getNFTStorage().nftTransferHistory[id].length > MAX_TRANSFER_HISTORY_LENGTH) {\n            revert MaxTransferExceed(id);\n        }\n        _updateTotalHold(id, to, value, true);\n        _updateTotalHold(id, from, value, false);\n        _getNFTStorage().nftTransferHistory[id].push(to);\n        super.safeTransferFrom(from, to, id, value, data);\n        emit NFTTransferred(operator, from, to, id, value);\n    }",
+  "related_context": "_msgSender ->     function _msgSender() internal view virtual override(Context, ContextUpgradeable) returns (address) {\n        return ContextUpgradeable._msgSender();\n    }\n\n_getNFTStorage ->     function _getNFTStorage() internal pure returns (NFTStorage storage $) {\n        assembly {\n            $.slot := NFT_STORAGE_LOCATION\n        }\n    }\n\n_updateTotalHold ->     function _updateTotalHold(uint256 nftId, address account, uint256 amount, bool increase) internal {\n        mapping(NFTStatisticsType => uint256) storage r = _getNFTStorage().nftActivityLedger[nftId][account];\n        if (increase) {\n            r[NFTStatisticsType.TOTAL_HOLD] += amount;\n        } else {\n            r[NFTStatisticsType.TOTAL_HOLD] -= amount;\n        }\n    }",
+  "related_checklist": null,
+  "related_pid": "b619bc20-116e-11f0-85f2-afceaa02a7b6",
+  "related_commit_id": "54b12f25ff139912cbddcc316c940624a64687cf",
+  "triage_verdict": "valid",
+  "triage_severity": "",
+  "triage_reason": "",
+  "is_main_finding": true
+}

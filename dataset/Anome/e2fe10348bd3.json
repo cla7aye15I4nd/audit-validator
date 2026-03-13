@@ -1,0 +1,31 @@
+{
+  "title": "Off-by-One Turn Check Allows Extra Card Placement After Game End",
+  "location": {
+    "local_file_path": "./src/projects/anome 2/game/rules/GameRules.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/e3c45370-51aa-11f0-bdd0-cbef849456d3/source?file=$/github/CertiKProject/certik-audit-projects/2a2826fcbafb5bed23f57406cc61e71a3ccffcf2/projects/anome 2/game/rules/GameRules.sol",
+    "start_line": 11,
+    "end_line": 19
+  },
+  "all_locations": null,
+  "category": null,
+  "severity": null,
+  "confidence": null,
+  "description": "Vulnerability:\nThe function checks for game over using `if (room.turn > GameStorage.MAX_TURN) revert;`, but treats `room.turn == MAX_TURN` as a valid turn. After the 8th (final) turn, the code enters the settlement branch without incrementing `room.turn` or updating `room.state`. Because `room.turn` remains equal to `MAX_TURN`, a player can call `placeCard` again and bypass the intended game-over logic.\n\nExploit Demonstration:\n1. Two players (P1 and P2) start a game; turns alternate, and `room.turn` increments from 1 up to `MAX_TURN` (8).\n2. On turn 8 (the last allowed turn), the current player (e.g., P2) places their 4th card. The code enters the settlement branch (`room.turn >= MAX_TURN`), emits `GameEnded`, and deletes `battleId`. However, `room.turn` remains 8 and `room.currentPlayer` remains P2.\n3. Immediately after settlement, P2 still satisfies:\n   \u2022 `room.state == GAMING`\n   \u2022 `room.turn (8) <= MAX_TURN (8)`\n   \u2022 `room.currentPlayer == msg.sender`\n   \u2022 The only remaining board position `(x,y)` is unoccupied\n   \u2022 P2 has one unplaced card in `room.allCards` with `originalOwner == P2` and `isPlaced == false`\n4. P2 calls `placeCard(roomType, roomId, x, y, cardIndex)` with that last card. All checks pass, so the extra placement succeeds, flips adjacent cards via `_tryFlip`, and re-triggers settlement.\n5. The second settlement uses an effectively zero `battleId`, but awards win/loss based on the updated board (P2 now has 5 cards vs. P1\u2019s 4), allowing P2 to reverse or bolster the outcome.\n\nImpact:\nBy exploiting this off-by-one turn check and missing state update, the last-mover can place an additional card beyond the intended final turn, manipulating flips and final scores to their advantage.",
+  "scenario": null,
+  "proof_of_concept": null,
+  "recommendation": null,
+  "id": "c35f",
+  "duplicates": null,
+  "source": "scanner.smart_audit",
+  "status": "verified_as_valid",
+  "scan_model_name": "o4-mini",
+  "related_function_code": "function placeCard(\n        GameTypes.RoomType roomType,\n        uint16 roomId,\n        uint8 x,\n        uint8 y,\n        uint8 cardIndex\n    ) external override {\n        _placeCard(msg.sender, roomType, roomId, x, y, cardIndex);\n    }",
+  "related_context": "_placeCard -> function _placeCard(\n        address account,\n        GameTypes.RoomType roomType,\n        uint16 roomId,\n        uint8 x,\n        uint8 y,\n        uint8 cardIndex\n    ) internal {\n        GameStorage.Layout storage layout = GameStorage.layout();\n        GameTypes.Room storage room = layout.rooms[roomType][roomId];\n        uint256 battleId = layout.battleId[roomType][roomId];\n\n        // \u68c0\u67e5Position\u662f\u5426\u5728\u8303\u56f4\u5185\n        if (x >= GameStorage.MAX_X || y >= GameStorage.MAX_Y) {\n            revert PositionOutOfRange();\n        }\n\n        // \u68c0\u67e5\u6e38\u620f\u72b6\u6001\n        if (room.state != GameTypes.States.GAMING) {\n            revert RoomStatusError(room.state);\n        }\n\n        // \u68c0\u67e5\u6e38\u620f\u662f\u5426\u7ed3\u675f\n        if (room.turn > GameStorage.MAX_TURN) {\n            revert GameOver();\n        }\n\n        // \u68c0\u67e5\u662f\u5426\u662f\u73a9\u5bb6\n        if (account != room.player1 && account != room.player2) {\n            revert NotInRoom(account);\n        }\n\n        // \u68c0\u67e5\u662f\u5426\u662f\u5f53\u524d\u73a9\u5bb6\u56de\u5408\n        if (room.currentPlayer != account) {\n            revert NotYourTurn(account);\n        }\n\n        // \u68c0\u67e5Position\u662f\u5426\u5df2\u7ecf\u653e\u7f6e\u8fc7\n        if (_getCardOnBoard(room, x, y).isPlaced) {\n            revert PositionAlreadyPlaced();\n        }\n\n        // \u68c0\u67e5\u5361\u724c\u662f\u5426\u5728\u73a9\u5bb6\u624b\u4e2d\n        if (room.allCards[cardIndex].originalOwner != account) {\n            revert CardNotInHand(account);\n        }\n\n        if (room.allCards[cardIndex].isPlaced) {\n            revert CardAlreadyPlaced();\n        }\n\n        // \u653e\u7f6e\u5361\u724c\u5e76\u7ffb\u9762\n        room.allCards[cardIndex].currentHolder = account;\n        room.allCards[cardIndex].isPlaced = true;\n        room.allCards[cardIndex].x = x;\n        room.allCards[cardIndex].y = y;\n        room.board[x][y] = cardIndex;\n\n        emit CardPlaced(roomType, roomId, account, room.allCards[cardIndex], x, y, battleId);\n\n        _tryFlip(room, x, y, battleId);\n\n        // \u5982\u679c\u6e38\u620f\u7ed3\u675f, \u5219\u7ed3\u7b97\n        // \u5982\u679c\u6e38\u620f\u672a\u7ed3\u675f, \u5219\u8fdb\u5165\u4e0b\u4e00\u56de\u5408\n        if (room.turn >= GameStorage.MAX_TURN) {\n            address winner = _getWinnerByScore(room);\n            address loser = _otherPlayer(room, winner);\n            SettlementResult memory result = _settleCards(room, winner, loser);\n\n            emit GameEnded(\n                roomType,\n                roomId,\n                GameTypes.EndType.NORMAL,\n                msg.sender,\n                winner,\n                loser,\n                result.destroyCard,\n                result.winnerCards,\n                result.loserCards,\n                battleId\n            );\n            delete layout.battleId[roomType][roomId];\n        } else {\n            room.turn++;\n            room.turnStartedAt = block.timestamp;\n            room.currentPlayer = _otherPlayer(room, room.currentPlayer);\n        }\n    }",
+  "related_checklist": null,
+  "related_pid": "e3c45370-51aa-11f0-bdd0-cbef849456d3",
+  "related_commit_id": "2a2826fcbafb5bed23f57406cc61e71a3ccffcf2",
+  "triage_verdict": "invalid",
+  "triage_severity": "",
+  "triage_reason": "When room.turn == MAX_TURN, the game is over",
+  "is_main_finding": true
+}

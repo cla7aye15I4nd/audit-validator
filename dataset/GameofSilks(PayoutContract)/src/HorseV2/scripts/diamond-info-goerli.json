@@ -1,0 +1,37 @@
+{
+  "diamond": {
+    "name": "SilksHorseDiamond",
+    "address": "0xa98262A0D8Eb404AD33178c9bE792C276BD0d22F",
+    "verified": true
+  },
+  "facets": [
+    {
+      "name": "SilksHorseDiamondInit",
+      "upgradeable": false,
+      "skip": true,
+      "address": "0x5d439C9ca821c3612b1eb68e8E6E1F1402865B6b",
+      "verified": true
+    },
+    {
+      "name": "ERC721Facet",
+      "upgradeable": true,
+      "skip": true,
+      "address": "0x026584d8CbC86859604C4A955830463eBd7A870B",
+      "verified": true
+    },
+    {
+      "name": "WriteableFacet",
+      "upgradeable": true,
+      "skip": true,
+      "address": "0x4F793A3eC5237EAAeFc9F16Aa8BD7F48f79F4189",
+      "verified": true
+    },
+    {
+      "name": "ReadableFacet",
+      "upgradeable": true,
+      "skip": true,
+      "address": "0xb331d8B364Aa6e51e4C578811E7b116Bba733E03",
+      "verified": true
+    }
+  ]
+}

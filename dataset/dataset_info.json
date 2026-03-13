@@ -1,0 +1,511 @@
+{
+  "metadata": {
+    "description": "Dataset of tp/fp findings for benchmarking validator and scanner. Each individiual finding is stored as a separate JSON file under benchmark/validator/dataset/{ProjectName}/. This file summarizes the dataset details.",
+    "finding_fields": {
+      "id": "required",
+      "title": "required",
+      "location": {
+        "end_line": "required if related_function_code is missing",
+        "start_line": "required if related_function_code is missing",
+        "acc_file_path": "required",
+        "local_file_path": "required"
+      },
+      "description": "required",
+      "related_pid": "required",
+      "triage_verdict": "required, act as ground truth label",
+      "related_function_code": "required",
+      "triage_severity": "nice_to_have",
+      "related_commit_id": "nice_to_have",
+      "recommendation": "nice_to_have",
+      "severity": "nice_to_have"
+    }
+  },
+  "details": [
+    {
+      "name": "Anome",
+      "pid": "e3c45370-51aa-11f0-bdd0-cbef849456d3",
+      "acc_link": "https://acc.audit.certikpowered.info/project/e3c45370-51aa-11f0-bdd0-cbef849456d3/",
+      "path": "benchmark/validator/dataset/Anome",
+      "reference": [
+        "benchmark/validator/dataset/Anome/docs/Knowledge_Reference_Anome_Rules.pdf"
+      ],
+      "type": "Triaged_By_Minzhi_Team",
+      "total_findings": 22,
+      "total_tp": 13,
+      "total_fp": 9
+    },
+    {
+      "name": "FivePillars",
+      "pid": "a41cefe0-4159-11f0-a06b-992008d4f8aa",
+      "acc_link": "https://acc.audit.certikpowered.info/project/a41cefe0-4159-11f0-a06b-992008d4f8aa/",
+      "path": "benchmark/validator/dataset/FivePillars",
+      "reference": [],
+      "type": "Triaged_By_Minzhi_Team",
+      "total_findings": 20,
+      "total_tp": 11,
+      "total_fp": 9
+    },
+    {
+      "name": "GreenLink",
+      "pid": "b619bc20-116e-11f0-85f2-afceaa02a7b6",
+      "acc_link": "https://acc.audit.certikpowered.info/project/b619bc20-116e-11f0-85f2-afceaa02a7b6/",
+      "path": "benchmark/validator/dataset/GreenLink",
+      "reference": [],
+      "type": "Triaged_By_Minzhi_Team",
+      "total_findings": 28,
+      "total_tp": 8,
+      "total_fp": 20
+    },
+    {
+      "name": "SixrCricket",
+      "pid": "c0b155c0-ce9d-11f0-afef-b3f141791562",
+      "acc_link": "http://acc.audit.certikpowered.info/project/c0b155c0-ce9d-11f0-afef-b3f141791562/",
+      "path": "benchmark/validator/dataset/SixrCricket",
+      "reference": [],
+      "type": "Feedback_From_Alexey",
+      "total_findings": 14,
+      "total_tp": 14,
+      "total_fp": 0
+    },
+    {
+      "name": "GigaStar",
+      "pid": "7b519e30-d10a-11f0-a5a1-c38d49d0912c",
+      "path": "benchmark/validator/dataset/GigaStar",
+      "reference": [],
+      "type": "AuditorFeedbackFromDan",
+      "total_findings": 24,
+      "total_tp": 21,
+      "total_fp": 3,
+      "acc_link": "http://acc.audit.certikpowered.info/project/7b519e30-d10a-11f0-a5a1-c38d49d0912c/"
+    },
+    {
+      "name": "GameofSilks(PayoutContract)",
+      "pid": "3b0e52d0-c146-11ee-ae19-71a31a818f9a",
+      "path": "benchmark/validator/dataset/GameofSilks(PayoutContract)",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/3b0e52d0-c146-11ee-ae19-71a31a818f9a/"
+    },
+    {
+      "name": "PencilsProtocol",
+      "pid": "1fed1c20-02af-11ef-b6bc-1de73d127368",
+      "path": "benchmark/validator/dataset/PencilsProtocol",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/1fed1c20-02af-11ef-b6bc-1de73d127368/"
+    },
+    {
+      "name": "PrintDex",
+      "pid": "57a71af0-0f0f-11ef-b522-65e6a878d0aa",
+      "path": "benchmark/validator/dataset/PrintDex",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/57a71af0-0f0f-11ef-b522-65e6a878d0aa/"
+    },
+    {
+      "name": "Unchain",
+      "pid": "f72af880-fbcd-11ee-bbd2-ff2e77acf2a4",
+      "path": "benchmark/validator/dataset/Unchain",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/f72af880-fbcd-11ee-bbd2-ff2e77acf2a4/"
+    },
+    {
+      "name": "safepump",
+      "pid": "c08d7760-3cf7-11ef-be39-7174154c7792",
+      "path": "benchmark/validator/dataset/safepump",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/c08d7760-3cf7-11ef-be39-7174154c7792/"
+    },
+    {
+      "name": "koyo",
+      "pid": "234c8620-4de2-11ef-8bdf-012e5d16c648",
+      "path": "benchmark/validator/dataset/koyo",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/234c8620-4de2-11ef-8bdf-012e5d16c648/"
+    },
+    {
+      "name": "GAMEE",
+      "pid": "03a8bcb0-4f51-11ef-8188-0505b58ed717",
+      "path": "benchmark/validator/dataset/GAMEE",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/03a8bcb0-4f51-11ef-8188-0505b58ed717/"
+    },
+    {
+      "name": "Lumerin",
+      "pid": "e87cbcc0-50e0-11ef-be7f-a520f1665dc4",
+      "path": "benchmark/validator/dataset/Lumerin",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/e87cbcc0-50e0-11ef-be7f-a520f1665dc4/"
+    },
+    {
+      "name": "Amorphoux",
+      "pid": "125b80a0-673c-11ef-a5cd-fb3ecf7b1c26",
+      "path": "benchmark/validator/dataset/Amorphoux",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/125b80a0-673c-11ef-a5cd-fb3ecf7b1c26/"
+    },
+    {
+      "name": "Portkey",
+      "pid": "7c846b50-3220-11ef-89f8-c16e900c7ea1",
+      "path": "benchmark/validator/dataset/Portkey",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/7c846b50-3220-11ef-89f8-c16e900c7ea1/"
+    },
+    {
+      "name": "AEC",
+      "pid": "5f0618f0-7cd8-11ef-88bc-cde2c27fc0ff",
+      "path": "benchmark/validator/dataset/AEC",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/5f0618f0-7cd8-11ef-88bc-cde2c27fc0ff/"
+    },
+    {
+      "name": "GoldenGoose",
+      "pid": "6d39eb30-786f-11ef-b8f3-35e3732ff258",
+      "path": "benchmark/validator/dataset/GoldenGoose",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/6d39eb30-786f-11ef-b8f3-35e3732ff258/"
+    },
+    {
+      "name": "FEY",
+      "pid": "ecefe950-a048-11ef-badd-73246e4a2372",
+      "path": "benchmark/validator/dataset/FEY",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/ecefe950-a048-11ef-badd-73246e4a2372/"
+    },
+    {
+      "name": "BabyToken",
+      "pid": "40f87c60-9f63-11ef-9b50-5f24ad33b80d",
+      "path": "benchmark/validator/dataset/BabyToken",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/40f87c60-9f63-11ef-9b50-5f24ad33b80d/"
+    },
+    {
+      "name": "Ebridge",
+      "pid": "97cd8990-a175-11ef-bde1-6ddfa26a617d",
+      "path": "benchmark/validator/dataset/Ebridge",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/97cd8990-a175-11ef-bde1-6ddfa26a617d/"
+    },
+    {
+      "name": "SAFE(AnWang)",
+      "pid": "e8e6a7b0-9a56-11ef-8e7a-85ed0c9f95ba",
+      "path": "benchmark/validator/dataset/SAFE(AnWang)",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/e8e6a7b0-9a56-11ef-8e7a-85ed0c9f95ba/"
+    },
+    {
+      "name": "IDOv2onTONNetwork[Pad]",
+      "pid": "e91d2cd0-ccf2-11ef-b7b3-991e621d882a",
+      "path": "benchmark/validator/dataset/IDOv2onTONNetwork[Pad]",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/e91d2cd0-ccf2-11ef-b7b3-991e621d882a/"
+    },
+    {
+      "name": "Venus",
+      "pid": "8ab17f70-b8e3-11ef-a996-75baa03c0028",
+      "path": "benchmark/validator/dataset/Venus",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/8ab17f70-b8e3-11ef-a996-75baa03c0028/"
+    },
+    {
+      "name": "koyo",
+      "pid": "b4af2580-e772-11ef-b757-b39dfeac56e5",
+      "path": "benchmark/validator/dataset/koyo",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 2,
+      "total_tp": 2,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/b4af2580-e772-11ef-b757-b39dfeac56e5/"
+    },
+    {
+      "name": "HomeCubes",
+      "pid": "340b4e30-9034-11ef-b974-6b5926513cff",
+      "path": "benchmark/validator/dataset/HomeCubes",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/340b4e30-9034-11ef-b974-6b5926513cff/"
+    },
+    {
+      "name": "Haven1",
+      "pid": "43102ce0-cb15-11ef-9d05-1b0897613b78",
+      "path": "benchmark/validator/dataset/Haven1",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/43102ce0-cb15-11ef-9d05-1b0897613b78/"
+    },
+    {
+      "name": "Trader",
+      "pid": "fd716360-e0af-11ef-b1db-b3bb1353eef6",
+      "path": "benchmark/validator/dataset/Trader",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/fd716360-e0af-11ef-b1db-b3bb1353eef6/"
+    },
+    {
+      "name": "CoreumDEX",
+      "pid": "ac8b6780-bcbe-11ef-b2a6-53871e3ecd80",
+      "path": "benchmark/validator/dataset/CoreumDEX",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/ac8b6780-bcbe-11ef-b2a6-53871e3ecd80/"
+    },
+    {
+      "name": "KaiaLayer1(V2)",
+      "pid": "9abd0390-085b-11f0-a65b-e3b852450e7f",
+      "path": "benchmark/validator/dataset/KaiaLayer1(V2)",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/9abd0390-085b-11f0-a65b-e3b852450e7f/"
+    },
+    {
+      "name": "Aethir",
+      "pid": "61c50ac0-0012-11f0-a6c7-dd487ba7c9c0",
+      "path": "benchmark/validator/dataset/Aethir",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/61c50ac0-0012-11f0-a6c7-dd487ba7c9c0/"
+    },
+    {
+      "name": "YOEXPRO",
+      "pid": "9779da50-371d-11f0-b142-2bda881cf922",
+      "path": "benchmark/validator/dataset/YOEXPRO",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/9779da50-371d-11f0-b142-2bda881cf922/"
+    },
+    {
+      "name": "ABConnect",
+      "pid": "c30ae600-5a45-11f0-9989-739d017e346c",
+      "path": "benchmark/validator/dataset/ABConnect",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/c30ae600-5a45-11f0-9989-739d017e346c/"
+    },
+    {
+      "name": "SushiSwap",
+      "pid": "953e5590-47ad-11f0-8fe7-f5f1ab22f4b9",
+      "path": "benchmark/validator/dataset/SushiSwap",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/953e5590-47ad-11f0-8fe7-f5f1ab22f4b9/"
+    },
+    {
+      "name": "DeriW",
+      "pid": "d0c1c3e0-0ebe-11f0-bb28-b1ecc4c0c646",
+      "path": "benchmark/validator/dataset/DeriW",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/d0c1c3e0-0ebe-11f0-bb28-b1ecc4c0c646/"
+    },
+    {
+      "name": "YESprotocol",
+      "pid": "9dcb6170-9768-11f0-942e-3b2f23c44445",
+      "path": "benchmark/validator/dataset/YESprotocol",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/9dcb6170-9768-11f0-942e-3b2f23c44445/"
+    },
+    {
+      "name": "OramaLabs",
+      "pid": "775c3200-9199-11f0-8f30-3de48404a1d9",
+      "path": "benchmark/validator/dataset/OramaLabs",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/775c3200-9199-11f0-8f30-3de48404a1d9/"
+    },
+    {
+      "name": "MWXAI",
+      "pid": "e4cfc040-765a-11f0-849a-c7ef6369e136",
+      "path": "benchmark/validator/dataset/MWXAI",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/e4cfc040-765a-11f0-849a-c7ef6369e136/"
+    },
+    {
+      "name": "GalaGames",
+      "pid": "2e0c71e0-9311-11f0-8617-07932f2b3ecc",
+      "path": "benchmark/validator/dataset/GalaGames",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/2e0c71e0-9311-11f0-8617-07932f2b3ecc/"
+    },
+    {
+      "name": "Qubetics(Phase2)",
+      "pid": "8ecb1290-33f6-11f0-9db2-b3c077248e41",
+      "path": "benchmark/validator/dataset/Qubetics(Phase2)",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/8ecb1290-33f6-11f0-9db2-b3c077248e41/"
+    },
+    {
+      "name": "EvervaluecoinEVA",
+      "pid": "f03adfd0-ab7c-11f0-96ab-8b123d6a0fc2",
+      "path": "benchmark/validator/dataset/EvervaluecoinEVA",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/f03adfd0-ab7c-11f0-96ab-8b123d6a0fc2/"
+    },
+    {
+      "name": "Vault777",
+      "pid": "5a815670-b8c1-11f0-8573-4b86029e92fb",
+      "path": "benchmark/validator/dataset/Vault777",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/5a815670-b8c1-11f0-8573-4b86029e92fb/"
+    },
+    {
+      "name": "odysseyAddendum",
+      "pid": "bc55baa0-c517-11f0-a838-53cc3f14fdf2",
+      "path": "benchmark/validator/dataset/odysseyAddendum",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/bc55baa0-c517-11f0-a838-53cc3f14fdf2/"
+    },
+    {
+      "name": "AlphaSec.",
+      "pid": "af456cf0-7d25-11f0-908b-c3b3b024b0ed",
+      "path": "benchmark/validator/dataset/AlphaSec.",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/af456cf0-7d25-11f0-908b-c3b3b024b0ed/"
+    },
+    {
+      "name": "Fundtir",
+      "pid": "e7e5e820-8d8b-11f0-9082-8d49bdd37ed2",
+      "path": "benchmark/validator/dataset/Fundtir",
+      "reference": [],
+      "type": "MonthlyBest",
+      "total_findings": 1,
+      "total_tp": 1,
+      "total_fp": 0,
+      "acc_link": "http://acc.audit.certikpowered.info/project/e7e5e820-8d8b-11f0-9082-8d49bdd37ed2/"
+    }
+  ]
+}

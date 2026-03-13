@@ -1,0 +1,29 @@
+{
+  "id": "a842",
+  "title": "getInstRevs pagination is ineffective because filtered queries copy the entire index array to memory (DoS risk for large datasets)",
+  "source": "aiflow_scanner_codex",
+  "status": "enhanced",
+  "category": null,
+  "location": {
+    "end_line": 1,
+    "start_line": 1,
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/7b519e30-d10a-11f0-a5a1-c38d49d0912c/source?file=$/github/GigaStarIo-public/vault-audit/0b8edde27935e70ed3decbb30508bde926edf57c/bd/bc-contract/contract/v1_0/LibraryIR.sol",
+    "local_file_path": "./src/bd/bc-contract/contract/v1_0/LibraryIR.sol"
+  },
+  "scenario": "",
+  "sequence": 19,
+  "severity": "minor",
+  "confidence": null,
+  "description": "When filtering by `instName` or `earnDate`, `getInstRevs` calls `_getInstRevs(emap, emap.idxName[instName], ...)` or `_getInstRevs(emap, emap.idxDate[earnDate], ...)`, but `_getInstRevs` is defined to take `uint[] memory indexes`. Because callers pass storage arrays (`emap.idxName[...]` / `emap.idxDate[...]`), Solidity copies the entire storage index array into memory before any slicing occurs, making gas and memory usage scale with the total number of matching entries (O(N)) even when `count` is small or the requested slice is empty. This defeats pagination and the library\u2019s stated paging guarantees; once an instrument/date accumulates many entries, these getter calls can revert due to out-of-gas/out-of-memory, effectively causing a denial-of-service for enumeration and making historical revenue data unqueryable on-chain (potentially breaking any on-chain integration relying on these getters). Fix by changing `_getInstRevs` to accept `uint[] storage indexes` (or otherwise avoid full-array copying) and compute the range/end index directly on the storage array so only the requested slice is read.",
+  "related_pid": "7b519e30-d10a-11f0-a5a1-c38d49d0912c",
+  "triage_reason": null,
+  "recommendation": "- Change _getInstRevs to accept uint[] storage indexes and mark it internal/private. Perform all pagination math (length, start, end) directly on the storage array and iterate only over the requested slice.\n- Update getInstRevs(instName/earnDate, ...) to call the storage-based _getInstRevs with emap.idxName[instName] or emap.idxDate[earnDate] so no storage array is copied to memory.\n- If a public/external interface is required, keep it as a thin wrapper that delegates to the internal storage-based function. Alternatively, expose a function to query total length and require callers to pass explicit start/count for bounded reads.\n- Cap count and validate bounds (e.g., handle start >= length or empty ranges by returning an empty result) to avoid unnecessary storage reads and reverts.\n- Compute page start/end indices from length without scanning skipped elements (e.g., for reverse pagination derive indices arithmetically), and pre-size the result array to the exact slice size to minimize gas.",
+  "triage_verdict": "valid",
+  "related_context": null,
+  "scan_model_name": null,
+  "triage_severity": null,
+  "proof_of_concept": null,
+  "related_checklist": null,
+  "related_commit_id": "0b8edde27935e70ed3decbb30508bde926edf57c",
+  "related_function_code": "function getInstRevs(Emap storage emap, bytes32 instName, uint earnDate, uint iBegin, uint count)\n        internal view returns(InstRev[] memory results)\n    { unchecked {\n        if (instName != bytes32(0)) {\n            if (earnDate == 0) {\n                // Get all earn dates for an instrument (instName=set, earnDate=empty)\n                return _getInstRevs(emap, emap.idxName[instName], iBegin, count);\n            }\n            // Get 1 result (instName=set, earnDate=set)\n            uint iValue = emap.idxNameDate[instName][earnDate].iValue;\n            if (iValue != SENTINEL_INDEX) { // then found\n                results = new InstRev[](1);\n                results[0] = emap.values[iValue];\n            }\n            return results;\n        }\n        if (earnDate > 0) {\n            // Get all instruments for an earn dates (instName=empty, earnDate=set)\n            return _getInstRevs(emap, emap.idxDate[earnDate], iBegin, count);\n        }\n        // Get all results (instName=empty, earnDate=empty)\n        InstRev[] storage values = emap.values;\n\n        // Calculate results length\n        iBegin += FIRST_INDEX; // to ignore sentinel value\n        uint resultsLen = Util.getRangeLen(values.length, iBegin, count);\n        if (resultsLen == 0) return results;\n\n        // Get results slice\n        results = new InstRev[](resultsLen);\n        for (uint i = 0; i < resultsLen; ++i) { // Ubound: Caller must page\n            results[i] = values[iBegin + i];\n        }\n    } }"
+}

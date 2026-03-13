@@ -1,0 +1,28 @@
+#include "../common/stdlib.fc";
+
+global slice storage::owner;
+global slice storage::bridge_pool_address;
+global slice storage::jetton_address;
+global int storage::liquidity;
+
+() load_storage() impure inline {
+    slice ds = get_data().begin_parse();
+    storage::owner = ds~load_msg_addr();
+    cell ds_0 = ds~load_ref();
+    slice ds_0_0 = ds_0.begin_parse();
+    storage::bridge_pool_address = ds_0_0~load_msg_addr();
+    storage::jetton_address = ds_0_0~load_msg_addr();
+    storage::liquidity = ds~load_coins();
+}
+
+() save_storage() impure inline {
+    set_data(begin_cell()
+        .store_slice(storage::owner)
+        .store_ref(begin_cell()
+            .store_slice(storage::bridge_pool_address)
+            .store_slice(storage::jetton_address)
+            .end_cell()
+        )
+        .store_coins(storage::liquidity)
+        .end_cell());
+}

@@ -1,0 +1,18 @@
+{
+  "id": "e87cbcc0-50e0-11ef-be7f-a520f1665dc4_1724052413760",
+  "title": "Reward May Be Locked Permanently",
+  "location": {
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/e87cbcc0-50e0-11ef-be7f-a520f1665dc4/source?file=$/github/Lumerin-protocol/Morpheus-Lumerin-Node/75269bd207913526bd7b4db0892307a39c0cb9b3/smart-contracts/contracts/StakingMasterChef.sol",
+    "local_file_path": "./src/smart-contracts/contracts/StakingMasterChef.sol",
+    "start_line": 105,
+    "end_line": 106
+  },
+  "description": "When a pool is added by the owner, `rewardToken` is transferred into the contract. The owner has the capability to halt the pool before its conclusion and retrieve any `rewardToken` that has not been distributed. However, if no users stake or if there is a period without staking activity, any `rewardToken` that remains undistributed at the end of the pool will be permanently locked within the contract.",
+  "related_pid": "e87cbcc0-50e0-11ef-be7f-a520f1665dc4",
+  "triage_verdict": "valid",
+  "related_function_code": "        rewardPerSecondScaled: (_totalReward * PRECISION) / _duration,\n        locks: _lockDurations,\n        accRewardPerShareScaled: 0,\n        totalShares: 0\n      })\n    );\n    emit PoolAdded(poolId, _startTime, endTime);\n\n    rewardToken.transferFrom(_msgSender(), address(this), _totalReward);\n\n    return poolId;\n  }\n\n  /// @notice Get the available lock durations of a pool with the corresponding multipliers\n  /// @param _poolId the id of the pool\n  /// @return locks locks for this pool\n  function getLockDurations(uint256 _poolId) external view poolExists(_poolId) returns (Lock[] memory) {\n    return pools[_poolId].locks;\n  }\n\n  /// @notice Stops the pool, no more rewards will be distributed\n  /// @param _poolId the id of the pool\n  function stopPool(uint256 _poolId) external onlyOwner poolExists(_poolId) {\n    Pool storage pool = pools[_poolId]; // errors if poolId is invalid\n    _recalculatePoolReward(pool);\n    uint256 oldEndTime = pool.endTime;\n    pool.endTime = block.timestamp;\n    emit PoolStopped(_poolId);\n\n    uint256 undistributedReward = ((oldEndTime - block.timestamp) * pool.rewardPerSecondScaled) / PRECISION;\n    safeTransfer(_msgSender(), undistributedReward);\n  }\n\n  /// @notice Manually update pool reward variables\n  /// @param _poolId the id of the pool\n  function recalculatePoolReward(uint256 _poolId) external poolExists(_poolId) {\n    Pool storage pool = pools[_poolId]; // errors if poolId is invalid\n    _recalculatePoolReward(pool);\n  }\n\n  /// @dev Update reward variables of the given pool to be up-to-date.\n  function _recalculatePoolReward(Pool storage _pool) private {\n    uint256 timestamp = min(block.timestamp, _pool.endTime);\n    if (timestamp <= _pool.lastRewardTime) {\n      return;\n    }\n\n    if (_pool.totalShares != 0) {\n      _pool.accRewardPerShareScaled = getRewardPerShareScaled(_pool, timestamp);\n    }\n\n    _pool.lastRewardTime = timestamp;\n  }\n\n  /// @dev calculate reward per share scaled without updating the pool\n  function getRewardPerShareScaled(Pool storage _pool, uint256 _timestamp) private view returns (uint256) {\n    uint256 rewardScaled = (_timestamp - _pool.lastRewardTime) * _pool.rewardPerSecondScaled;\n    return _pool.accRewardPerShareScaled + (rewardScaled / _pool.totalShares);\n  }\n\n  /// @notice Deposit staking token",
+  "severity": "major",
+  "recommendation": "It's recommended to revise the logic to ensure there would be no reward tokens locked in the contract. ",
+  "related_commit_id": "3e86cce22d1af476fdc8b1d191c1b2e54254817a",
+  "triage_severity": null
+}

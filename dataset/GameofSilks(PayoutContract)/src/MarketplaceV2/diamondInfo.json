@@ -1,0 +1,57 @@
+{
+  "name": "SilksMarketplaceDiamond",
+  "facets":[
+    {
+      "name": "SilksMarketplaceDiamondInit",
+      "folder": "upgradeInitializers"
+    },
+    {
+      "name": "MarketplaceAdminWriteableFacet",
+      "folder": "facets/marketplace"
+    },
+    {
+      "name": "ListingWriteableFacet",
+      "folder": "facets/listing"
+    },
+    {
+      "name": "ListingReadableFacet",
+      "folder": "facets/listing"
+    },
+    {
+      "name": "ListingAdminWriteableFacet",
+      "folder": "facets/listing"
+    },
+    {
+      "name": "ListingAdminReadableFacet",
+      "folder": "facets/listing"
+    },
+    {
+      "name": "ContractGlossaryAdminWriteableFacet",
+      "folder": "facets/glossary"
+    },
+    {
+      "name": "ContractGlossaryReadableFacet",
+      "folder": "facets/glossary"
+    },
+    {
+      "name": "PackFacet",
+      "folder": "facets/pack"
+    },
+    {
+      "name": "PackAdminFacet",
+      "folder": "facets/pack"
+    },
+    {
+      "name": "MarketplaceReadableFacet",
+      "folder": "facets/marketplace"
+    },
+    {
+      "name": "SilksMinterFacet",
+      "folder": "facets/minting" 
+    },
+    {
+      "name": "SilksMinterAdminFacet",
+      "folder": "facets/minting" 
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "id": "9cce",
+  "title": "UuidZero (empty reqId) can cause false-positive replays due to default mapping values",
+  "source": "aiflow_scanner_codex",
+  "status": "enhanced",
+  "category": null,
+  "location": {
+    "end_line": 1,
+    "start_line": 1,
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/7b519e30-d10a-11f0-a5a1-c38d49d0912c/source?file=$/github/GigaStarIo-public/vault-audit/0b8edde27935e70ed3decbb30508bde926edf57c/bd/bc-contract/contract/v1_0/CallTracker.sol",
+    "local_file_path": "./src/bd/bc-contract/contract/v1_0/CallTracker.sol"
+  },
+  "scenario": "",
+  "sequence": 43,
+  "severity": "minor",
+  "confidence": null,
+  "description": "_isReqReplay decides whether a reqId is \u201creused\u201d via `_crByReqId[reqId].blockNum != 0`, then validates a replay by comparing `reqId` to `_crBySeqNum[caller][seqNum].reqId`. If `reqId == UuidZero` and `_crByReqId[UuidZero]` has ever been set (possible because _isReqReplay does not forbid empty reqIds and many callers don\u2019t validate `reqId`), then any call using `reqId == UuidZero` with a `(caller, seqNum)` slot that was never written will load the default `CallRes` where `cr.reqId == 0`, making the equality check pass. The function will then emit `ReqAck(..., replay=true)` using an uninitialized `CallRes` (notably `blockNum=0`) and return `true`, causing the caller\u2019s write function to silently no-op (early return) despite no matching historical request actually existing for that `(caller, seqNum)`. This breaks the intended idempotency/reliability guarantees and can mislead off-chain systems relying on `ReqAck` to confirm execution.\n\nRemediation: reject empty `reqId` for `seqNum != 0` inside `_isReqReplay` (e.g., `if (isEmpty(reqId)) revert EmptyReqId();`), and/or require the cached per-(caller,seqNum) result to be present (e.g., `cr.blockNum != 0`) before allowing a replay.",
+  "related_pid": "7b519e30-d10a-11f0-a5a1-c38d49d0912c",
+  "triage_reason": null,
+  "recommendation": "- In _isReqReplay, reject UuidZero (empty reqId) for any seqNum != 0 (e.g., `if (isEmpty(reqId)) revert EmptyReqId();`).\n- Treat a call as a replay only if the per-(caller, seqNum) cache exists and matches: first require presence (e.g., `cr.blockNum != 0`), then compare reqIds. Do not rely on default mapping values.\n- Do not write to or reuse `_crByReqId[UuidZero]`. If it was previously set, block further replays using UuidZero and, if feasible, migrate/clear that key.\n- Emit ReqAck(..., replay=true) only when a valid cached result exists; otherwise, execute normally and emit replay=false.\n- Enforce the same input validation at all entry points and add tests covering UuidZero paths.",
+  "triage_verdict": "valid",
+  "related_context": null,
+  "scan_model_name": null,
+  "triage_severity": null,
+  "proof_of_concept": null,
+  "related_checklist": null,
+  "related_commit_id": "0b8edde27935e70ed3decbb30508bde926edf57c",
+  "related_function_code": "function _isReqReplay(address caller, uint40 seqNum, UUID reqId) internal returns(bool) {\n        if (seqNum == 0) return false; // Hot path for on-chain calls; No tracking (reliability guaranteed)\n\n        uint40 nextExpected = _seqNums[caller];  // Get next expected seqNum\n        bool isNewReqId = _crByReqId[reqId].blockNum == 0;\n        // Check if `reqId` has been used by any caller\n        if (isNewReqId) { // then new `reqId`\n            // Compare `seqNum` vs next expected\n            if (nextExpected == 0) nextExpected = 1; // First call by `caller`\n            if (nextExpected == seqNum) {            // Received matched expected\n                _seqNums[caller] = seqNum + 1;       // Accept request, advance expected seq num\n                return false;                        // Case 0100; Hot path for off-chain calls\n            }\n\n            if (seqNum > nextExpected) { // then client out-of-sync, possibly client problem or block reorg\n                revert SeqNumGap(nextExpected, seqNum, caller); // Case 0200\n            }\n            // Case 0000; `seqNum` < expected with a different `reqId` => error\n        } else {\n            // Check if replay allowed\n            CallRes memory cr = _crBySeqNum[caller][seqNum];\n            if (UUID.unwrap(cr.reqId) == UUID.unwrap(reqId)) {\n                // Replay cached result with same (caller,seqNum,reqId) as a prior call\n                // - Flag indicates replay; `reqId` can be used to recover related events\n                emit ReqAck(reqId, caller, seqNum, cr, true);\n                return true; // Case 0011\n            }\n            // Cases 0012, 0112, 0212;\n            // - Different (caller,seqNum) than original `reqId` usage\n            // - Case not allowed to ensure idempotency and when the full key does not match then assumed that there\n            //   could be a problem with the input and/or order changing, both of which could invalidate the result\n            // - For simplicity `reqId` identifies the request inputs but hashing would be another or supplemental\n            //   approach though it would significantly increase SIZE as the hash would occur per external call\n            // - Original caller cannot be easily known here but can be found by searching for `ReqAck` by `reqId`\n        }\n\n        // Client issue, see the cases above that can lead here and x-ref with the RELIABLE_IDEMPOTENT table\n        UUID oldReqId = _crBySeqNum[caller][seqNum].reqId;\n        revert RequestKeyConflict(isNewReqId, nextExpected, seqNum, oldReqId, reqId);\n    }"
+}

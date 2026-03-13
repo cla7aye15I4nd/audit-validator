@@ -1,0 +1,276 @@
+#include "../common/stdlib.fc";
+#include "../common/utils.fc";
+#include "../common/dic.fc";
+#include "../common/message.fc";
+#include "storage.fc";
+#include "errors.fc";
+#include "params.fc";
+
+(int) create_key(int chain_id, int limit_type) impure inline {
+    var key_builder = begin_cell()
+        .store_uint(chain_id, 32)
+        .store_uint(limit_type, 1)
+        .end_cell();
+    int key_hash = cell_hash(key_builder);
+    return key_hash;
+}
+
+(int) _min(int a, int b) inline {
+    return a < b ? a : b;
+}
+
+(int) _calculate_token_refill(int capacity, int current_token_amount, int rate, int time_diff) inline {
+    return _min(capacity, current_token_amount + (time_diff * rate));
+}
+
+() _set_daily_limit_config(int chain_id, int limit_type, int refresh_time, int daily_limit) impure inline {
+    throw_unless(INVALID_REFRESH_TIME, refresh_time % ONEDAY == 0);
+    throw_unless(NOT_SUPPORT_REFRESH_TIME, (now() >= refresh_time) & ((now() - refresh_time) <= ONEDAY));
+    var key_hash = create_key(chain_id, limit_type);
+    (slice current_daily_limit, int found) = storage::daily_limit.udict_get?(DEFAULT_KEY_LENGTH, key_hash);
+    var log_token_amount = daily_limit;
+
+    if (found) {
+        var remain_token_amount = current_daily_limit~load_uint(256);
+        var last_refresh_time = current_daily_limit~load_uint(64);
+        var current_daily_limit_amount = current_daily_limit~load_uint(256);
+
+        var use_amount = current_daily_limit_amount - remain_token_amount;
+        var new_remain_token_amount = daily_limit <= use_amount ? 0 : daily_limit - use_amount;
+        log_token_amount = new_remain_token_amount;
+        var new_value = begin_cell()
+            .store_uint(new_remain_token_amount, 256)
+            .store_uint(refresh_time, 64)
+            .store_uint(daily_limit, 256);
+        storage::daily_limit~udict_set_builder(DEFAULT_KEY_LENGTH, key_hash, new_value);
+    } else {
+        var new_value = begin_cell()
+            .store_uint(daily_limit, 256)
+            .store_uint(refresh_time, 64)
+            .store_uint(daily_limit, 256);
+        storage::daily_limit~udict_set_builder(DEFAULT_KEY_LENGTH, key_hash, new_value);
+    }
+    emit_log_simple(DAILY_LIMIT_CHANGED,
+        begin_cell()
+            .store_uint(DAILY_LIMIT_CHANGED,32)
+            .store_uint(chain_id, 32)
+            .store_uint(limit_type, 1)
+            .store_uint(log_token_amount, 256)
+            .store_uint(refresh_time, 64)
+            .store_uint(daily_limit, 256)
+            .end_cell(),
+        1
+    );
+    save_storage();
+}
+
+() _set_rate_limit_config(int chain_id, int limit_type, int is_enable, int token_capacity, int rate) impure inline {
+    var key_hash = create_key(chain_id, limit_type);
+    (slice current_rate_limit, int found) = storage::rate_limit.udict_get?(DEFAULT_KEY_LENGTH, key_hash);
+    var log_token_amount = token_capacity;
+    if (found) {
+        var last_updated_time = current_rate_limit~load_uint(64);
+        var current_state = current_rate_limit~load_int(1);
+        cell amount_info = current_rate_limit~load_ref();
+        slice amount_info_slice = amount_info.begin_parse();
+        var current_token_amount = amount_info_slice~load_uint(256);
+        var current_token_capacity = amount_info_slice~load_uint(256);
+        var current_rate = amount_info_slice~load_uint(256);
+        var time_diff = (now() - last_updated_time);
+        if (time_diff != 0) {
+            current_token_amount = _calculate_token_refill(current_token_capacity, current_token_amount, current_rate, time_diff);
+        }
+        current_token_amount = _min(token_capacity, current_token_amount);
+        log_token_amount = current_token_amount;
+        var new_value = begin_cell()
+            .store_uint(now(), 64)
+            .store_int(is_enable, 1)
+            .store_ref(begin_cell()
+                .store_uint(current_token_amount, 256)
+                .store_uint(token_capacity, 256)
+                .store_uint(rate, 256)
+                .end_cell());
+        storage::rate_limit~udict_set_builder(DEFAULT_KEY_LENGTH, key_hash, new_value);
+    } else {
+        var new_value = begin_cell()
+            .store_uint(now(), 64)
+            .store_int(is_enable, 1)
+            .store_ref(begin_cell()
+                .store_uint(token_capacity, 256)
+                .store_uint(token_capacity, 256)
+                .store_uint(rate, 256)
+                .end_cell());
+        storage::rate_limit~udict_set_builder(DEFAULT_KEY_LENGTH, key_hash, new_value);
+    }
+    emit_log_simple(RATE_LIMIT_CHANGED,
+        begin_cell()
+            .store_uint(RATE_LIMIT_CHANGED,32)
+            .store_uint(chain_id, 32)
+            .store_uint(limit_type, 1)
+            .store_ref(begin_cell()
+                .store_uint(log_token_amount, 256)
+                .store_uint(token_capacity, 256)
+                .store_int(is_enable, 1)
+                .store_uint(rate, 256)
+                .end_cell())
+            .end_cell(),
+        1
+    );
+    save_storage();
+}
+
+(int,int) _refresh_current_daily_limit(int refresh_time,int token_amount,int default_amount) impure inline {
+    var time_diff = now() - refresh_time;
+    int count = time_diff / ONEDAY;
+    int last_refresh_time = refresh_time;
+    int remain_token_amount = token_amount;
+    if(count > 0) {
+        last_refresh_time = last_refresh_time + count * ONEDAY;
+        remain_token_amount = default_amount;
+    }
+    return (last_refresh_time,token_amount);
+}
+
+(int, int) consume_daily_limit(int chain_id, int limit_type, int amount) impure inline {
+    var key_hash = create_key(chain_id, limit_type);
+    (slice current_daily_limit, int found) = storage::daily_limit.udict_get?(DEFAULT_KEY_LENGTH, key_hash);
+    if (found) {
+        var cur_remain_token_amount = current_daily_limit~load_uint(256);
+        var cur_last_refresh_time = current_daily_limit~load_uint(64);
+        var cur_daily_limit = current_daily_limit~load_uint(256);
+        (int refresh_time, int remain_token_amount) = _refresh_current_daily_limit(cur_last_refresh_time, cur_remain_token_amount, cur_daily_limit);
+        if (amount > remain_token_amount) {
+            return (false, DAILY_LIMIT_EXCEEDED);
+        }
+        int new_remain_token_amount = remain_token_amount - amount;
+        var new_value = begin_cell()
+            .store_uint(new_remain_token_amount, 256)
+            .store_uint(refresh_time, 64)
+            .store_uint(cur_daily_limit, 256);
+        storage::daily_limit~udict_set_builder(DEFAULT_KEY_LENGTH, key_hash, new_value);
+        emit_log_simple(DAILY_LIMIT_CONSUMED,
+            begin_cell()
+                .store_uint(DAILY_LIMIT_CONSUMED,32)
+                .store_uint(chain_id, 32)
+                .store_uint(limit_type, 1)
+                .store_uint(amount, 256)
+                .end_cell(),
+            1
+        );
+        save_storage();
+        return (true, 0);
+    } else {
+        return (false, DAILY_LIMIT_NOT_EXISTED);
+    }
+}
+
+(int, int, int) consume_rate_limit(int chain_id, int limit_type, int amount) impure inline {
+    var key_hash = create_key(chain_id, limit_type);
+    (slice current_rate_limit, int found) = storage::rate_limit.udict_get?(DEFAULT_KEY_LENGTH, key_hash);
+    if (found) {
+        var last_updated_time = current_rate_limit~load_uint(64);
+        var current_state = current_rate_limit~load_int(1);
+        cell amount_info = current_rate_limit~load_ref();
+        slice amount_info_slice = amount_info.begin_parse();
+        var current_token_amount = amount_info_slice~load_uint(256);
+        var current_token_capacity = amount_info_slice~load_uint(256);
+        var current_rate = amount_info_slice~load_uint(256);
+        if (~ current_state) {
+            return (true, 0, 0);
+        }
+        var time_diff = now() - last_updated_time;
+        if (time_diff > 0) {
+            if (current_token_amount > current_token_capacity) {
+                return (false, BUCKET_OVERFILLED, 0);
+            }
+            current_token_amount = _calculate_token_refill(current_token_capacity, current_token_amount, current_rate, time_diff);
+            last_updated_time = now();
+        }
+        if (current_token_capacity < amount) {
+            return (false, MAX_CAPACITY_EXCEEDED, 0);
+        }
+        if (current_token_amount < amount) {
+            var minWaitInSeconds = ((amount - current_token_amount) + (current_rate - 1)) / current_rate;
+            return (false, TOKEN_RATE_LIMIT_REACHED, minWaitInSeconds);
+        }
+        current_token_amount = current_token_amount - amount;
+        var new_value = begin_cell()
+            .store_uint(now(), 64)
+            .store_int(current_state, 1)
+            .store_ref(begin_cell()
+                .store_uint(current_token_amount, 256)
+                .store_uint(current_token_capacity, 256)
+                .store_uint(current_rate, 256)
+                .end_cell());
+        storage::rate_limit~udict_set_builder(DEFAULT_KEY_LENGTH, key_hash, new_value);
+        emit_log_simple(RATE_LIMIT_CONSUMED,
+            begin_cell()
+                .store_uint(RATE_LIMIT_CONSUMED,32)
+                .store_uint(chain_id, 32)
+                .store_uint(limit_type, 1)
+                .store_uint(amount, 256)
+                .end_cell(),
+            1
+        );
+        save_storage();
+        return (true, 0, 0);
+    } else {
+        return (true, 0, 0);
+    }
+}
+
+
+(int, int, int) consume_limit(int chain_id, int limit_type, int amount) impure inline {
+    (var success_daily_limit, var error) = consume_daily_limit(chain_id, limit_type, amount);
+    if (success_daily_limit) {
+        (var success_rate_limit, var error_rate_limit, var min_wait_seconds) = consume_rate_limit(chain_id, limit_type, amount);
+        if (success_rate_limit) {
+            return (true, 0, 0);
+        } else {
+            return (false, error_rate_limit, min_wait_seconds);
+        }
+    } else {
+        return (false, error, 0);
+    }
+}
+
+(int, int, int, int, int) get_rate_limit(int key_hash) impure inline_ref {
+    (slice receipt_rate_limit, int found) = storage::rate_limit.udict_get?(DEFAULT_KEY_LENGTH, key_hash);
+    var last_updated_time = receipt_rate_limit~load_uint(64);
+    var current_state = receipt_rate_limit~load_int(1);
+    cell amount_info = receipt_rate_limit~load_ref();
+    slice amount_info_slice = amount_info.begin_parse();
+    var current_token_amount = amount_info_slice~load_uint(256);
+    var current_token_capacity = amount_info_slice~load_uint(256);
+    var current_rate = amount_info_slice~load_uint(256);
+    current_token_amount = _calculate_token_refill(current_token_capacity, current_token_amount, current_rate, now() - last_updated_time);
+    last_updated_time = now();
+    if (found) {
+        return (
+            current_token_amount,
+            last_updated_time,
+            current_token_capacity,
+            current_state,
+            current_rate
+        );
+    } else {
+        return (0, 0, 0, 0, 0);
+    }
+}
+
+() _getter_daily_limit(int key_hash,int target_chain_id,slice sender) impure inline_ref {
+    (cell receipt_daily_limit,_) = storage::daily_limit.idict_get_ref?(DEFAULT_KEY_LENGTH,key_hash);
+    var payload = begin_cell()
+        .store_uint(target_chain_id,32)
+        .store_ref(receipt_daily_limit);
+    send_payload(sender, payload.end_cell());
+}
+
+() _getter_rate_limit(int key_hash,int target_chain_id,slice sender) impure inline_ref {
+    (cell swap_rate_limit,_) = storage::rate_limit.idict_get_ref?(DEFAULT_KEY_LENGTH,key_hash);
+    var payload = begin_cell()
+        .store_uint(target_chain_id,32)
+        .store_ref(swap_rate_limit);
+    send_payload(sender, payload.end_cell());
+}
+

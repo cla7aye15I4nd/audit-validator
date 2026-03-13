@@ -1,0 +1,7 @@
+{
+  "watch": ["apps"],
+  "ext": "ts,json",
+  "ignore": ["apps/**/*.test.ts", "apps/**/*.spec.ts"],
+  "exec": "ts-node",
+  "delay": 1000
+}

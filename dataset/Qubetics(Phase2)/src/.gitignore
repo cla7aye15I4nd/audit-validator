@@ -1,0 +1,8 @@
+/target
+/logs
+node_modules
+# RocksDB data
+**/data/
+/logs/
+node*/*
+/.env

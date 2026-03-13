@@ -1,0 +1,82 @@
+;;
+;; TON Bridge Multisig - Initialization Data Builder
+;;
+;; This file provides the initialization function for deploying the bridge multisig contract.
+;; It should be compiled separately and used to generate the initial state.
+;;
+
+#include "stdlib.fc";
+
+;; Build initial storage for the bridge multisig contract
+cell build_initial_storage(
+    ;; Watcher public keys (5 keys)
+    int watcher_1,
+    int watcher_2,
+    int watcher_3,
+    int watcher_4,
+    int watcher_5,
+    ;; Governance public keys (5 keys)
+    int gov_1,
+    int gov_2,
+    int gov_3,
+    int gov_4,
+    int gov_5,
+    ;; Initial allowed jettons (up to 10 jetton addresses)
+    tuple jetton_addresses
+) {
+    ;; Build watcher dictionary
+    cell watchers = new_dict();
+    watchers = watchers.udict_set_builder(8, 0, begin_cell().store_uint(watcher_1, 256));
+    watchers = watchers.udict_set_builder(8, 1, begin_cell().store_uint(watcher_2, 256));
+    watchers = watchers.udict_set_builder(8, 2, begin_cell().store_uint(watcher_3, 256));
+    watchers = watchers.udict_set_builder(8, 3, begin_cell().store_uint(watcher_4, 256));
+    watchers = watchers.udict_set_builder(8, 4, begin_cell().store_uint(watcher_5, 256));
+
+    ;; Build governance dictionary
+    cell governance_dict = new_dict();
+    governance_dict = governance_dict.udict_set_builder(8, 0, begin_cell().store_uint(gov_1, 256));
+    governance_dict = governance_dict.udict_set_builder(8, 1, begin_cell().store_uint(gov_2, 256));
+    governance_dict = governance_dict.udict_set_builder(8, 2, begin_cell().store_uint(gov_3, 256));
+    governance_dict = governance_dict.udict_set_builder(8, 3, begin_cell().store_uint(gov_4, 256));
+    governance_dict = governance_dict.udict_set_builder(8, 4, begin_cell().store_uint(gov_5, 256));
+
+    ;; Build allowed jettons dictionary
+    cell allowed_jettons = new_dict();
+    int jetton_count = jetton_addresses.tlen();
+    int i = 0;
+    while (i < jetton_count) {
+        slice jetton_addr = jetton_addresses.at(i);
+        int addr_hash = slice_hash(jetton_addr);
+        allowed_jettons = allowed_jettons.udict_set_builder(256, addr_hash, begin_cell().store_uint(1, 1));
+        i += 1;
+    }
+
+    ;; Initialize empty token mappings dictionary (for EVM token -> TON jetton root mapping)
+    cell token_mappings = new_dict();
+
+    ;; Initialize empty consumed hashes dictionary
+    cell consumed_hashes = new_dict();
+
+    ;; Initialize empty consumed references dictionary (for WITHDRAW_TON_FUNDS replay protection)
+    cell consumed_references = new_dict();
+
+    ;; Build operations cell: token_mappings, consumed_hashes, consumed_references, fee_wallet
+    ;; Note: fee_wallet is initialized to addr_none (empty address)
+    cell operations_cell = begin_cell()
+        .store_ref(begin_cell().end_cell())      ;; token_mappings (empty)
+        .store_ref(begin_cell().end_cell())      ;; consumed_hashes (empty)
+        .store_ref(begin_cell().end_cell())      ;; consumed_references (empty)
+        .store_uint(0, 2)                        ;; fee_wallet = addr_none
+    .end_cell();
+
+    ;; Build storage cell (4 refs max per cell)
+    return begin_cell()
+        .store_ref(watchers)
+        .store_ref(governance_dict)
+        .store_ref(allowed_jettons)
+        .store_ref(operations_cell)
+        .store_uint(0, 64)              ;; mint_nonce = 0
+        .store_uint(0, 64)              ;; governance_nonce = 0
+        .store_uint(0, 64)              ;; governance_epoch = 0
+    .end_cell();
+}

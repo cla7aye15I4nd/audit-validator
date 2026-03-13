@@ -1,0 +1,56 @@
+{
+  "diamond": {
+    "name": "HorsePartnerships",
+    "address": "0x16ac0E666A43ac5767d5fbC0e0bE80C095208FA2"
+  },
+  "facets": [
+    {
+      "name": "DiamondInit",
+      "upgradeable": false,
+      "skip": false,
+      "address": "0xf7ec534538908Ce03519D3b2118ACBc4E9A8809C"
+    },
+    {
+      "name": "DiamondCutFacet",
+      "upgradeable": false,
+      "skip": false,
+      "address": "0x12317D4F58145728a926309206A6902675184C8c"
+    },
+    {
+      "name": "OwnershipFacet",
+      "upgradeable": false,
+      "skip": false,
+      "address": "0xf062D378107a83055245D1775F7E4659F1AE558d"
+    },
+    {
+      "name": "HorseFractionalizeFacet",
+      "upgradeable": true,
+      "skip": false,
+      "address": "0x0E8Dd2257D781021Cb223566341FF3ebda97D2Da"
+    },
+    {
+      "name": "HorsePartnershipAccessControlFacet",
+      "upgradeable": true,
+      "skip": false,
+      "address": "0x29019e90F86c484dF9b399C1608C5aD9Ac601C69"
+    },
+    {
+      "name": "HorsePartnershipConfigFacet",
+      "upgradeable": true,
+      "skip": false,
+      "address": "0x40e49ED8e819601C482AE1b7D1d2B1CaaA3e4fD0"
+    },
+    {
+      "name": "HorsePartnershipTokenFacet",
+      "upgradeable": true,
+      "skip": false,
+      "address": "0x6c4B9eA98280CF00a5AF4D7ddaB6031Be6B1bd9c"
+    },
+    {
+      "name": "HorseReconstituteFacet",
+      "upgradeable": true,
+      "skip": false,
+      "address": "0x8c2f61bb4C1f7D988Fd6dF35C7617Da07135D552"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "name": "SilksHorseDiamond",
+  "facets":[
+    "ERC721Facet",
+    "SilksHorseDiamondInit",
+    "WriteableFacet",
+    "ReadableFacet"
+  ]
+}

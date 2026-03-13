@@ -1,0 +1,33 @@
+{
+  "title": "Fee Distribution to Treasuries Can Be Circumvented",
+  "location": {
+    "local_file_path": "./src/InvestmentManager.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/a41cefe0-4159-11f0-a06b-992008d4f8aa/source?file=$/github/fivepillarstoken/InvestmentManager/9af8be2c4e53218770015a10ea269caa904fde19/InvestmentManager.sol",
+    "start_line": 1,
+    "end_line": 1
+  },
+  "all_locations": null,
+  "category": "",
+  "severity": "high",
+  "confidence": null,
+  "description": "The `_trySendFees` function splits the collected ETH balance between two treasury addresses, `treasury` and `treasury2`, with a 70/30 ratio. However, the contract does not validate that these two addresses are unique. If the owner sets both treasury addresses to be the same, the first transfer sends 70% of the balance, and the second transfer sends the remaining 30% to the *same address*. This incorrectly allocates 100% of the fees to a single treasury, violating the intended fee distribution mechanism.Before sending the funds, add a check to ensure that `treasury` and `treasury2` are not the same address. This can be enforced in the constructor and in any function that might change these addresses in the future. `if (treasury == treasury2) revert SameTreasuryAddress();`1. Assume the contract has successfully swapped tokens and now holds 10 ETH.\n2. The code calculates `firstTreasuryAmount = 10 ETH * 70 / 100 = 7 ETH`.\n3. It sends 7 ETH to `treasury`. The contract's balance is now 3 ETH.\n4. The next line attempts to send the remaining balance to `treasury2`: `payable(treasury2).call{value: address(this).balance}(\"\")`. This sends the remaining 3 ETH.\n5. `treasury` receives 70% of the funds, and `treasury2` receives 30%.\n6. Now, assume the owner sets `treasury` and `treasury2` to the same address.\n7. The contract sends 7 ETH to the address. The balance is 3 ETH.\n8. It then sends the remaining 3 ETH to the same address.\n9. The single treasury address receives 100% of the funds, bypassing the intended 70/30 split. While controlled by the owner, this represents a flaw in enforcing the fee distribution structure, as a single misconfiguration (intentional or not) centralizes all fees to one treasury.",
+  "scenario": null,
+  "proof_of_concept": "1. Assume the contract has successfully swapped tokens and now holds 10 ETH.\n2. The code calculates `firstTreasuryAmount = 10 ETH * 70 / 100 = 7 ETH`.\n3. It sends 7 ETH to `treasury`. The contract's balance is now 3 ETH.\n4. The next line attempts to send the remaining balance to `treasury2`: `payable(treasury2).call{value: address(this).balance}(\"\")`. This sends the remaining 3 ETH.\n5. `treasury` receives 70% of the funds, and `treasury2` receives 30%.\n6. Now, assume the owner sets `treasury` and `treasury2` to the same address.\n7. The contract sends 7 ETH to the address. The balance is 3 ETH.\n8. It then sends the remaining 3 ETH to the same address.\n9. The single treasury address receives 100% of the funds, bypassing the intended 70/30 split. While controlled by the owner, this represents a flaw in enforcing the fee distribution structure, as a single misconfiguration (intentional or not) centralizes all fees to one treasury.",
+  "recommendation": "Before sending the funds, add a check to ensure that `treasury` and `treasury2` are not the same address. This can be enforced in the constructor and in any function that might change these addresses in the future. `if (treasury == treasury2) revert SameTreasuryAddress();`",
+  "id": "f094",
+  "duplicates": null,
+  "source": "scanner.token_scanner",
+  "status": "verified_as_valid",
+  "scan_model_name": "o4-mini, gemini-2.5-pro",
+  "related_function_code": "function _trySendFees() internal {\n    uint256 accumulatedFees = fivePillarsToken.balanceOf(address(this));\n    uint256 amountOutMin = accumulatedFees * minSwapPrice / 10 ** 18;\n    if(accumulatedFees > 0) {\n        fivePillarsToken.approve(dexRouter, accumulatedFees);\n        address[] memory path = new address[](2);\n        path[0] = address(fivePillarsToken);\n        path[1] = IPancakeRouter01(dexRouter).WETH();\n        (bool success, ) = dexRouter.call(abi.encodeWithSelector(\n            IPancakeRouter01.swapExactTokensForETH.selector,\n            accumulatedFees,\n            amountOutMin,\n            path,\n            address(this),\n            block.timestamp\n        ));\n        // ...\n        uint256 firstTreasuryAmount = address(this).balance * 70 / 100;\n        (success,) = payable(treasury).call{value: firstTreasuryAmount}(\"\");\n        if (!success) revert SendEtherFailed(treasury);\n\n        (success,) = payable(treasury2).call{value: address(this).balance}(\"\");\n        if (!success) revert SendEtherFailed(treasury2);\n    }\n} ",
+  "related_context": "",
+  "related_checklist": {
+    "checklist": "If the contract has maximum transaction limit enforcement, ensure that the users cannot circumvent intended caps by breaking large transactions into smaller units."
+  },
+  "related_pid": "a41cefe0-4159-11f0-a06b-992008d4f8aa",
+  "related_commit_id": "9af8be2c4e53218770015a10ea269caa904fde19",
+  "triage_verdict": "valid",
+  "triage_severity": "Minor",
+  "triage_reason": null,
+  "is_main_finding": true
+}

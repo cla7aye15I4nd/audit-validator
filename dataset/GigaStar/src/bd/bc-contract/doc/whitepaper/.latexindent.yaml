@@ -1,0 +1,28 @@
+# Latex indentation config
+
+indentPreamble: 1
+defaultIndent: "  "
+modifyLineBreaks:
+  environments:
+    itemize:
+      BeginStartsOnOwnLine: 1
+      EndStartsOnOwnLine: 1
+    enumerate:
+      BeginStartsOnOwnLine: 1
+      EndStartsOnOwnLine: 1
+
+# Never indent these environments
+noIndentBlock:
+  - verbatim
+  - minted
+  - lstlisting
+  - tcolorbox
+  - tikzpicture
+
+verbatimEnvironments:
+  - minted
+  - verbatim
+  - lstlisting
+
+lookForAlignDelims:
+  tabular: 1

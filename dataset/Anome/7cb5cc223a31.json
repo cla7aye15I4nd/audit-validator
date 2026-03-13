@@ -1,0 +1,31 @@
+{
+  "title": "Profit Claim Can Be Blocked by Airdropping an NFT",
+  "location": {
+    "local_file_path": "./src/projects/anome 2/og_nft/guild/GameGuildInternal.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/e3c45370-51aa-11f0-bdd0-cbef849456d3/source?file=$/github/CertiKProject/certik-audit-projects/2a2826fcbafb5bed23f57406cc61e71a3ccffcf2/projects/anome 2/og_nft/guild/GameGuildInternal.sol",
+    "start_line": 82,
+    "end_line": 110
+  },
+  "all_locations": null,
+  "category": null,
+  "severity": null,
+  "confidence": null,
+  "description": "The `_claimProfit` function contains a check, `_balanceOf(account) > 1`, that prevents a user from claiming profit if they own more than one OG NFT. This restriction, intended to enforce a 'one-NFT-per-claimer' rule, introduces a denial-of-service vulnerability. A malicious actor can exploit this by transferring an additional, potentially worthless, OG NFT to a victim who holds a single NFT with accrued profits. This action increases the victim's NFT balance to more than one, thereby blocking them from accessing the `_claimProfit` function and freezing their claimable profit. The victim must then take action to reduce their NFT count, such as transferring or selling one of their NFTs, before they can access their funds.\n\n**Exploit Demonstration:**\n1. A victim account holds a single OG NFT with `ogId=10`, which has accumulated a significant amount of claimable profit (e.g., 10,000 USDA).\n2. An attacker, holding another OG NFT (`ogId=99`), transfers their NFT to the victim's address.\n3. The victim now holds two OG NFTs, and their balance according to `_balanceOf(victim_address)` becomes 2.\n4. The victim attempts to call the public function that executes `_claimProfit` for their `ogId=10`.\n5. The function's initial check `if (_balanceOf(victim_address) > 1)` now evaluates to true, causing the transaction to revert with the `HoldMoreThanOneOg` error.\n6. As a result, the victim is unable to claim their 10,000 USDA profit. Their funds are effectively frozen until they transfer one of the NFTs out of their wallet.",
+  "scenario": null,
+  "proof_of_concept": null,
+  "recommendation": null,
+  "id": "bd5f",
+  "duplicates": null,
+  "source": "scanner.smart_audit",
+  "status": "verified_as_valid",
+  "scan_model_name": "gemini-2.5-pro",
+  "related_function_code": "    function _claimProfit(address account, uint256 ogId) internal {\n        GameGuildStorage.Layout storage lg = GameGuildStorage.layout();\n\n        if (_balanceOf(account) == 0) {\n            revert OgNftNotOwner();\n        }\n\n        if (_balanceOf(account) > 1) {\n            revert HoldMoreThanOneOg();\n        }\n\n        if (_tokenOfOwnerByIndex(account, 0) != ogId) {\n            revert OgNftNotOwner();\n        }\n\n        if (lg.ogClaimableProfit[ogId] == 0) {\n            revert NoClaimableProfit();\n        }\n\n        uint256 amount = lg.ogClaimableProfit[ogId];\n        lg.ogClaimableProfit[ogId] = 0;\n        lg.ogClaimProfitRecord[ogId].push(\n            GameGuildStorage.OgClaimProfitRecord({amount: amount, timestamp: block.timestamp})\n        );\n\n        IUSDA(lg.config.usda()).transfer(account, amount);\n\n        emit ClaimOgProfit(ogId, account, amount);\n    }",
+  "related_context": "layout ->     function layout() internal pure returns (Layout storage l) {\n        bytes32 slot = STORAGE_SLOT;\n        assembly {\n            l.slot := slot\n        }\n    }\n\nusda -> None",
+  "related_checklist": null,
+  "related_pid": "e3c45370-51aa-11f0-bdd0-cbef849456d3",
+  "related_commit_id": "2a2826fcbafb5bed23f57406cc61e71a3ccffcf2",
+  "triage_verdict": "invalid",
+  "triage_severity": "",
+  "triage_reason": "The use can transfer the NFT",
+  "is_main_finding": true
+}

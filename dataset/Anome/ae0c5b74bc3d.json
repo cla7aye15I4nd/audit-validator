@@ -1,0 +1,34 @@
+{
+  "title": "Missing Cycle Check Allows Referral Graph Loop",
+  "location": {
+    "local_file_path": "./src/projects/anome 2/shop/referral/ShopReferralInternal.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/e3c45370-51aa-11f0-bdd0-cbef849456d3/source?file=$/github/CertiKProject/certik-audit-projects/2a2826fcbafb5bed23f57406cc61e71a3ccffcf2/projects/anome 2/shop/referral/ShopReferralInternal.sol",
+    "start_line": 80,
+    "end_line": 90
+  },
+  "all_locations": null,
+  "category": null,
+  "severity": null,
+  "confidence": null,
+  "description": "Vulnerability: The internal function _rebindSponsor only enforces that sponsor \u2260 address(0), sponsor \u2260 account, and that accountSponsor[account] is unset. It does not verify that the chosen sponsor isn\u2019t already in the account\u2019s downstream referral tree. As a result, you can rebind an ancestor under one of its own descendants, creating a cycle in the sponsor graph.\n\nExploit Steps:\n1. Deploy or access the ShopReferral contract (which exposes public bindSponsor and changeSponsor functions that invoke _rebindSponsor internally).\n2. Account A calls bindSponsor(0) \u2192 _rebindSponsor(A, defaultSponsor).\n3. Account B calls bindSponsor(codeOfA) \u2192 _rebindSponsor(B, A).\n4. Account C calls bindSponsor(codeOfB) \u2192 _rebindSponsor(C, B).\n   \u2022 At this point the referral chain is defaultSponsor \u2192 A \u2192 B \u2192 C.\n5. Account A calls changeSponsor(C) \u2192 internally _removeRecruit(defaultSponsor, A) clears A\u2019s old sponsor, then calls _rebindSponsor(A, C).\n   \u2022 Since A\u2019s accountSponsor was reset to address(0), _rebindSponsor allows A to bind under C without checking for cycles.\n6. Validate storage:\n   \u2022 data.accountSponsor[A] == C\n   \u2022 data.accountSponsor[C] == B\n   \u2022 data.accountSponsor[B] == A\n   \u21d2 A \u2192 C \u2192 B \u2192 A forms a cycle.\n\nImpact: Any routine that walks the sponsor chain (e.g. referral reward distribution, depth-based ranking) will loop indefinitely or exhaust gas, causing Denial-of-Service or logic failures in downstream features.",
+  "scenario": null,
+  "proof_of_concept": null,
+  "recommendation": null,
+  "id": "416d",
+  "duplicates": [
+    "416d",
+    "ef3e"
+  ],
+  "source": "scanner.smart_audit",
+  "status": "verified_as_valid",
+  "scan_model_name": "o4-mini",
+  "related_function_code": "function _rebindSponsor(address account, address sponsor) internal {\n    ShopStorage.Layout storage data = ShopStorage.layout();\n    if (sponsor == address(0)) revert InvalidAccount(sponsor);\n    if (sponsor == account) revert InvalidSponsor(sponsor);\n    if (data.accountSponsor[account] != address(0)) revert AccountAlreadyCreated();\n\n    data.accountSponsor[account] = sponsor;\n    data.accountRecruits[sponsor].push(ShopTypes.Recruit({account: account, timestamp: block.timestamp}));\n\n    emit RelationBinded(msg.sender, account, sponsor);\n}",
+  "related_context": "layout ->     function layout() internal pure returns (Layout storage l) {\n        bytes32 slot = STORAGE_SLOT;\n        assembly {\n            l.slot := slot\n        }\n    }",
+  "related_checklist": null,
+  "related_pid": "e3c45370-51aa-11f0-bdd0-cbef849456d3",
+  "related_commit_id": "2a2826fcbafb5bed23f57406cc61e71a3ccffcf2",
+  "triage_verdict": "valid",
+  "triage_severity": "",
+  "triage_reason": "Valid finding",
+  "is_main_finding": true
+}

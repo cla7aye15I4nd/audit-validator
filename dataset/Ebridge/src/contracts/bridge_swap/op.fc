@@ -1,0 +1,32 @@
+const transfer = 0xf8a7ea5;
+const transfer_notification = 0x7362d09c;
+
+;;bridge swap
+const swap = "swap_token"c;
+
+;; bridge pool
+const release = "release"c;
+const release_native_token = "release_native_token"c;
+
+const swap_failed = "swap_failed"c;
+const record_swap = "record_swap"c;
+
+;; admin
+const create_swap = "create_swap"c;
+
+;; bridge
+const resend_to_oracle = "resend_to_oracle"c;
+const swap_ok = "swap_ok"c;
+
+
+;; async "get" calls
+const getter_swap_data = "getter_swap_data"c;
+
+const init_code_upgrade = "init_code_upgrade"c;
+const init_owner_upgrade = "init_owner_upgrade"c;
+const init_admin_upgrade = "init_admin_upgrade"c;
+
+const cancel_code_upgrade = "cancel_code_upgrade"c;
+const cancel_owner_upgrade = "cancel_owner_upgrade"c;
+const cancel_admin_upgrade = "cancel_admin_upgrade"c;
+const finalize_upgrades = "finalize_upgrades"c;

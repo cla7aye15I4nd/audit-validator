@@ -1,0 +1,34 @@
+{
+  "title": "Denial-of-Service on profit claims by sending extra OG NFT",
+  "location": {
+    "local_file_path": "./src/projects/anome 2/og_nft/guild/GameGuild.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/e3c45370-51aa-11f0-bdd0-cbef849456d3/source?file=$/github/CertiKProject/certik-audit-projects/2a2826fcbafb5bed23f57406cc61e71a3ccffcf2/projects/anome 2/og_nft/guild/GameGuild.sol",
+    "start_line": 18,
+    "end_line": 20
+  },
+  "all_locations": null,
+  "category": null,
+  "severity": null,
+  "confidence": null,
+  "description": "In _claimProfit the code insists that msg.sender must hold exactly one OG NFT (balance == 1) and will revert with HoldMoreThanOneOg if the balance exceeds one. Because OG NFTs follow the standard ERC-721 transfer logic, an attacker who owns at least one OG NFT can gift or transfer an extra OG NFT to any target address. Once that address holds two NFTs, any call to claimProfit(\u2026) by that address will fail at the \u201c> 1\u201d check, trapping all future profit claims for any OG ID until the extra NFT is removed.\n\nExploit Steps:\n1. Attacker acquires any OG NFT (e.g. by minting or purchasing).\n2. Attacker calls safeTransferFrom(attacker, victim, extraOgId) to transfer their NFT to the victim\u2019s address.\n3. The victim\u2019s balance is now 2. Any call to claimProfit(ogId) (for either of their two NFTs) executes _claimProfit:\n   \u2022 _balanceOf(victim) == 2 \u2192 triggers revert HoldMoreThanOneOg()\n4. As long as the victim\u2019s balance remains > 1, they cannot ever reach the branch that pays out profit, effectively denying them service.\n\nThis is purely a logical flaw in the balance check: by gating profit on holding exactly one NFT, the contract can be put into a permanent denial-of-service state for any user who is sent an extra OG NFT.",
+  "scenario": null,
+  "proof_of_concept": null,
+  "recommendation": null,
+  "id": "9b00",
+  "duplicates": [
+    "9b00",
+    "5d56"
+  ],
+  "source": "scanner.smart_audit",
+  "status": "verified_as_valid",
+  "scan_model_name": "o4-mini",
+  "related_function_code": "function claimProfit(uint256 ogId) external override {\n        _claimProfit(msg.sender, ogId);\n    }",
+  "related_context": "_claimProfit ->     function _claimProfit(address account, uint256 ogId) internal {\n        GameGuildStorage.Layout storage lg = GameGuildStorage.layout();\n\n        if (_balanceOf(account) == 0) {\n            revert OgNftNotOwner();\n        }\n\n        if (_balanceOf(account) > 1) {\n            revert HoldMoreThanOneOg();\n        }\n\n        if (_tokenOfOwnerByIndex(account, 0) != ogId) {\n            revert OgNftNotOwner();\n        }\n\n        if (lg.ogClaimableProfit[ogId] == 0) {\n            revert NoClaimableProfit();\n        }\n\n        uint256 amount = lg.ogClaimableProfit[ogId];\n        lg.ogClaimableProfit[ogId] = 0;\n        lg.ogClaimProfitRecord[ogId].push(\n            GameGuildStorage.OgClaimProfitRecord({amount: amount, timestamp: block.timestamp})\n        );\n\n        IUSDA(lg.config.usda()).transfer(account, amount);\n\n        emit ClaimOgProfit(ogId, account, amount);\n    }",
+  "related_checklist": null,
+  "related_pid": "e3c45370-51aa-11f0-bdd0-cbef849456d3",
+  "related_commit_id": "2a2826fcbafb5bed23f57406cc61e71a3ccffcf2",
+  "triage_verdict": "invalid",
+  "triage_severity": "",
+  "triage_reason": "The use can transfer the NFT",
+  "is_main_finding": true
+}

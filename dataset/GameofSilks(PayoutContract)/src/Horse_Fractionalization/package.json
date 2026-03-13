@@ -1,0 +1,44 @@
+{
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.6",
+    "@nomiclabs/hardhat-etherscan": "^3.1.0",
+    "@nomiclabs/hardhat-waffle": "^2.0.3",
+    "@openzeppelin/hardhat-upgrades": "^1.23.1",
+    "chai": "^4.3.6",
+    "ethereum-waffle": "^3.4.4",
+    "ethers": "^5.6.8",
+    "hardhat": "^2.9.9",
+    "solidity-coverage": "^0.8.2",
+    "typechain": "^3.0.0"
+  },
+  "scripts": {
+    "start-ganache-node": "npx hardhat node",
+    "start-hardhat-console": "npx hardhat console",
+    "compile-contracts": "npx hardhat compile",
+    "coverage-tests": "npx hardhat coverage --network localhost --solcoverjs .solcover.js",
+    "test": "npx hardhat test --network localhost",
+    "size-contracts": "npx hardhat size-contracts",
+    "deploy-horse-partnerships-dev-goerli": "STAGE=dev npx hardhat run scripts/deploy-horse-partnerships.js --network goerli",
+    "deploy-horse-partnerships-dev-sepolia": "STAGE=dev npx hardhat run scripts/deploy-horse-partnerships.js --network sepolia",
+    "deploy-horse-partnerships-qa-goerli": "STAGE=qa npx hardhat run scripts/deploy-horse-partnerships.js --network goerli",
+    "deploy-horse-partnerships-uat-goerli": "STAGE=uat npx hardhat run scripts/deploy-horse-partnerships.js --network goerli",
+    "deploy-horse-partnerships-prod-mainnet": "STAGE=prod npx hardhat run scripts/deploy-horse-partnerships.js --network mainnet",
+    "deploy-diamond-horse-partnerships-dev-hardhat": "STAGE=dev npx hardhat run scripts/deploy-horse-partnerships-diamond.js --network hardhat",
+    "deploy-diamond-horse-partnerships-dev-sepolia": "STAGE=dev npx hardhat run scripts/deploy-horse-partnerships-diamond.js --network sepolia"
+  },
+  "dependencies": {
+    "@gnus.ai/contracts-upgradeable-diamond": "^4.8.1",
+    "@gnus.ai/upgrade-safe-transpiler-diamond": "^0.3.19-b",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.7",
+    "@openzeppelin/contracts": "^4.8.1",
+    "@openzeppelin/contracts-upgradeable": "^4.8.3",
+    "aws-sdk": "^2.1328.0",
+    "diamond-util": "^1.1.1",
+    "dotenv": "^16.0.3",
+    "ganache": "^7.7.3",
+    "ganache-cli": "^6.12.2",
+    "hardhat-contract-sizer": "^2.7.0",
+    "path": "^0.12.7",
+    "solc": "^0.8.17"
+  }
+}

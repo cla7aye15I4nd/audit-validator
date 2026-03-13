@@ -1,0 +1,35 @@
+{
+  "title": "Membership Check Uses Stale Investor State, Blocking Single-Deposit Pool Entry",
+  "location": {
+    "local_file_path": "./src/InvestmentManager.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/a41cefe0-4159-11f0-a06b-992008d4f8aa/source?file=$/github/fivepillarstoken/InvestmentManager/9af8be2c4e53218770015a10ea269caa904fde19/InvestmentManager.sol",
+    "start_line": 1,
+    "end_line": 1
+  },
+  "all_locations": null,
+  "category": null,
+  "severity": null,
+  "confidence": null,
+  "description": "In _checkAndAddInvestorToPool, the code tests the three membership criteria (totalDeposit, directRefsCount and directRefsDeposit) against a memory\u2010copied InvestorInfo snapshot. However, in the deposit flow the contract calls _updatePoolRewards (which invokes _checkAndAddInvestorToPool) before it ever updates investor.totalDeposit in storage. As a result: on the very transaction that pushes an investor\u2019s totalDeposit across the personalInvestRequired threshold, the in-memory InvestorInfo still shows the old (too low) totalDeposit, so the investor fails the check and is not added to the pool. The investor only enters the pool on a subsequent deposit, when the updated totalDeposit is picked up in the fresh memory snapshot.\n\nExploit (to reproduce and confirm the bug):\n1. Identify a pool (poolId = N) whose personalInvestRequired you can meet exactly with a single deposit.  \n2. From a fresh EOA, call deposit(amount = personalInvestRequired + fee, referer = address(0)).  \n   - The deposit succeeds and investor.totalDeposit in storage becomes \u2265 personalInvestRequired.  \n   - However, because _updatePoolRewards ran first, it saw an in-memory totalDeposit of zero and did not add you to pool N.  \n   - Confirm by reading isInvestorInPool[yourAddress][N] \u2192 false, and pools[N].participantsCount unchanged.\n3. Wait out depositDelay (4 hours).  \n4. Call deposit(amount = 1 wei, referer = address(0)).  \n   - Now _updatePoolRewards sees investor.totalDeposit \u2265 personalInvestRequired (from step 2) in the new memory snapshot, so _checkAndAddInvestorToPool passes.  \n   - The mapping isInvestorInPool[yourAddress][N] flips to true, pools[N].participantsCount increments by 1, and poolRewardPerInvestorPaid[N] is initialized.\n\nImpact: An investor who meets the personal investment requirement in one large deposit cannot join the pool until making a second (even trivial) deposit. This misplaced use of a stale memory snapshot introduces a two-step requirement where a single deposit should suffice.",
+  "scenario": null,
+  "proof_of_concept": null,
+  "recommendation": null,
+  "id": "6c3b",
+  "duplicates": [
+    "6c3b",
+    "589c",
+    "735d"
+  ],
+  "source": "scanner.smart_audit",
+  "status": "verified_as_valid",
+  "scan_model_name": "o4-mini",
+  "related_function_code": "function _checkAndAddInvestorToPool(\n        PoolInfo memory poolInfo,\n        uint8 poolId,\n        InvestorInfo memory investorInfo,\n        address investor\n    ) internal returns(bool) {\n        if (!isInvestorInPool[investor][poolId]) {\n            if (\n                investorInfo.totalDeposit >= poolInfo.personalInvestRequired &&\n                investorInfo.directRefsCount >= poolInfo.directRefsRequired && \n                investorInfo.directRefsDeposit >= poolInfo.totalDirectInvestRequired\n            ) {\n                isInvestorInPool[investor][poolId] = true;\n                pools[poolId].participantsCount += 1;\n                accountToInvestorInfo[investor].poolRewardPerInvestorPaid[poolId] = poolInfo.rewardPerInvestorStored;\n                return true;\n            }\n        }\n\n        return false;\n    }",
+  "related_context": "",
+  "related_checklist": null,
+  "related_pid": "a41cefe0-4159-11f0-a06b-992008d4f8aa",
+  "related_commit_id": "9af8be2c4e53218770015a10ea269caa904fde19",
+  "triage_verdict": "valid",
+  "triage_severity": "Minor",
+  "triage_reason": null,
+  "is_main_finding": true
+}

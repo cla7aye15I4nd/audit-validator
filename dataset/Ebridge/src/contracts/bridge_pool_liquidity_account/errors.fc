@@ -1,0 +1,10 @@
+;; global errors
+
+const WRONG_OP = 0xffff;
+
+const UNAUTHORIZED = 81;
+
+const WRONG_WORKCHAIN = 94;
+const LIQUIDITY_NOT_ENOUGH = 93;
+
+const NOT_SUPPORTED_OP = 97;

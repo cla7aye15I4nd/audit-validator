@@ -1,0 +1,95 @@
+#include "common/stdlib.fc";
+#include "common/utils.fc";
+#include "common/message.fc";
+#include "multisign/storage.fc";
+#include "multisign/op.fc";
+#include "multisign/errors.fc";
+#include "multisign/order/fee.fc";
+#include "multisign/helper.fc";
+#include "multisign/get.fc";
+
+() recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
+    if (in_msg_body.slice_empty?()) {
+        ;; ignore empty messages
+        return ();
+    }
+    var cs = in_msg_full.begin_parse();
+    var flags = cs~load_uint(4);  ;; int_msg_info$0 ihr_disabled:Bool bounce:Bool bounced:Bool
+
+    slice sender_address = cs~load_msg_addr();
+
+    load_storage();
+
+    if (flags & 1) {
+        return ();
+    }
+    cs~load_msg_addr(); ;; skip dst
+    cs~load_coins(); ;; skip value
+    cs~skip_bits(1); ;; skip extracurrency collection
+    cs~load_coins(); ;; skip ihr_fee
+    int fwd_fee = cs~load_coins();
+    force_chain(WORKCHAIN, sender_address, error::wrong_workchain);
+
+    if (in_msg_body.slice_bits() == 0) {
+        return (); ;; empty message - just accept TONs
+    }
+
+    (int op, int query_id) = (in_msg_body~load_uint(32), in_msg_body~load_uint(64));
+
+    load_storage();
+    if (op == new_order) {
+        storage::next_order_seqno += 1;
+        int signer? = in_msg_body~load_bool();
+        int index = in_msg_body~load_index();
+        int expiration_date = in_msg_body~load_timestamp();
+        cell order_body = in_msg_body~load_ref();
+        in_msg_body.end_parse();
+        (slice expected_address, int found?) = (signer? ? storage::signers_info : storage::proposers).udict_get?(INDEX_SIZE, index);
+        throw_unless(error::unauthorized_new_order, found?);
+        throw_unless(error::unauthorized_new_order, equal_slice_bits(sender_address, expected_address));
+        throw_unless(error::expired, expiration_date >= now());
+
+        int minimal_value = calculate_order_processing_cost(order_body, storage::signers_info, expiration_date - now());
+        throw_unless(error::not_enough_ton, msg_value >= minimal_value);
+
+        cell state_init = calculate_order_state_init(my_address(), (storage::next_order_seqno - 1),storage::order_code);
+        slice order_address = calculate_address_by_state_init(BASECHAIN, state_init);
+        builder init_body = begin_cell()
+            .store_body_header(init, query_id)
+            .store_index(storage::threshold)
+            .store_nonempty_dict(storage::signers_info)
+            .store_timestamp(expiration_date)
+            .store_ref(order_body);
+        send_message_with_stateinit(
+            0,
+            order_address,
+            state_init,
+            init_body.end_cell(),
+            SEND_MODE_CARRY_ALL_REMAINING_MESSAGE_VALUE | SEND_MODE_BOUNCE_TRANSACTION
+        );
+
+    } elseif (op == execute) {
+        int order_seqno = in_msg_body~load_order_seqno();
+        int expiration_date = in_msg_body~load_timestamp();
+        int approvals_num = in_msg_body~load_index();
+        int signers_hash = in_msg_body~load_hash();
+        cell order_body = in_msg_body~load_ref();
+        in_msg_body.end_parse();
+
+        cell state_init = calculate_order_state_init(my_address(), order_seqno,storage::order_code);
+        slice order_address = calculate_address_by_state_init(BASECHAIN, state_init);
+
+        throw_unless(error::unauthorized_execute, equal_slice_bits(sender_address, order_address));
+        throw_unless(error::singers_outdated, (signers_hash == storage::signers_info.cell_hash()) & (approvals_num >= storage::threshold));
+        throw_unless(error::expired, expiration_date >= now());
+        execute_order(order_body);
+    } elseif (op == execute_internal) {
+        ;; we always trust ourselves, this feature is used to make chains of executions
+        ;; where last action of previous execution triggers new one.
+
+        throw_unless(error::unauthorized_execute, equal_slice_bits(sender_address, my_address()));
+        cell order_body = in_msg_body~load_ref();
+        in_msg_body.end_parse();
+        execute_order(order_body);
+    }
+}

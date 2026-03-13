@@ -1,0 +1,34 @@
+{
+	"name": "pact-template",
+	"version": "1.0.0",
+	"description": "## Schema Definitions",
+	"type": "module",
+	"scripts": {
+		"deploy:ns": "tsx deploy/ns.ts",
+		"rotate-keys": "tsx deploy/rotate-keys.ts",
+		"deploy:utilities": "tsx deploy/utilities.ts",
+		"deploy:exchange-tokens": "tsx deploy/sushi-exchange-tokens.ts",
+		"deploy:exchange": "tsx deploy/sushi-exchange.ts",
+		"upgrade:exchange": "tsx deploy/upgrade-sushi-exchange.ts",
+		"create:account": "tsx deploy/create-account.ts",
+		"add:liquidity": "tsx deploy/add-liquidity.ts",
+		"swap": "tsx deploy/swap.ts",
+		"test": "cd contracts/tests && bash run.sh"
+	},
+	"author": "",
+	"license": "ISC",
+	"keywords": [],
+	"devDependencies": {
+		"@types/node": "^20.11.24",
+		"@typescript-eslint/eslint-plugin": "^7.1.0",
+		"@typescript-eslint/parser": "^7.1.0",
+		"eslint": "^8.57.0",
+		"nodemon": "^3.1.0",
+		"tsx": "^4.19.4",
+		"typescript": "^5.3.3"
+	},
+	"dependencies": {
+		"@kadena/client": "^1.17.1",
+		"dotenv": "^16.5.0"
+	}
+}

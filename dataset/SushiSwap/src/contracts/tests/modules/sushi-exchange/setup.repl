@@ -1,0 +1,88 @@
+;; Setup file for sushi-exchange tests
+(env-enable-repl-natives true)
+(load "../../bootstrap.repl")
+
+(begin-tx "mint test tokens")
+(env-data {
+  "ns": "sushi"
+})
+(namespace (read-msg "ns"))
+(use base)
+;; Create the principal namespace using the same ns.pact namespace
+;; setup file that the actual protocol uses.
+(env-data {
+  "admin-keyset": {"keys": [ADMIN_KEY], "pred": "keys-all"},
+  "alice-keyset": {"keys": [ALICE_KEY], "pred": "keys-all"},
+  "bob-keyset": {"keys": [BOB_KEY], "pred": "keys-all"},
+  "charlie-keyset": {"keys": [CHARLIE_KEY], "pred": "keys-all"}
+})
+
+;; Set up admin capabilities after loading all modules
+(env-sigs [{"key": "admin-public-key", "caps": [
+  (sushi-exchange-tokens.GOVERNANCE),
+  (sushi-exchange-tokens.ISSUE),
+  ;  (sushi-exchange-tokens.UPDATE_SUPPLY "TEST1" 1000.0),
+  (sushi-exchange-tokens.MINT "TEST1" ADMIN 1000.0),
+  (sushi-exchange-tokens.CREDIT ADMIN),
+  (sushi-exchange-tokens.DEBIT "TEST1" ADMIN),
+  (sushi-exchange-tokens.MINT "TEST1" BOB 1000.0),
+  (sushi-exchange-tokens.CREDIT BOB),
+  (sushi-exchange-tokens.DEBIT "TEST1" BOB),
+  (sushi-exchange-tokens.MINT "TEST2" ADMIN 1000.0),
+  (sushi-exchange-tokens.CREDIT ADMIN),
+  (sushi-exchange-tokens.DEBIT "TEST2" ADMIN),
+  (sushi-exchange-tokens.MINT "TEST2" BOB 1000.0),
+  (sushi-exchange-tokens.CREDIT BOB),
+  (sushi-exchange-tokens.DEBIT "TEST2" BOB)
+]}])
+
+(sushi-exchange.init)
+
+(commit-tx)
+
+(begin-tx "Mint token1 and token2")
+(env-data {
+  "ns": "sushi"
+})
+(namespace (read-msg "ns"))
+(use base)
+
+;; Create the principal namespace using the same ns.pact namespace
+;; setup file that the actual protocol uses.
+(env-data {
+  "admin-keyset": {"keys": [ADMIN_KEY], "pred": "keys-all"}
+})
+
+;; Set up admin as the signer
+(env-sigs [{"key": ADMIN_KEY, "caps": [
+  (token1.GOVERNANCE),
+  (token2.GOVERNANCE),
+  (token1.MINT ADMIN 1000.0),
+  (token2.MINT ADMIN 1000.0),
+  (token1.MINT ALICE 1000.0),
+  (token2.MINT ALICE 1000.0),
+  (token1.MINT BOB 1000.0),
+  (token2.MINT BOB 1000.0),
+  (token1.MINT CHARLIE 1000.0),
+  (token2.MINT CHARLIE 1000.0)
+]}])
+
+(acquire-module-admin token1)
+(acquire-module-admin token2)
+
+  ;; Mint for admin
+      (token1.mint ADMIN 1000.0)
+      (token2.mint ADMIN 1000.0)
+  ;; Mint for alice
+  
+      (token1.mint ALICE 1000.0)
+      (token2.mint ALICE 1000.0)
+  ;; Mint for bob
+  
+      (token1.mint BOB 1000.0)
+      (token2.mint BOB 1000.0)
+  ;; Mint for charlie
+  
+      (token1.mint CHARLIE 1000.0)
+      (token2.mint CHARLIE 1000.0)
+(commit-tx)

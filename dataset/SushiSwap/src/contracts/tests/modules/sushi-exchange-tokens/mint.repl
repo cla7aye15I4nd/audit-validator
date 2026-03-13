@@ -1,0 +1,66 @@
+;; Setup file for sushi-exchange-tokens tests
+(env-enable-repl-natives true)
+
+(begin-tx "mint test tokens for not ISSUER")
+(env-data {
+  "ns": "sushi"
+})
+(namespace (read-msg "ns"))
+(use base)
+(env-sigs [{"key": 'any, "caps": []}])
+
+(expect-failure "mint should fail when using alice's keyset"
+    "Managed capability not installed: (sushi.sushi-exchange-tokens.MINT \"TEST1\" \"alice\" 1000.0)"
+    (sushi-exchange-tokens.mint "TEST1" ALICE ALICE_GUARD 1000.0))
+(commit-tx)
+
+(begin-tx "mint test tokens for ISSUER")
+(env-data {
+  "ns": "sushi"
+})
+(namespace (read-msg "ns"))
+(use base)
+(env-data {
+  "admin-keyset": {"keys": [ADMIN_KEY], "pred": "keys-all"},
+  "alice-keyset": {"keys": [ALICE_KEY], "pred": "keys-all"},
+  "bob-keyset": {"keys": [BOB_KEY], "pred": "keys-all"},
+  "charlie-keyset": {"keys": [CHARLIE_KEY], "pred": "keys-all"}
+})
+
+;; Set up admin capabilities after loading all modules
+(env-sigs [{"key": ADMIN_KEY, "caps": [
+  (sushi-exchange-tokens.MINT "TEST1" ADMIN 1000.0),
+  (sushi-exchange-tokens.MINT "TEST1" ALICE 1000.0),
+  (sushi-exchange-tokens.MINT "TEST1" BOB 1000.0),
+  (sushi-exchange-tokens.MINT "TEST1" CHARLIE 1000.0)
+]}])
+
+;; Store initial total supply
+(let ((initial-balance (sushi-exchange-tokens.total-supply "TEST1")))
+  (sushi-exchange-tokens.mint "TEST1" ADMIN ADMIN_GUARD 1000.0)
+  (sushi-exchange-tokens.mint "TEST1" ALICE ALICE_GUARD 1000.0)
+  (sushi-exchange-tokens.mint "TEST1" BOB BOB_GUARD 1000.0)
+  (sushi-exchange-tokens.mint "TEST1" CHARLIE CHARLIE_GUARD 1000.0)
+
+  ;; Verify balances after minting
+  (expect "Admin balance should be 1000.0"
+    1000.0
+    (sushi-exchange-tokens.get-balance "TEST1" ADMIN))
+
+  (expect "Alice balance should be 1000.0"
+    1000.0
+    (sushi-exchange-tokens.get-balance "TEST1" ALICE))
+
+  (expect "Bob balance should be 1000.0"
+    1000.0
+    (sushi-exchange-tokens.get-balance "TEST1" BOB))
+
+  (expect "Charlie balance should be 1000.0"
+    1000.0
+    (sushi-exchange-tokens.get-balance "TEST1" CHARLIE))
+
+  ;; Verify total supply increased by 4000.0
+  (expect "Total supply should increase by 4000.0"
+    (+ initial-balance 4000.0)
+    (sushi-exchange-tokens.total-supply "TEST1")))
+(commit-tx)

@@ -1,0 +1,319 @@
+#include "../imports/stdlib.fc";
+#include "./constants.fc";
+#include "./opcodes.fc";
+#include "./events.fc";
+#include "./utils.fc";
+#include "./errors.fc";
+#include "./messages.fc";
+
+;; storage variables
+
+;; current number of deployed pools
+global int g_poolCount;
+
+;; code for the pool contract
+global cell g_poolCode;
+
+;; dictionary mapping pool ids of deployed pools to their addresses
+global cell g_poolAddresses;
+
+;; address to be used as zero address
+global slice g_zeroAddress;
+
+;; load_data populates storage variables using stored data
+() load_data() impure {
+    var ds = get_data().begin_parse();
+
+    g_poolCount = ds~load_uint(32);
+    g_poolCode = ds~load_ref();
+    g_poolAddresses = ds~load_dict();
+    g_zeroAddress = ds~load_msg_addr();
+
+    ds.end_parse();
+}
+
+;; save_data stores storage variables as a cell into persistent storage
+() save_data() impure {
+    set_data(
+        begin_cell()
+            .store_uint(g_poolCount, 32)
+            .store_ref(g_poolCode)
+            .store_dict(g_poolAddresses)
+            .store_slice(g_zeroAddress)
+            .end_cell()
+    );
+}
+
+cell pack_pool_data(
+    int poolId,
+    slice factoryAddr,
+    slice ownerAddr,
+    int signerAddr,
+    slice sellTokenMintAddr,
+    slice fundingWalletAddr,
+    int openTime,
+    int closeTime,
+    slice buyCurrAddr,
+    int buyCurrDecimals,
+    int buyCurrRate
+    ) inline {
+
+    cell perBuyDict = new_dict();
+    perBuyDict~udict_set(
+        256,
+        slice_hash(buyCurrAddr),
+        begin_cell()
+            .store_ref(
+                begin_cell()
+                    .store_coins(0)
+                    .store_coins(0)
+                    .store_coins(0)
+                    .end_cell()
+            )
+            .store_ref(
+                begin_cell()
+                    .store_slice(buyCurrAddr)
+                    .store_uint(buyCurrDecimals, 8)
+                    .store_coins(buyCurrRate)
+                    .store_coins(0)
+                    .store_slice(begin_cell().store_uint(0, 2).end_cell().begin_parse())
+                    .end_cell()
+            )
+            .end_cell()
+            .begin_parse()
+    );
+
+    return begin_cell()
+        .store_uint(poolId, 32)
+        .store_slice(factoryAddr)
+        .store_slice(ownerAddr)
+        .store_uint(signerAddr, 256)
+        .store_uint(openTime, 32)
+        .store_uint(closeTime, 32)
+        .store_ref(
+            begin_cell()
+                .store_ref(
+                    begin_cell()
+                        .store_slice(begin_cell().store_uint(0, 2).end_cell().begin_parse())
+                        .store_slice(sellTokenMintAddr)
+                        .store_coins(0)
+                        .store_slice(fundingWalletAddr)
+                        .end_cell()
+                )
+                .store_ref(
+                    begin_cell()
+                        .store_coins(0)
+                        .store_coins(0)
+                        .store_coins(0)
+                        .store_slice(g_zeroAddress)
+                        .end_cell()
+                )
+                .end_cell()
+        )
+        .store_dict(new_dict())
+        .store_dict(new_dict())
+        .store_dict(perBuyDict)
+        .end_cell();
+}
+
+cell calculate_pool_state_init(
+    slice ownerAddr,
+    int signerAddr,
+    slice sellTokenMintAddr,
+    slice fundingWalletAddr,
+    int openTime,
+    int closeTime,
+    slice buyCurrAddr,
+    int buyCurrDecimals,
+    int buyCurrRate
+    ) inline {
+    return begin_cell()
+        .store_uint(0, 2)
+        .store_dict(g_poolCode)
+        .store_dict(pack_pool_data(
+            g_poolCount,
+            my_address(),
+            ownerAddr,
+            signerAddr,
+            sellTokenMintAddr,
+            fundingWalletAddr,
+            openTime,
+            closeTime,
+            buyCurrAddr,
+            buyCurrDecimals,
+            buyCurrRate
+        ))
+        .store_uint(0, 1)
+        .end_cell();
+}
+
+slice calculate_pool_address(cell stateInit) inline {
+    return begin_cell()
+        .store_uint(4, 3)
+        .store_int(WORKCHAIN_ID, 8)
+        .store_uint(cell_hash(stateInit), 256)
+        .end_cell()
+        .begin_parse();
+}
+
+() send_create_contract(
+    slice ownerAddr,
+    int signerAddr,
+    slice sellTokenAccountAddr,
+    slice sellTokenMintAddr,
+    int sellTokenAccountBalance,
+    slice fundingWalletAddr,
+    int openTime,
+    int closeTime,
+    slice buyCurrAddr,
+    int buyCurrDecimals,
+    int buyCurrRate,
+    int buyCurrBalance,
+    slice buyCurrTokenAccountAddr,
+    int msgValue
+    ) impure {
+    cell stateInit = calculate_pool_state_init(
+        ownerAddr,
+        signerAddr,
+        sellTokenMintAddr,
+        fundingWalletAddr,
+        openTime,
+        closeTime,
+        buyCurrAddr,
+        buyCurrDecimals,
+        buyCurrRate
+    );
+    slice toWalletAddress = calculate_pool_address(stateInit);
+    var msg = begin_cell()
+        .store_uint(0x18, 6)
+        .store_slice(toWalletAddress)
+        .store_coins(msgValue - COMPUTE_COST)
+        .store_uint(4 + 2 + 1, 1 + 4 + 4 + 64 + 32 + 1 + 1 + 1)
+        .store_ref(stateInit)
+        .store_ref(
+            begin_cell()
+                .store_uint(op::initialize, 32)
+                .store_uint(0, 64)
+                .store_slice(ownerAddr)
+                .store_ref(
+                    begin_cell()
+                        .store_slice(buyCurrAddr)
+                        .store_slice(buyCurrTokenAccountAddr)
+                        .store_coins(buyCurrBalance)
+                        .end_cell()
+                )
+                .store_slice(sellTokenAccountAddr)
+                .store_coins(sellTokenAccountBalance)
+            .end_cell()
+        );
+    send_raw_message(msg.end_cell(), NORMAL);
+
+    g_poolAddresses~udict_set(32, g_poolCount, toWalletAddress); ;; add pool address to list
+
+    emit_log_simple(event::FACTORY::PRE_SALE_POOL_CREATED, begin_cell().store_slice(ownerAddr).store_slice(sellTokenMintAddr).store_slice(toWalletAddress).store_uint(g_poolCount, 32).end_cell(), true);
+}
+
+;; recv_internal is the main function of the contract and is called when it receives a message from other contracts
+() recv_internal(int myBalance, int msgValue, cell inMsgFull, slice inMsgBody) impure {
+    if (inMsgBody.slice_empty?()) { ;; ignore all empty messages
+        return ();
+    }
+
+    slice cs = inMsgFull.begin_parse();
+    int flags = cs~load_uint(4);
+    if (flags & 1) {
+        return ();
+    }
+    slice senderAddr = cs~load_msg_addr();
+
+    load_data(); ;; here we populate the storage variables
+
+    int op = inMsgBody~load_uint(32);
+    int query_id = inMsgBody~load_uint(64);
+
+    if (op == op::registerPool) {
+
+        throw_unless(error::GENERAL::INSUFFICIENT_TON_FOR_GAS, msgValue >= TON_TO_NANO);
+
+        slice fundingWalletAddr = inMsgBody~load_msg_addr();
+
+        slice registerParams = inMsgBody~load_ref().begin_parse();
+        int signerAddr = registerParams~load_uint(256);
+        int openTime = registerParams~load_uint(32);
+        int duration = registerParams~load_uint(32);
+        slice sellTokenAccountAddr = registerParams~load_msg_addr();
+        slice sellTokenMintAddr = registerParams~load_msg_addr();
+
+        slice buyCurrParams = inMsgBody~load_ref().begin_parse();
+        slice buyCurrAddr = buyCurrParams~load_msg_addr();
+        int buyCurrDecimals = buyCurrParams~load_uint(8);
+        int buyCurrRate = buyCurrParams~load_coins();
+        slice buyCurrTokenAccountAddr = buyCurrParams~load_msg_addr();
+
+        send_create_contract(
+            senderAddr,
+            signerAddr,
+            sellTokenAccountAddr,
+            sellTokenMintAddr,
+            0,
+            fundingWalletAddr,
+            openTime,
+            openTime + duration,
+            buyCurrAddr,
+            buyCurrDecimals,
+            buyCurrRate,
+            0,
+            buyCurrTokenAccountAddr,
+            msgValue
+        );
+
+        g_poolCount += 1;
+        save_data();
+
+        return ();
+    }
+
+    throw(error::GENERAL::INVALID_OPERATION); ;; if the message contains an op that is not known to this contract, we throw
+}
+
+;; get methods are a means to conveniently read contract data using, for example, HTTP APIs
+;; they are marked with method_id
+;; note that unlike in many other smart contract VMs, get methods cannot be called by other contracts
+
+int get_pool_count() method_id {
+    load_data();
+    return g_poolCount;
+}
+
+slice get_pool_address(int id) method_id {
+    load_data();
+    (slice address, int code) = g_poolAddresses.udict_get?(32, id);
+    return address;
+}
+
+slice get_next_pool_address(
+    slice ownerAddr,
+    int signerAddr,
+    slice sellTokenMintAddr,
+    slice fundingWalletAddr,
+    int openTime,
+    int duration,
+    slice buyCurrAddr,
+    int buyCurrDecimals,
+    int buyCurrRate
+) method_id {
+    load_data();
+    cell stateInit = calculate_pool_state_init(
+        ownerAddr,
+        signerAddr,
+        sellTokenMintAddr,
+        fundingWalletAddr,
+        openTime,
+        openTime + duration,
+        buyCurrAddr,
+        buyCurrDecimals,
+        buyCurrRate
+    );
+    return calculate_pool_address(stateInit);
+
+}

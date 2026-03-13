@@ -1,0 +1,38 @@
+const event::FACTORY::PRE_SALE_POOL_CREATED = 0;
+;; owner:address:267 sellCurrAddr:address:267 poolAddress:address:267 poolId:uint:32
+
+const event::POOL::ERROR = 10;
+;; errorCode:uint:32
+
+const event::POOL::CLAIM_REFUND_SUCCESS = 11;
+;; candidate:address:267 refundAmount:coins:132 currAddr:address:267
+
+const event::POOL::CLAIM_TOKENS_SUCCESS = 12;
+;; candidate:address:267 claimAmount:coins:132
+
+const event::POOL::BUY_TOKEN_BY_TOKEN_SUCCESS = 13;
+;; candidate:address:267 buyCurr:address:267 buyCurrAmount:coins:132 sellCurrAmount:coins:132
+
+const event::POOL::BUY_TOKEN_BY_TON_SUCCESS = 14;
+;; candidate:address:267 tonAmount:coins:132 sellCurrAmount:coins:132
+
+const event::POOL::REFUND_TOKENS_SUCCESS = 15;
+;; candidate:address:267 refundAmount:coins:132 refundCurrAddress:address:267
+
+const event::POOL::PRE_SALE_POOL_CREATED = 16;
+;; ref(sellCurrAddr:address:267 openTime:uint:32 closeTime:uint:32 fundingWallet:address:267 owner:address:267) ref(buyCurrAddr:address:267 buyCurrDecimal:uint:8 buyCurrRate:coins:132)
+
+const event::POOL::STATS_CHANGED = 17;
+;; null
+
+const event::POOL::SELL_TOKEN_CHANGED = 18;
+;; sellCurrAddr:address:267
+
+const event::POOL::TOKEN_WITHDRAWN = 19;
+;; tokenAddr:address:267 amount:coins:132
+
+const event::POOL::TON_WITHDRAWN = 20;
+;; amount:coins:132
+
+const event::POOL::OWNER_CHANGED = 21;
+;; null

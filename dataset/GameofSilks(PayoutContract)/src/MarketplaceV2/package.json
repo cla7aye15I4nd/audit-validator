@@ -1,0 +1,52 @@
+{
+  "name": "hardhat-project",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-chai-matchers": "^2.0.0",
+    "@nomicfoundation/hardhat-ethers": "^3.0.0",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@nomicfoundation/hardhat-verify": "^2.0.0",
+    "@openzeppelin/contracts": "^4.9.1",
+    "@openzeppelin/contracts-upgradeable": "^4.9.1",
+    "@solidstate/contracts": "^0.0.58",
+    "@typechain/ethers-v6": "^0.5.0",
+    "@typechain/hardhat": "^9.0.0",
+    "@types/chai": "^4.2.0",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^20.11.5",
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "dotenv": "^16.4.0",
+    "ethers": "^6.4.0",
+    "ganache": "7.9.1",
+    "ganache-cli": "6.12.2",
+    "glob": "^10.3.10",
+    "hardhat": "^2.19.4",
+    "hardhat-abi-exporter": "^2.10.1",
+    "hardhat-contract-sizer": "^2.10.0",
+    "hardhat-deploy": "^0.11.45",
+    "hardhat-deploy-ethers": "^0.4.1",
+    "hardhat-diamond-abi": "^3.0.1",
+    "hardhat-gas-reporter": "^1.0.9",
+    "path": "0.12.7",
+    "short-unique-id": "^5.0.3",
+    "solc": "0.8.21",
+    "solidity-coverage": "^0.8.0",
+    "ts-node": "^10.9.2",
+    "typechain": "^8.3.0",
+    "typescript": "^5.3.3",
+    "uuid": "9.0.1"
+  },
+  "scripts": {
+    "start-ganache-node": "npx hardhat node",
+    "start-hardhat-console": "npx hardhat console",
+    "compile-contracts": "npx hardhat compile",
+    "size-contracts": "npx hardhat size-contracts",
+    "coverage-tests": "npx hardhat coverage --network hardhat --solcoverjs .solcover.js",
+    "marketplace-coverage-tests": "npx hardhat coverage --testfiles ./test/marketplace.test.ts --network hardhat --solcoverjs .solcover.js",
+    "test": "npx hardhat test ./test/marketplace.test.ts --network localhost"
+  },
+  "dependencies": {
+    "@chainlink/contracts": "^0.8.0"
+  }
+}

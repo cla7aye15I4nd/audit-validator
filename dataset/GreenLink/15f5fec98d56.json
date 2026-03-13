@@ -1,0 +1,34 @@
+{
+  "title": "Swap Trusts ERC20 Transfer Without Verification, Allowing Free NFT Theft",
+  "location": {
+    "local_file_path": "./src/GLDB Pulse Contracts/ENT&Swap/Swap.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/b619bc20-116e-11f0-85f2-afceaa02a7b6/source?file=$/github/GLBank/Web3/54b12f25ff139912cbddcc316c940624a64687cf/GLDB Pulse Contracts/ENT&Swap/Swap.sol",
+    "start_line": 1,
+    "end_line": 1
+  },
+  "all_locations": null,
+  "category": null,
+  "severity": null,
+  "confidence": null,
+  "description": "The swap() logic transfers the seller\u2019s ERC-1155 NFT first, then calls SafeERC20.safeTransferFrom for the payment token but never confirms that any tokens actually moved. SafeERC20 only checks that the token contract call doesn\u2019t revert and that returned data (if any) isn\u2019t false\u2014it does not inspect balances. A malicious ERC20 implementation can exploit this by always returning success on transferFrom without transferring tokens, causing the seller to lose their NFT for no payment.\n\nExploit steps:\n1. Attacker deploys a MaliciousToken contract implementing ERC20.transferFrom such that it always (a) returns no data or returns true, and (b) never deducts from the buyer\u2019s balance.\n2. Buyer (attacker) calls MaliciousToken.approve(swapContract, MAX_UINT) to grant the Swap contract allowance.\n3. Buyer constructs SwapData:\n   \u2022 token = address(MaliciousToken)\n   \u2022 nft = address(VictimNFT)\n   \u2022 nftId, amount = the victim\u2019s NFT details\n   \u2022 tokenAmount = any positive amount (e.g. 1)\n   \u2022 buyer = attacker address\n   \u2022 seller = victim address\n   \u2022 deadline, nonce = valid values\n   Buyer signs this struct off-chain (EIP-712) and sends (data, signature) to the victim.\n4. Victim (seller) calls swap(data, signature). Checks pass (token \u2260 0, nft \u2260 0, seller==msg.sender, buyer\u2260seller, nonce unused, valid signature).\n5. swap() marks the nonce and executes:\n     a. IERC1155(nft).safeTransferFrom(seller, buyer, nftId, amount, \"\");  \u2190 NFT moves to attacker.\n     b. IERC20(token).safeTransferFrom(buyer, seller, tokenAmount);        \u2190 MaliciousToken.transferFrom returns success but doesn\u2019t transfer anything.\n6. swap() emits SwapExecuted and returns. Victim\u2019s NFT is gone; no tokens were received.\n\nBecause swap() never verifies buyer balances or checks post-transfer token balances, a fake-always-succeeding ERC20 can drain NFTs without payment.",
+  "scenario": null,
+  "proof_of_concept": null,
+  "recommendation": null,
+  "id": "3e0c",
+  "duplicates": [
+    "3e0c",
+    "74a8"
+  ],
+  "source": "scanner.smart_audit",
+  "status": "verified_as_valid",
+  "scan_model_name": "o4-mini",
+  "related_function_code": "    function swap(SwapData calldata data, bytes calldata signature) external nonReentrant {\n        address seller = msg.sender;\n\n        // Check addresses\n        if (data.token == address(0)) revert InvalidAddress(data.token);\n        if (data.nft == address(0)) revert InvalidAddress(data.nft);\n        if (data.buyer == address(0)) revert InvalidAddress(data.buyer);\n        \n        // Ensure only the designated seller can execute this swap\n        if (seller != data.seller) revert InvalidAddress(seller);\n\n        // Check amounts\n        if (data.amount == 0) revert InvalidAmount(data.amount);\n        if (data.tokenAmount == 0) revert InvalidAmount(data.tokenAmount);\n        \n        // Check deadline\n        if (block.timestamp > data.deadline) {\n            revert DeadlineExpired(data.deadline, block.timestamp);\n        }\n        \n        // Prevent buyer and seller from being the same address\n        if (data.buyer == data.seller) revert InvalidAddress(data.buyer);\n\n        // Check nonce\n        if (isNonceUsed(data.buyer, data.nonce)) {\n            revert NonceAlreadyUsed();\n        }\n\n        // Verify signature\n        bytes32 digest = _hash(data);\n        address recoveredSigner = ECDSA.recover(digest, signature);\n        if (recoveredSigner == address(0) || recoveredSigner != data.buyer) {\n            revert InvalidSignature();\n        }\n\n        // Mark nonce as used\n        _nonces[data.buyer][data.nonce] = true;\n        emit NonceUsed(data.buyer, data.nonce);\n\n        // Execute the atomic swap.\n        // Transfer NFT from seller to buyer.\n        // The seller must have called `setApprovalForAll` on the NFT contract for this contract.\n        IERC1155(data.nft).safeTransferFrom(seller, data.buyer, data.nftId, data.amount, \"\");\n\n        // Transfer ERC20 tokens from buyer to seller.\n        // The buyer must have called `approve` on the token contract for this contract.\n        IERC20(data.token).safeTransferFrom(data.buyer, seller, data.tokenAmount);\n\n        emit SwapExecuted(\n            seller, data.buyer, data.nft, data.token, data.nftId, data.amount, data.tokenAmount, data.nonce\n        );\n    }",
+  "related_context": "isNonceUsed -> function isNonceUsed(address owner, uint256 nonce) public view virtual returns (bool) {\n        return _nonces[owner][nonce];\n    }\n\n_hash ->     /**\n     * @dev Hashes the swap data struct according to the EIP-712 standard.\n     * @param data The SwapData struct to hash.\n     * @return The EIP-712 digest.\n     */\n    function _hash(SwapData calldata data) internal view returns (bytes32) {\n        return _hashTypedDataV4(\n            keccak256(\n                abi.encode(\n                    SWAP_TYPEHASH,\n                    data.token,\n                    data.nft,\n                    data.nftId,\n                    data.amount,\n                    data.tokenAmount,\n                    data.buyer,\n                    data.seller,\n                    data.deadline,\n                    data.nonce\n                )\n            )\n        );\n    }",
+  "related_checklist": null,
+  "related_pid": "b619bc20-116e-11f0-85f2-afceaa02a7b6",
+  "related_commit_id": "54b12f25ff139912cbddcc316c940624a64687cf",
+  "triage_verdict": "invalid",
+  "triage_severity": "",
+  "triage_reason": "Security control exists",
+  "is_main_finding": true
+}

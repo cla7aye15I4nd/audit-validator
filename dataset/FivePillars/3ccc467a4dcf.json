@@ -1,0 +1,33 @@
+{
+  "title": "Conflicting Pool Reward Updates Causing Skipped Rounds",
+  "location": {
+    "local_file_path": "./src/InvestmentManager.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/a41cefe0-4159-11f0-a06b-992008d4f8aa/source?file=$/github/fivepillarstoken/InvestmentManager/9af8be2c4e53218770015a10ea269caa904fde19/InvestmentManager.sol",
+    "start_line": 1,
+    "end_line": 1
+  },
+  "all_locations": null,
+  "category": "",
+  "severity": "low",
+  "confidence": null,
+  "description": "The claimReward function calls both _updateInvestorRewards (which itself calls _updatePoolRewards) and then calls _updatePoolRewards(amount, investor, referer) again, causing lastUpdatePoolRewardTimestamp to be updated twice in one transaction and skipping reward accrual for intermediate rounds.Remove the redundant _updatePoolRewards invocation in claimReward or ensure that lastUpdatePoolRewardTimestamp is only updated once after all reward calculations.1. Alice has pending pool rewards accrued for 2 rounds.\n2. Alice calls claimReward().\n3. _updateInvestorRewards triggers _updatePoolRewards, capturing 2 endedRounds and updates pools.\n4. lastUpdatePoolRewardTimestamp is set.  Immediately after, claimReward calls the other _updatePoolRewards with endedRounds=0 (since timestamp just updated), so no further accrual.\n5. Any rewards from the moment of the first _updatePoolRewards to the second call are dropped, effectively skipping potential reward rounds.",
+  "scenario": null,
+  "proof_of_concept": "1. Alice has pending pool rewards accrued for 2 rounds.\n2. Alice calls claimReward().\n3. _updateInvestorRewards triggers _updatePoolRewards, capturing 2 endedRounds and updates pools.\n4. lastUpdatePoolRewardTimestamp is set.  Immediately after, claimReward calls the other _updatePoolRewards with endedRounds=0 (since timestamp just updated), so no further accrual.\n5. Any rewards from the moment of the first _updatePoolRewards to the second call are dropped, effectively skipping potential reward rounds.",
+  "recommendation": "Remove the redundant _updatePoolRewards invocation in claimReward or ensure that lastUpdatePoolRewardTimestamp is only updated once after all reward calculations.",
+  "id": "91f2",
+  "duplicates": null,
+  "source": "scanner.token_scanner",
+  "status": "verified_as_valid",
+  "scan_model_name": "o4-mini, gemini-2.5-pro",
+  "related_function_code": "claimReward() -> _updateInvestorRewards() -> _updatePoolRewards() -> lastUpdatePoolRewardTimestamp = block.timestamp;\n... \nclaimReward() -> _updatePoolRewards(toRedistribute, investorAddress, investor.referer) -> lastUpdatePoolRewardTimestamp = block.timestamp;",
+  "related_context": "",
+  "related_checklist": {
+    "checklist": "### Detect Redundant or Conflicting Updates\nCheck if a variable is updated multiple times in the same function, which can introduce logic bugs or conflicting states.\n\n```solidity\n// Redundant update may introduce bugs\nfunction stake(uint256 amount) external {\n    balances[msg.sender] += amount;\n    // ...\n    balances[msg.sender] += amount; // duplicated update\n}\n```\n\n**Invariant:** Ensure each state variable is only updated once per logical intent."
+  },
+  "related_pid": "a41cefe0-4159-11f0-a06b-992008d4f8aa",
+  "related_commit_id": "9af8be2c4e53218770015a10ea269caa904fde19",
+  "triage_verdict": "invalid",
+  "triage_severity": "Minor",
+  "triage_reason": null,
+  "is_main_finding": true
+}

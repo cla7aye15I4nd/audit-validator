@@ -1,0 +1,142 @@
+#include "common/stdlib.fc";
+#include "common/dic.fc";
+#include "common/message.fc";
+#include "common/utils.fc";
+#include "bridge_swap/op.fc";
+#include "bridge_swap/errors.fc";
+#include "bridge_swap/params.fc";
+#include "bridge_swap/storage.fc";
+#include "bridge_swap/owner-calls.fc";
+#include "bridge_swap/pool-calls.fc";
+#include "bridge_swap/getter.fc";
+#include "bridge_swap/get.fc";
+
+
+() recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
+    if (in_msg_body.slice_empty?()) {
+        ;; ignore empty messages
+        return ();
+    }
+    var cs = in_msg_full.begin_parse();
+    var flags = cs~load_uint(4);  ;; int_msg_info$0 ihr_disabled:Bool bounce:Bool bounced:Bool
+
+    slice sender_address = cs~load_msg_addr();
+
+    load_storage();
+
+    if (flags & 1) {
+        return ();
+    }
+    cs~load_msg_addr(); ;; skip dst
+    cs~load_coins(); ;; skip value
+    cs~skip_bits(1); ;; skip extracurrency collection
+    cs~load_coins(); ;; skip ihr_fee
+    int fwd_fee = cs~load_coins();
+
+    force_chain(WORKCHAIN, sender_address, WRONG_WORKCHAIN);
+    (int op, int query_id) = (in_msg_body~load_uint(32), in_msg_body~load_uint(64));
+
+    if (op == swap) {
+        throw_unless(UNAUTHORIZED, equal_slices(sender_address, storage::bridge_address));
+        (cell swap_id_cell, var message_id) = (in_msg_body~load_ref(), in_msg_body~load_uint(256));
+        slice receipt_slice = in_msg_body~load_ref().begin_parse();
+        cell receipt_id = receipt_slice~load_ref();
+        (int receipt_hash, var target_address) = (receipt_slice~load_uint(256), receipt_slice~load_msg_addr());
+        var amount = in_msg_body~load_coins();
+        (var is_record, int found) = storage::receipt_record_dic.udict_get?(DEFAULT_KEY_LENGTH, receipt_hash);
+        if (found) {
+            if (is_record~load_int(1)) {
+                throw(ALREADY_RECORDED);
+            }
+        }
+        
+        var swap_id = swap_id_cell.begin_parse();
+        (var swap_info, int found_swap) = storage::swap_dic.udict_get?(DEFAULT_KEY_LENGTH, swap_id~load_uint(256));
+        ifnot (found_swap) {
+            throw(SWAP_NOT_FOUND);
+        }
+        (var from_chain_id, var orgin_share, var target_share, _, _) = (swap_info~load_uint(32), swap_info~load_uint(64), swap_info~load_uint(64), swap_info~load_uint(256), swap_info~load_uint(256));
+        int swap_amount = amount * target_share / orgin_share;
+        
+        var info = begin_cell().store_int(-1, 1);
+        storage::receipt_record_dic~udict_set_builder(DEFAULT_KEY_LENGTH, receipt_hash, info);
+        save_storage();
+        var body = begin_cell();
+        if (equal_slices(storage::jetton_address, HOLE_ADDRESS)) {
+            body = body.store_uint(release_native_token, 32);
+        } else {
+            body = body.store_uint(release, 32);
+        }
+        body = body
+            .store_uint(query_id, 64)
+            .store_ref(swap_id_cell)
+            .store_uint(message_id, 256)
+            .store_ref(begin_cell()
+                .store_ref(receipt_id)
+                .store_uint(receipt_hash, 256)
+                .store_slice(target_address)
+                .end_cell())
+            .store_uint(from_chain_id, 32)
+            .store_coins(swap_amount);
+        send_simple_message(0, storage::bridge_pool_address, body.end_cell(), SEND_MODE_CARRY_ALL_REMAINING_MESSAGE_VALUE);
+        return ();
+    }
+
+    if (op == create_swap) {
+        throw_unless(UNAUTHORIZED, equal_slices(sender_address, storage::admin));
+        slice ref_cs = in_msg_body;
+        int has_refs = 0;
+        builder log = begin_cell().store_uint(SWAP_CREATED, 32);
+        do {
+            int from_chain_id = ref_cs~load_uint(32);
+            int orgin_share = ref_cs~load_uint(64);
+            int target_share = ref_cs~load_uint(64);
+            int swapped_amount = 0;
+            int swapped_times = 0;
+            cell swap_id_cell = begin_cell().store_uint(from_chain_id, 32).store_slice(storage::jetton_address).end_cell();
+            int swap_id_hash = cell_hash(swap_id_cell);
+
+            var info_cell = begin_cell()
+                .store_uint(from_chain_id, 32)
+                .store_uint(orgin_share, 64)
+                .store_uint(target_share, 64)
+                .store_uint(swapped_amount, 256)
+                .store_uint(swapped_times, 256);
+
+            storage::swap_dic~udict_set_builder(DEFAULT_KEY_LENGTH, swap_id_hash, info_cell);
+            log = log.store_ref(
+                begin_cell()
+                    .store_uint(from_chain_id, 32)
+                    .store_ref(begin_cell()
+                        .store_uint(swap_id_hash, 256)
+                        .end_cell())
+                    .end_cell());
+            has_refs = ref_cs.slice_refs() > 0;
+            if (has_refs) {
+                cell ref = ref_cs~load_ref();
+                ref_cs = ref.begin_parse();
+            }
+        } until (~ has_refs);
+        save_storage();
+        emit_log_simple(SWAP_CREATED, log.end_cell(), 1);
+        return ();
+    }
+
+    if (equal_slices(sender_address, storage::bridge_pool_address)) {
+        handle_pool_messages(op, query_id, my_balance, msg_value, in_msg_body);
+        return ();
+    }
+
+    ;; contract upgrade
+    if (equal_slices(sender_address, storage::owner)) {
+        handle_owner_messages(op, query_id, my_balance, msg_value, in_msg_body);
+        return ();
+    }
+
+    ;; make sure that the message has been processed
+    if (handle_getter_messages(op, query_id, sender_address, in_msg_body)) {
+        return ();
+    }
+
+    throw(WRONG_OP);
+}

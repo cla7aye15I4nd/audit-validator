@@ -1,0 +1,16 @@
+__pycache__
+Contract_Deployment_EQ/.env
+.history
+.hypothesis/
+build/
+reports/
+.DS_Store
+node_modules/
+.env
+artifacts/
+cache/
+coverage.json
+coverage
+diamond-cut*
+.openzeppelin
+test/test-reconstitute.js

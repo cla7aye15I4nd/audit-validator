@@ -1,0 +1,24 @@
+;; ido factory
+const op::registerPool = "op::registerPool"c;
+
+;; ido pool
+const op::buyTokenByTokenWithPermission = "op::buyTokenByTokenWithPermission"c;
+const op::buyTokenByTonWithPermission = "op::buyTokenByTonWithPermission"c;
+const op::setPerBuyCurr = "op::setPerBuyCurr"c;
+const op::setPerBuyCurrRate = "op::setPerUser"c;
+const op::setPerBuyCurrDecimals = "op::setPerUserPerBuyCurr"c;
+const op::setNewSigner = "op::setNewSigner"c;
+const op::setCloseTime = "op::setCloseTime"c;
+const op::setOpenTime = "op::setOpenTime"c;
+const op::initialize = "op::initialize"c;
+const op::claimTokens = "op::claimTokens"c;
+const op::refundTokens = "op::refundTokens"c;
+const op::claimRefundTokens = "op::claimRefundTokens"c;
+const op::refundRemainingJetton = "op::refundRemainingJetton"c;
+const op::refundRemainingTon = "op::refundRemainingTon"c;
+const op::setSellToken = "op::setSellToken"c;
+const op::setNewOwner = "op::setNewOwner"c;
+const op::refundRemainingSellToken = "op::refundRemainingSellToken"c;
+
+;; jetton wallet
+const op::transferNotification = 0x7362d09c;

@@ -1,0 +1,50 @@
+{
+  "name": "aidatify-contract",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "npx hardhat test test/hardhat/pool-basic.test.js",
+    "test:foundry": "./scripts/test.sh",
+    "test:forge-simple": "forge test -vv",
+    "test:unit": "forge test --match-path 'test/unit/*' -v",
+    "test:security": "forge test --match-path 'test/unit/PoolSecurity.t.sol' -vvv",
+    "test:fuzz": "forge test --match-path 'test/fuzz/*' --fuzz-runs 1000 -v",
+    "test:integration": "forge test --match-path 'test/integration/*' -v",
+    "test:invariant": "forge test --match-path 'test/invariant/*' -v",
+    "test:gas": "forge test --gas-report",
+    "test:coverage": "forge coverage --report summary",
+    "compile": "npx hardhat compile --show-stack-traces",
+    "compile:forge": "forge build",
+    "deploy": "npx hardhat run --network bsctest scripts/deploy.js",
+    "verify": "npx hardhat verify --network bsctest --contract contracts/USDT.sol:USDT 0x4683159dccB5876F7b332EeB4f657DbD673Ba619",
+    "deploy_U8": "npx hardhat run --network bsctest scripts/deploy_U8.js",
+    "verify_U8": "npx hardhat verify --network bsctest --contract contracts/U8.sol:U8 0xBE4E0Ca2e7BCE76fF8BD7f9960BAf7e8Aa2Aa548",
+    "deploy_Pool": "npx hardhat run --network bsctest scripts/deploy_Pool.js",
+    "verify_Pool": "npx hardhat verify --network bsctest --contract contracts/Pool.sol:Pool 0xfd75DFc75C9fb24DB5923FD25590dFb23421b7C3",
+    "deploy_StakePool": "npx hardhat run --network bsctest scripts/deploy_StakePool.js",
+    "verify_StakePool": "npx hardhat verify --network bsctest --contract contracts/StakePool.sol:StakePool 0x39744a1fD682954c03b175D5F1747E0284F2D6e6",
+    "deploy_RewardPool": "npx hardhat run --network bsctest scripts/deploy_RewardPool.js",
+    "verify_RewardPool": "npx hardhat verify --network bsctest --contract contracts/RewardPool.sol:RewardPool 0xC705EA092399Da656E199c3EA2Aa57F1BF0475F0",
+    "upgrade_uups": "npx hardhat run --network bsctest scripts/upgrade_uups.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "hardhat": "^2.26.1"
+  },
+  "dependencies": {
+    "@nomicfoundation/hardhat-ethers": "^3.0.6",
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@openzeppelin/contracts": "^5.0.2",
+    "@openzeppelin/contracts-upgradeable": "^5.0.2",
+    "@openzeppelin/hardhat-upgrades": "^3.1.1",
+    "crypto": "^1.0.1",
+    "dotenv": "^16.4.5",
+    "encrypt-rsa": "^3.2.0",
+    "ethers": "^6.13.0",
+    "jsencrypt": "^3.3.2",
+    "node-rsa": "^1.1.1",
+    "nodejs-jsencrypt": "^3.0.0-rc.1"
+  }
+}

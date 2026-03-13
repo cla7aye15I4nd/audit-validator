@@ -1,0 +1,34 @@
+{
+  "title": "Missing upper\u2010bound check on execution start timestamp allows PartyA to bypass timelock",
+  "location": {
+    "local_file_path": "./src/GLDB Pulse Contracts/ENT&Swap/NFT.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/b619bc20-116e-11f0-85f2-afceaa02a7b6/source?file=$/github/GLBank/Web3/54b12f25ff139912cbddcc316c940624a64687cf/GLDB Pulse Contracts/ENT&Swap/NFT.sol",
+    "start_line": 1,
+    "end_line": 1
+  },
+  "all_locations": null,
+  "category": null,
+  "severity": null,
+  "confidence": null,
+  "description": "A logic bug in setExecutionStartTimestamp lets PartyA move the execution window entirely into the past and then immediately drain all funds. The function only checks\n\n    if (timestamp < nft.createdAt) revert;\n\nbut never ensures that the provided timestamp\u2014even after adding the relative offset\u2014lies in the future relative to block.timestamp. Because executionDate.day > 0 for T1\u2010type NFTs, the actual start time is computed as\n\n    startTime = timestamp + 86400 * executionDate.day;\n\nIf PartyA waits until more than executionDate.day days after creation, they can pass timestamp = nft.createdAt and get startTime = nft.createdAt + executionDate.day\u00b786400, which is already in the past by the time of the call. The code then calls _createNFT (pulling and minting tokens) without locking the window in the future.\n\nSince PartyA is also a condition operator, they can immediately call processCondition to mark the (single) condition approved. Inside processCondition, _triggerPay is invoked; its first line\n\n    if (nowTime < nft.executionDate.startTime) return;\n\nno longer holds (startTime < now), so the contract computes the full payout and calls _settle, burning the NFT and transferring the entire amount back to PartyA.\n\nExploit steps:\n1. Sender mints an NFT via createNFTsFromTokens with:\n   \u2022 executionDate.day = 1\n   \u2022 one absolute condition whose operator is PartyA and whose date window includes the current time.\n2. Wait > 1 day after creation so that block.timestamp > nft.createdAt + 86400.\n3. PartyA calls setExecutionStartTimestamp(nftId, nft.createdAt):\n   \u2022 timestamp = nft.createdAt passes the >= check.\n   \u2022 startTime = nft.createdAt + 86400 < block.timestamp, so execution window is in the past.\n   \u2022 needSetConditionDate=false \u2192 _createNFT runs, pulling and minting tokens.\n4. PartyA immediately calls processCondition(nftId, extId, 0, true, 0):\n   \u2022 Inside processCondition \u2192 _triggerPay is called.\n   \u2022 Since now >= executionDate.startTime, the guard is bypassed and the contract pays out the full nft.amount via _settle.\n\nResult: PartyA receives the entire deposit instantly, completely bypassing the intended delay.",
+  "scenario": null,
+  "proof_of_concept": null,
+  "recommendation": null,
+  "id": "2c73",
+  "duplicates": [
+    "2c73",
+    "7148"
+  ],
+  "source": "scanner.smart_audit",
+  "status": "verified_as_valid",
+  "scan_model_name": "o4-mini",
+  "related_function_code": "function setExecutionStartTimestamp(uint256 nftId, uint40 timestamp) public {\n        NFTMetadata storage nft = _getNFTStorage().nfts[nftId];\n        // Check NFT status\n        if (nft.status != NFTStatus.WAIT_EXECUTION_DATE) {\n            revert NFTInvalidState(nftId, NFTStatus.WAIT_EXECUTION_DATE, nft.status);\n        }\n        // Check operator identity\n        if (nft.partyA != _msgSender()) {\n            revert Unauthorized();\n        }\n        // Validate start time range\n        if (timestamp < nft.createdAt) {\n            revert InvalidStartTime(timestamp, nft.createdAt);\n        }\n        // Get the maximum time from Conditions with time already set\n        (uint40 maxTime, bool needSetConditionDate) = nft.conditions.getMaxTime();\n\n        Date storage executionDate = nft.executionDate;\n        uint40 startTimestamp = timestamp + 86400 * executionDate.day;\n        uint40 endTimestamp = startTimestamp + 86400; /*1day*/\n        // Require endTimestamp to be greater than or equal to the maximum time in conditions\n        if (maxTime > endTimestamp) {\n            revert InvalidEndTime(endTimestamp, maxTime);\n        }\n        executionDate.setTime(startTimestamp, endTimestamp);\n\n        // If need to set time in Conditions, change the status\n        if (needSetConditionDate) {\n            _changeNFTStatus(nftId, nft, NFTStatus.WAIT_CONDITION_DATE);\n        } else {\n            // Otherwise create NFT directly\n            _createNFT(nftId, nft);\n        }\n\n        emit SetExecutionStartTimestamp(nftId, startTimestamp, endTimestamp);\n    }",
+  "related_context": "_getNFTStorage ->     function _getNFTStorage() internal pure returns (NFTStorage storage $) {\n        assembly {\n            $.slot := NFT_STORAGE_LOCATION\n        }\n    }\n\ngetMaxTime ->     function getMaxTime(NFTCondition[] storage conditions)\n        internal\n        view\n        returns (uint40 maxTime, bool needSetConditionDate)\n    {\n        uint256 conditionsLength = conditions.length;\n        for (uint256 i = 0; i < conditionsLength;) {\n            uint40 endTimestamp = conditions[i].date.endTime;\n            if (endTimestamp != 0) {\n                maxTime = endTimestamp > maxTime ? endTimestamp : maxTime;\n            } else {\n                needSetConditionDate = true;\n            }\n            unchecked {\n                i++;\n            }\n        }\n        return (maxTime, needSetConditionDate);\n    }\n\nsetTime ->     function setTime(Date storage date, uint40 startTimestamp, uint40 endTimestamp) internal {\n        date.startTime = startTimestamp;\n        date.endTime = endTimestamp;\n    }\n\n_changeNFTStatus ->     function _changeNFTStatus(uint256 nftId, NFTMetadata storage nft, NFTStatus status) private {\n        NFTStatus preStatus = nft.status;\n        if (preStatus == status) {\n            return;\n        }\n        nft.status = status;\n        emit NFTStatusChanged(nftId, status, preStatus);\n    }\n\n_createNFT ->     function _createNFT(uint256 nftId, NFTMetadata storage nft) private {\n        _changeNFTStatus(nftId, nft, NFTStatus.CREATED);\n        nft.nftCreatedAt = uint40(block.timestamp);\n        _swap(nft.sender, nft.partyA, nftId, nft.amount);\n        _updateTotalHold(nftId, nft.partyA, nft.amount, true);\n    }",
+  "related_checklist": null,
+  "related_pid": "b619bc20-116e-11f0-85f2-afceaa02a7b6",
+  "related_commit_id": "54b12f25ff139912cbddcc316c940624a64687cf",
+  "triage_verdict": "valid",
+  "triage_severity": "",
+  "triage_reason": "",
+  "is_main_finding": true
+}

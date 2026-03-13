@@ -1,0 +1,18 @@
+dotenv: .env
+wallets: 
+  from_key: 0x648f918316aa48e2cf1e487dd0b77c9e01bf2a7b081a447f7bcea27ea102779e
+dependencies:
+  # -  <organization/repo>@<version>
+  - OpenZeppelin/openzeppelin-contracts@4.6.0
+  - smartcontractkit/chainlink-brownie-contracts@0.4.1
+compiler:
+  solc:
+    remappings:
+      - '@openzeppelin=OpenZeppelin/openzeppelin-contracts@4.6.0'
+      - '@chainlink=smartcontractkit/chainlink-brownie-contracts@0.4.1'
+reports:
+    exclude_contracts:
+        - ERC721A
+        - SkyFalls
+        - Index
+        - ERC721ABurnable

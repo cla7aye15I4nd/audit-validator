@@ -1,0 +1,14 @@
+#include "storage.fc";
+#include "../common/stdlib.fc";
+#include "../common/dic.fc";
+
+(int, int) get_receipt_info(int target_chain_id) method_id {
+    load_storage();
+    (var receipt_info, var found) = storage::receipt_info_dic.udict_get?(CHAIN_ID_KEY_LENGTH, target_chain_id);
+    if (found) {
+        var total_amount = receipt_info~load_uint(256);
+        var index = receipt_info~load_uint(256);
+        return (total_amount, index);
+    }
+    return (0, 0);
+}

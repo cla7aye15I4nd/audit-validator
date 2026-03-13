@@ -1,0 +1,277 @@
+[
+	{
+		"inputs": [
+			{
+				"components": [
+					{
+						"internalType": "address",
+						"name": "emergencyManagementFacet",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "feeManagementFacet",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "interestRateModelFacet",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "lendingPoolFacet",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "priceOracleFacet",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "marginAccountsFacet",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "marginTradingFacet",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "roleManagementFacet",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "tokenRegistryFacet",
+						"type": "address"
+					}
+				],
+				"internalType": "struct KoyoDex.FacetAddresses",
+				"name": "_facetAddresses",
+				"type": "tuple"
+			},
+			{
+				"components": [
+					{
+						"internalType": "uint256",
+						"name": "tradingFeeBasisPoints",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "borrowingFeeBasisPoints",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "lendingFeeBasisPoints",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "feeRecipient",
+						"type": "address"
+					},
+					{
+						"internalType": "contract IERC20",
+						"name": "feeToken",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "shibaSwapRouterAddress",
+						"type": "address"
+					}
+				],
+				"internalType": "struct KoyoDex.FeeManagementParams",
+				"name": "_feeParams",
+				"type": "tuple"
+			},
+			{
+				"components": [
+					{
+						"internalType": "uint256",
+						"name": "baseRatePerYear",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "multiplierPerYear",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "compoundingFrequency",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct KoyoDex.InterestRateParams",
+				"name": "_interestParams",
+				"type": "tuple"
+			},
+			{
+				"components": [
+					{
+						"internalType": "address",
+						"name": "router",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "xfund",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "dataProvider",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "fee",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct KoyoDex.OracleParams",
+				"name": "_oracleParams",
+				"type": "tuple"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"stateMutability": "payable",
+		"type": "fallback"
+	},
+	{
+		"inputs": [
+			{
+				"components": [
+					{
+						"internalType": "address",
+						"name": "target",
+						"type": "address"
+					},
+					{
+						"internalType": "enum IDiamondCut.FacetCutAction",
+						"name": "action",
+						"type": "uint8"
+					},
+					{
+						"internalType": "bytes4[]",
+						"name": "functionSelectors",
+						"type": "bytes4[]"
+					}
+				],
+				"internalType": "struct IDiamondCut.FacetCut[]",
+				"name": "_diamondCut",
+				"type": "tuple[]"
+			},
+			{
+				"internalType": "address",
+				"name": "_init",
+				"type": "address"
+			},
+			{
+				"internalType": "bytes",
+				"name": "_calldata",
+				"type": "bytes"
+			}
+		],
+		"name": "diamondCut",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes4",
+				"name": "_functionSelector",
+				"type": "bytes4"
+			}
+		],
+		"name": "facetAddress",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "facetAddresses",
+		"outputs": [
+			{
+				"internalType": "address[]",
+				"name": "",
+				"type": "address[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_facet",
+				"type": "address"
+			}
+		],
+		"name": "facetFunctionSelectors",
+		"outputs": [
+			{
+				"internalType": "bytes4[]",
+				"name": "",
+				"type": "bytes4[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "facets",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "address",
+						"name": "facetAddress",
+						"type": "address"
+					},
+					{
+						"internalType": "bytes4[]",
+						"name": "functionSelectors",
+						"type": "bytes4[]"
+					}
+				],
+				"internalType": "struct IDiamondLoupe.Facet[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "initializeFacets",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"stateMutability": "payable",
+		"type": "receive"
+	}
+]

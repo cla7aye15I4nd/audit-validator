@@ -1,0 +1,244 @@
+// protoc -I proto/tunnelapi -I $GOPATH/src/github.com/googleapis/googleapis --go_out proto/tunnelapi --go_opt paths=source_relative --go-grpc_out proto/tunnelapi --go-grpc_opt paths=source_relative --grpc-gateway_out proto/tunnelapi --grpc-gateway_opt logtostderr=true --grpc-gateway_opt paths=source_relative proto/tunnelapi/tunnelapi.proto
+
+syntax = "proto3";
+
+option go_package = "gitlab.weinvent.org/yangchenzhong/dogelayer-tunnel/proto/tunnelapi/tunnelapi";
+package tunnelapi;
+
+import "google/api/annotations.proto";
+
+// The Tunnel service definition.
+service TunnelAPI {
+    // get info of tunnel
+    rpc GetTunnelInfo (TunnelInfoRequest) returns (TunnelInfoReply) {
+        option (google.api.http) = {
+          get: "/v1/info"
+        };
+    }
+
+    // get networks
+    rpc GetNetworks (NetworksRequest) returns (NetworksReply) {
+        option (google.api.http) = {
+            get: "/v1/networks"
+        };
+    }
+
+    // get pairs
+    rpc GetPairs (PairsRequest) returns (PairsReply) {
+        option (google.api.http) = {
+            get: "/v1/pairs"
+        };
+    }
+
+    // get bridges
+    rpc GetBridges (BridgesRequest) returns (BridgesReply) {
+        option (google.api.http) = {
+            get: "/v1/bridges"
+        };
+    }
+
+    // get account info
+    rpc GetAccountInfo (AccountInfoRequest) returns (AccountInfoReply) {
+        option (google.api.http) = {
+          get: "/v1/account"
+        };
+    }
+
+    // get tunnel history, filter by account
+    rpc GetTunnelHistory (HistoryRequest) returns (HistoryReply) {
+        option (google.api.http) = {
+          get: "/v1/history"
+        };
+    }
+}
+
+message TunnelInfoRequest {
+}
+
+message TunnelInfoReply {
+    string status = 1;
+    bool swap_enabled = 2 [json_name = "swap_enabled"];
+}
+
+message AccountInfoRequest {
+    string recipient_address = 1 [json_name = "recipient_address"];
+    string recipient_blockchain = 2 [json_name = "recipient_blockchain"];
+    string deposit_blockchain = 3 [json_name = "deposit_blockchain"];
+    bool enable_swap = 4 [json_name = "enable_swap"];
+}
+
+message AccountInfoReply {
+    string recipient_address = 1 [json_name = "recipient_address"];
+    string recipient_blockchain = 2 [json_name = "recipient_blockchain"];
+    string deposit_address = 3 [json_name = "deposit_address"];
+    string deposit_blockchain = 4 [json_name = "deposit_blockchain"];
+    bool enable_swap = 5 [json_name = "enable_swap"];
+}
+
+message PairsRequest {
+
+}
+
+message Asset {
+    uint64 id = 1;
+    string asset = 2;
+    string name = 3;
+    string symbol = 4;
+    uint32 decimals = 5;
+    string asset_type = 6 [json_name = "asset_type"]; // Coin, ERC20, NRC6
+    string network = 7 [json_name = "network"];
+    string chain_id = 8 [json_name = "chain_id"];
+    string base_chain = 9 [json_name = "base_chain"];
+    string slug = 10;
+}
+
+message Pair {
+    uint64 id = 1;
+    uint64 asset_a_id = 2 [json_name = "asset_a_id"];
+    uint64 asset_b_id = 3 [json_name = "asset_b_id"];
+    Asset asset_a = 4 [json_name = "asset_a"];
+    Asset asset_b = 5 [json_name = "asset_b"];
+    string a2b_min_deposit_amount = 6 [json_name = "a2b_min_deposit_amount"];
+    string b2a_min_deposit_amount = 7 [json_name = "b2a_min_deposit_amount"];
+    string a2b_fee_percent = 8 [json_name = "a2b_fee_percent"];
+    string b2a_fee_percent = 9 [json_name = "b2a_fee_percent"];
+    string a2b_fee_min_amount = 10 [json_name = "a2b_fee_min_amount"];
+    string b2a_fee_min_amount = 11 [json_name = "b2a_fee_min_amount"];
+    string a2b_auto_confirm_deposit_amount = 12 [json_name = "a2b_auto_confirm_deposit_amount"];
+    string b2a_auto_confirm_deposit_amount = 13 [json_name = "b2a_auto_confirm_deposit_amount"];
+    string bridge_pair = 14 [json_name = "bridge_pair"];
+    bool a2b_enable_swap = 15 [json_name = "a2b_enable_swap"];
+    bool b2a_enable_swap = 16 [json_name = "b2a_enable_swap"];
+    string a2b_swap_amount = 17 [json_name = "a2b_swap_amount"];
+    string b2a_swap_amount = 18 [json_name = "b2a_swap_amount"];
+    bool a2b_disabled = 19 [json_name = "a2b_disabled"];
+    bool b2a_disabled = 20 [json_name = "b2a_disabled"];
+}
+
+message PairsReply {
+    repeated Pair pairs = 1;
+}
+
+message HistoryRequest {
+    uint64 page_id = 1 [json_name = "page_id"];
+    uint64 page_size = 2 [json_name = "page_size"];
+
+    string source_address = 3 [json_name = "source_deposit_address"];
+    string source_sender = 4 [json_name = "source_sender"];
+    string source_blockchain = 5 [json_name = "source_blockchain"];
+    string source_asset_id = 6 [json_name = "source_asset_id"];
+
+    string destination_address = 7 [json_name = "destination_address"];
+    string destination_blockchain  = 8 [json_name = "destination_blockchain"];
+    string destination_asset_id = 9 [json_name = "destination_asset_id"];
+
+    string pair_id = 10 [json_name = "pair_id"];
+
+    string status = 11 [json_name = "status"];
+}
+
+message History {
+    uint64 id = 1;
+    uint64 pair_id = 2 [json_name = "pair_id"];
+
+    string source_slug  = 3 [json_name = "source_slug"];
+    string source_network = 4 [json_name = "source_network"];
+    string source_chain_id = 5 [json_name = "source_chain_id"];
+    string source_base_chain = 6 [json_name = "source_base_chain"];
+    string destination_slug  = 7 [json_name = "destination_slug"];
+    string destination_network = 8 [json_name = "destination_network"];
+    string destination_chain_id = 9 [json_name = "destination_chain_id"];
+    string destination_base_chain = 10 [json_name = "destination_base_chain"];
+
+    string source_address = 11 [json_name = "source_deposit_address"];
+    string source_sender = 12 [json_name = "source_sender"];
+    string destination_address = 13 [json_name = "destination_address"];
+
+    uint64 source_block_number = 14 [json_name = "source_block_number"];
+    uint64 destination_block_number = 15 [json_name = "destination_block_number"];
+    int64 source_block_timestamp = 16 [json_name = "source_block_timestamp"];
+    int64 destination_block_timestamp = 17 [json_name = "destination_block_timestamp"];
+    string source_tx_hash = 18 [json_name = "source_tx_hash"];
+    string destination_tx_hash = 19 [json_name = "destination_tx_hash"];
+
+    uint64 source_asset_id = 20 [json_name = "source_asset_id"];
+    string source_asset_address = 21 [json_name = "source_asset_address"];
+    string source_asset_name = 22 [json_name = "source_asset_name"];
+    string source_asset_symbol = 23 [json_name = "source_asset_symbol"];
+    uint32 source_asset_decimals = 24 [json_name = "source_asset_decimals"];
+    string source_asset_type = 25 [json_name = "source_asset_type"];
+
+    uint64 destination_asset_id = 26 [json_name = "destination_asset_id"];
+    string destination_asset_address = 27 [json_name = "destination_asset_address"];
+    string destination_asset_name = 28 [json_name = "destination_asset_name"];
+    string destination_asset_symbol = 29 [json_name = "destination_asset_symbol"];
+    uint32 destination_asset_decimals = 30 [json_name = "destination_asset_decimals"];
+    string destination_asset_type = 31 [json_name = "destination_asset_type"];
+
+    string source_amount = 32 [json_name = "source_amount"];
+    string destination_amount = 33 [json_name = "destination_amount"];
+    string fee = 34; // fee = amount_requested - amount_fulfilled
+
+    string status = 35;
+    string status_message = 36  [json_name = "status_message"]; // TODO:
+
+    string swap_amount_used = 37 [json_name = "swap_amount_used"];
+    string swap_amount = 38 [json_name = "swap_amount"];
+    uint64 swap_asset_id = 39 [json_name = "swap_asset_id"];
+    string swap_asset_address = 40 [json_name = "swap_asset_address"];
+    string swap_asset_name = 41 [json_name = "swap_asset_name"];
+    string swap_asset_symbol = 42 [json_name = "swap_asset_symbol"];
+    uint32 swap_asset_decimals = 43 [json_name = "swap_asset_decimals"];
+    string swap_asset_type = 44 [json_name = "swap_asset_type"];
+    uint64 swap_block_number = 45 [json_name = "swap_block_number"];
+    int64 swap_block_timestamp = 46 [json_name = "swap_block_timestamp"];
+    string swap_tx_hash = 47 [json_name = "swap_tx_hash"];
+}
+
+message HistoryReply {
+    uint64 page_id = 1 [json_name = "page_id"];
+    uint64 page_size = 2 [json_name = "page_size"];
+    uint64 total_page = 3 [json_name = "total_page"];
+    uint64 total_history = 4 [json_name = "total_history"];
+    repeated History list = 5;
+
+    string source_address = 6 [json_name = "source_deposit_address"];
+    string source_sender = 7 [json_name = "source_sender"];
+    string source_blockchain = 8 [json_name = "source_blockchain"];
+    string source_asset_id = 9 [json_name = "source_asset_id"];
+
+    string destination_address = 10 [json_name = "destination_address"];
+    string destination_blockchain  = 11 [json_name = "destination_blockchain"];
+    string destination_asset_id = 12 [json_name = "destination_asset_id"];
+
+    string pair_id = 13;
+
+    string status = 14 [json_name = "status"];
+}
+
+message BridgesRequest {
+}
+
+message Blockchain {
+    string network = 1;
+    string chain_id = 2 [json_name = "chain_id"];
+    string base_chain = 3  [json_name = "base_chain"];
+    string slug = 4;
+}
+
+message BridgePairs {
+    Blockchain bc1 = 1;
+    Blockchain bc2 = 2;
+}
+
+message BridgesReply {
+    repeated BridgePairs bridges = 1;
+}
+
+message NetworksRequest {
+
+}
+
+message NetworksReply {
+    repeated Blockchain networks = 1;
+}

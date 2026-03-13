@@ -1,0 +1,75 @@
+name: ci
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }} # add concurrency
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        ci_step: [
+          "lint",
+          "test",
+          "test-fuzz",
+          "integration tests coreum-modules",
+          "integration tests coreum-stress",
+          "integration tests coreum-ibc",
+          "integration tests coreum-upgrade-v4.0.0",
+        ]
+        include:
+          - ci_step: "lint"
+            command: make lint
+            codecov: false
+          - ci_step: "test"
+            command: make test
+            codecov: true
+            codecov-name: coreum
+          - ci_step: "test-fuzz"
+            command: make test-fuzz
+            codecov: false
+          - ci_step: "integration tests coreum-modules"
+            command: make integration-tests-modules
+            codecov: true
+            codecov-name: coreum-integration-tests-modules
+          - ci_step: "integration tests coreum-stress"
+            command: make integration-tests-stress
+            codecov: false
+          - ci_step: "integration tests coreum-ibc"
+            command: make integration-tests-ibc
+            codecov: false
+          - ci_step: "integration tests coreum-upgrade-v4.0.0"
+            command: make integration-tests-upgrade
+            codecov: false
+
+    runs-on: self-hosted
+    steps:
+      - name: Go version used to build builder
+        run: go version
+      - name: Checkout coreum
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Run ${{ matrix.ci_step }}
+        run: ${{ matrix.command }}
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ${{ github.workspace }}/coverage/${{ matrix.codecov-name }}
+          flags: ${{ matrix.codecov-name }}
+          fail_ci_if_error: true
+          verbose: true
+        if: ${{ matrix.codecov }}
+      - name: Dump docker logs on failure
+        if: failure()
+        uses: jwalton/gh-docker-logs@v2
+

@@ -1,0 +1,23 @@
+#include "../common/dic.fc";
+#include "../common/stdlib.fc";
+#include "../common/utils.fc";
+#include "storage.fc";
+#include "op.fc";
+;; handle onchain 'get' calls
+
+(int) handle_getter_messages(int op, int query_id, slice sender_address, slice in_msg_body) impure inline {
+    raw_reserve(0, 4);
+
+    if (op == getter_swap_data) { 
+        slice swap_id = in_msg_body~load_bits(256);
+        (slice swap_info,var found) = storage::swap_dic.dict_get?(256,swap_id);
+        if (found) {
+            (var from_chain_id,var orgin_share,var target_share,var swapped_amount,var swapped_times) = 
+                (swap_info~load_uint(32),swap_info~load_uint(64),swap_info~load_uint(64),swap_info~load_uint(256),swap_info~load_uint(256));
+            send_payload(sender_address, begin_cell().store_uint(from_chain_id,32).store_uint(orgin_share,64).store_uint(target_share,64).store_uint(swapped_amount,256).store_uint(swapped_times,256).end_cell());
+        }       
+        return (true);
+    }
+    
+    return (false); ;; wrong op
+}

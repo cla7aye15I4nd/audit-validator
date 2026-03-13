@@ -1,0 +1,29 @@
+{
+  "id": "0a04",
+  "title": "tryGetOwnSnap can revert on uninitialized Emap, breaking \"empty if not found\" behavior (e.g., querying non-existent proposal pid)",
+  "source": "aiflow_scanner_codex",
+  "status": "enhanced",
+  "category": null,
+  "location": {
+    "end_line": 1,
+    "start_line": 1,
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/7b519e30-d10a-11f0-a5a1-c38d49d0912c/source?file=$/github/GigaStarIo-public/vault-audit/0b8edde27935e70ed3decbb30508bde926edf57c/bd/bc-contract/contract/v1_0/LibraryOI.sol",
+    "local_file_path": "./src/bd/bc-contract/contract/v1_0/LibraryOI.sol"
+  },
+  "scenario": "",
+  "sequence": 383,
+  "severity": "info",
+  "confidence": null,
+  "description": "OI.tryGetOwnSnap reads `iPoolRefs = emap.idxNameDate[instNameKey][earnDate]` and then unconditionally indexes `emap.poolRefs[iPoolRefs]`. If the `Emap` was never initialized via `Emap_init` (so `poolRefs.length == 0`), `iPoolRefs` will be 0 and `emap.poolRefs[0]` reverts (out-of-bounds), contradicting the function\u2019s intent/comment of returning an empty/sentinel snapshot when not found.\n\nThis condition is reachable from RevMgr getters when querying a proposal `pid` that does not exist: `_proposals[pid].ownSnaps` is a default (uninitialized) `Emap`, so `getOwnInfo/getOwnInfosLen/getOwnInfos` can unexpectedly revert instead of returning empty data.\n\nFix: guard before indexing `poolRefs`, e.g. `if (iPoolRefs == SENTINEL_INDEX || emap.poolRefs.length == 0) return pool.ownSnaps[0];` (or return `(OwnSnap storage, bool found)` and have callers handle `found`).",
+  "related_pid": "7b519e30-d10a-11f0-a5a1-c38d49d0912c",
+  "triage_reason": null,
+  "recommendation": "- Add a guard in OI.tryGetOwnSnap before indexing poolRefs: if the computed index is the sentinel or poolRefs is empty/uninitialized, return the sentinel snapshot instead of indexing.\n- Alternatively, change the function to return (snapshot, found) and require callers to handle the not-found case without indexing.\n- Update RevMgr getters (getOwnInfo/getOwnInfosLen/getOwnInfos) to rely on the guarded/boolean-return behavior so that queries for non-existent pids return empty results rather than reverting.\n- Ensure ownSnaps[0] is a reserved sentinel entry that always exists and is never overwritten; initialize it during deployment or pool creation.\n- Document the \u201cempty if not found\u201d behavior and add tests for uninitialized Emap and non-existent pid queries.",
+  "triage_verdict": "valid",
+  "related_context": null,
+  "scan_model_name": null,
+  "triage_severity": null,
+  "proof_of_concept": null,
+  "related_checklist": null,
+  "related_commit_id": "0b8edde27935e70ed3decbb30508bde926edf57c",
+  "related_function_code": "function tryGetOwnSnap(Emap storage emap, bytes32 instNameKey, uint earnDate, OwnSnapPool storage pool)\n        internal view returns(OwnSnap storage ownSnap)\n    {\n        uint iPoolRefs = emap.idxNameDate[instNameKey][earnDate];\n        return pool.ownSnaps[emap.poolRefs[iPoolRefs].poolId]; // Sentinel value if not found\n    }"
+}

@@ -1,0 +1,34 @@
+{
+  "title": "Uninitialized destroyIndex in newbie mode causes first card to be skipped and locked",
+  "location": {
+    "local_file_path": "./src/projects/anome 2/game/settle/GameSettlerInternal.sol",
+    "acc_file_path": "https://acc.audit.certikpowered.info/project/e3c45370-51aa-11f0-bdd0-cbef849456d3/source?file=$/github/CertiKProject/certik-audit-projects/2a2826fcbafb5bed23f57406cc61e71a3ccffcf2/projects/anome 2/game/settle/GameSettlerInternal.sol",
+    "start_line": 105,
+    "end_line": 143
+  },
+  "all_locations": null,
+  "category": null,
+  "severity": null,
+  "confidence": null,
+  "description": "In the _distributeCards function, the destroyIndex parameter is used to identify which card to treat as \u201cdestroyed\u201d and skip distribution. However, when settling a _newbie_ room, destroyIndex is never initialized (it remains at its default value 0). This causes the card at index 0 in room.allCards to be falsely treated as destroyed:\n\n\u2022 At i==0 the code executes the \u201cdestroy\u201d branch, adding that card\u2019s price to result.destroyValue and then continues, without ever transferring or crediting the NFT.\n\u2022 No actual destruction takes place in newbie mode (shop.destroyCard is never called), so the card is left stuck in the game contract.\n\nExploit Demonstration (confirming the bug in a test scenario):\n1. Create or join a room with roomType==NEWBIE.\n2. As the first player, submit the NFT you wish to test as your first card\u2014this ensures it occupies room.allCards[0].\n3. Both players play normally; finish the match, making the first player (who owns index 0) the winner.\n4. After settlement, observe:\n   \u2013 result.destroyValue equals the price of the card at index 0, even though no destroy occurred.\n   \u2013 The NFT originally at room.allCards[0] is not transferred back to its owner and remains in the contract.\n5. All other cards are correctly transferred to the winner, but the first card is irrevocably locked.\n\nBy reproducing these steps an auditor can confirm that in newbie games the very first card is never distributed, nor destroyed, and ends up permanently trapped in the contract\u2019s storage.",
+  "scenario": null,
+  "proof_of_concept": null,
+  "recommendation": null,
+  "id": "ccc3",
+  "duplicates": [
+    "ccc3",
+    "0a40"
+  ],
+  "source": "scanner.smart_audit",
+  "status": "verified_as_valid",
+  "scan_model_name": "o4-mini",
+  "related_function_code": "function _distributeCards(\n        SettlementResult memory result,\n        GameTypes.Room storage room,\n        IShop shop,\n        address winner,\n        uint8 destroyIndex\n    ) private returns (SettlementResult memory) {\n        GameStorage.Layout storage layout = GameStorage.layout();\n        result.winnerCards = new address[](GameStorage.PLAYER_CARD_COUNT);\n        uint256 winnerCardsIndex = 0;\n        result.loserCards = new address[](GameStorage.PLAYER_CARD_COUNT);\n        uint256 loserCardsIndex = 0;\n\n        for (uint i = 0; i < room.allCards.length; i++) {\n            if (room.allCards[i].card == address(0)) {\n                continue;\n            }\n\n            if (i == destroyIndex) {\n                result.destroyValue += shop.getPriceByAddress(room.allCards[i].card);\n                continue;\n            } else {\n                if (room.allCards[i].originalOwner == winner) {\n                    result.winnerCards[winnerCardsIndex++] = room.allCards[i].card;\n                } else {\n                    result.loserCards[loserCardsIndex++] = room.allCards[i].card;\n                }\n\n                ICard card = ICard(room.allCards[i].card);\n                if (room.allCards[i].cardTransferType == GameTypes.CardTransferType.USER) {\n                    card.transfer(winner, card.getUnit());\n                } else {\n                    layout.managedCardBalance[winner][address(card)] += card.getUnit();\n                }\n            }\n        }\n\n        return result;\n    }",
+  "related_context": "layout ->     function layout() internal pure returns (Layout storage l) {\n        bytes32 slot = STORAGE_SLOT;\n        assembly {\n            l.slot := slot\n        }\n    }\n\ngetPriceByAddress -> None\n\ngetUnit ->     function getUnit() external view returns (uint256);",
+  "related_checklist": null,
+  "related_pid": "e3c45370-51aa-11f0-bdd0-cbef849456d3",
+  "related_commit_id": "2a2826fcbafb5bed23f57406cc61e71a3ccffcf2",
+  "triage_verdict": "valid",
+  "triage_severity": "",
+  "triage_reason": "Valid finding",
+  "is_main_finding": true
+}

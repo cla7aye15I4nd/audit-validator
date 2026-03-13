@@ -1,0 +1,51 @@
+(env-enable-repl-natives true)
+
+(begin-tx "init-issuer test with Governance")
+    (env-data {
+    "ns": "sushi",
+    "admin-keyset": {"keys": ["admin-public-key"], "pred": "keys-all"}
+    })
+    (namespace (read-msg "ns"))
+    (use base)
+    (acquire-module-admin sushi-exchange-tokens)
+    (expect "init-issuer should succeed when using admin's keyset"
+        "Write succeeded"
+        (sushi-exchange-tokens.init-issuer base.ADMIN_GUARD))
+(commit-tx)
+
+(begin-tx "init-issuer")
+    (env-data {
+    "ns": "sushi",
+    "admin-keyset": {"keys": ["admin-public-key"], "pred": "keys-all"}
+    })
+    (namespace (read-msg "ns"))
+    (use base)
+    (env-sigs [{"key": 'any, "caps": []}])
+    (expect-failure "init-issuer should fail when using alice's keyset"
+        "Keyset failure (keys-all): [admin-pu...]"
+        (sushi-exchange-tokens.init-issuer base.ADMIN_GUARD))
+
+    (env-sigs [{"key": "admin-public-key", "caps": []}])
+    (expect "init-issuer should succeed when using admin's keyset"
+        "Write succeeded"
+        (sushi-exchange-tokens.override-issuer base.ADMIN_GUARD))
+(commit-tx)
+
+
+(begin-tx "override-issuer")
+    (env-data {
+    "ns": "sushi",
+    "admin-keyset": {"keys": ["admin-public-key"], "pred": "keys-all"}
+    })
+    (namespace (read-msg "ns"))
+    (use base)
+    (env-sigs [{"key": 'any, "caps": []}])
+    (expect-failure "override-issuer should fail when using alice's keyset"
+        "Keyset failure (keys-all): [admin-pu...]"
+        (sushi-exchange-tokens.override-issuer base.ADMIN_GUARD))
+
+    (env-sigs [{"key": "admin-public-key", "caps": []}])
+    (expect "override-issuer should succeed when using admin's keyset"
+        "Write succeeded"
+        (sushi-exchange-tokens.override-issuer base.ADMIN_GUARD))
+(commit-tx)
