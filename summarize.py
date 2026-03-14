@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Summarize validation results as a confusion matrix."""
 
+import csv
 import json
 import sys
 from pathlib import Path
 
 def main():
+    output_path = Path(__file__).parent / "summary.csv"
     dataset_dir = Path(__file__).parent / "dataset"
     if not dataset_dir.exists():
         print(f"Dataset directory not found: {dataset_dir}")
@@ -25,8 +27,27 @@ def main():
     tp_as_fp = 0  # real=TP, predicted=invalid (miss)
     fp_as_tp = 0  # real=FP, predicted=valid (miss)
     fp_as_fp = 0  # real=FP, predicted=invalid (correct)
+    csv_rows = []
 
-    for result_file in dataset_dir.rglob("*.result.json"):
+    for result_file in sorted(dataset_dir.rglob("*.result.json")):
+        project = result_file.parent.relative_to(dataset_dir).parts[0]
+
+        try:
+            data = json.loads(result_file.read_text())
+        except (json.JSONDecodeError, OSError):
+            continue
+
+        finding_id = data.get("finding_id") or result_file.stem.replace(".result", "")
+        predicted_valid = data.get("is_valid")
+        result = "valid" if predicted_valid is True else "invalid" if predicted_valid is False else ""
+        csv_rows.append(
+            {
+                "project": project,
+                "finding id": finding_id,
+                "result": result,
+            }
+        )
+
         # Look up label from labels.json by relative path
         finding_name = result_file.name.replace(".result.json", ".json")
         rel_path = str(result_file.parent.relative_to(dataset_dir) / finding_name)
@@ -46,13 +67,6 @@ def main():
         is_tp = label == "tp"
         is_fp = label == "fp"
 
-        try:
-            data = json.loads(result_file.read_text())
-        except (json.JSONDecodeError, OSError):
-            continue
-
-        predicted_valid = data.get("is_valid")
-
         if is_tp and predicted_valid is True:
             tp_as_tp += 1
         elif is_tp and predicted_valid is False:
@@ -64,27 +78,39 @@ def main():
 
     total = tp_as_tp + tp_as_fp + fp_as_tp + fp_as_fp
 
-    print()
-    print("                  Confusion Matrix")
-    print()
-    print("                        Real Label")
-    print("                  TP (valid)   FP (invalid)")
-    print("                ┌────────────┬────────────┐")
-    print(f"  Predicted  TP │ {tp_as_tp:>6}     │ {fp_as_tp:>6}     │")
-    print(f"  (is_valid) ── │  (hit)     │  (miss)    │")
-    print("                ├────────────┼────────────┤")
-    print(f"             FP │ {tp_as_fp:>6}     │ {fp_as_fp:>6}     │")
-    print(f"             ── │  (miss)    │  (hit)     │")
-    print("                └────────────┴────────────┘")
-    print()
-    accuracy = (tp_as_tp + fp_as_fp) / total * 100
-    precision = tp_as_tp / (tp_as_tp + fp_as_tp) * 100 if (tp_as_tp + fp_as_tp) else 0
-    recall = tp_as_tp / (tp_as_tp + tp_as_fp) * 100 if (tp_as_tp + tp_as_fp) else 0
+    with output_path.open("w", newline="") as output_file:
+        writer = csv.DictWriter(
+            output_file,
+            fieldnames=["project", "finding id", "result"],
+            lineterminator="\n",
+        )
+        writer.writeheader()
+        writer.writerows(csv_rows)
 
-    print(f"  Total: {total}    Accuracy:  {accuracy:.1f}%")
-    print(f"                Precision: {precision:.1f}%")
-    print(f"                Recall:    {recall:.1f}%")
-    print()
+    print(f"CSV written to: {output_path}")
+
+    if total:
+        print()
+        print("                  Confusion Matrix")
+        print()
+        print("                        Real Label")
+        print("                  TP (valid)   FP (invalid)")
+        print("                ┌────────────┬────────────┐")
+        print(f"  Predicted  TP │ {tp_as_tp:>6}     │ {fp_as_tp:>6}     │")
+        print(f"  (is_valid) ── │  (hit)     │  (miss)    │")
+        print("                ├────────────┼────────────┤")
+        print(f"             FP │ {tp_as_fp:>6}     │ {fp_as_fp:>6}     │")
+        print(f"             ── │  (miss)    │  (hit)     │")
+        print("                └────────────┴────────────┘")
+        print()
+        accuracy = (tp_as_tp + fp_as_fp) / total * 100
+        precision = tp_as_tp / (tp_as_tp + fp_as_tp) * 100 if (tp_as_tp + fp_as_tp) else 0
+        recall = tp_as_tp / (tp_as_tp + tp_as_fp) * 100 if (tp_as_tp + tp_as_fp) else 0
+
+        print(f"  Total: {total}    Accuracy:  {accuracy:.1f}%")
+        print(f"                Precision: {precision:.1f}%")
+        print(f"                Recall:    {recall:.1f}%")
+        print()
 
 if __name__ == "__main__":
     main()
